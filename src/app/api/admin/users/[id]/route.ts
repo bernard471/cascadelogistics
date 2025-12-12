@@ -1,0 +1,95 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+import type { User } from "@/models/User";
+
+// PATCH - Update user status/details (Admin only)
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+    
+    const client = await clientPromise;
+    const db = client.db("guangzhou");
+    const usersCollection = db.collection<User>("users");
+
+    // Don't allow updating password or role via this endpoint (use separate endpoints)
+    const {  ...updateData } = body;
+    
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(id) as unknown as string },
+      { 
+        $set: { 
+          ...updateData, 
+          updatedAt: new Date() 
+        } 
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("PATCH user error:", error);
+    return NextResponse.json(
+      { error: "Failed to update user" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Delete user (Admin only)
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    
+    const client = await clientPromise;
+    const db = client.db("guangzhou");
+    const usersCollection = db.collection<User>("users");
+
+    // Don't allow deleting admin users
+    const user = await usersCollection.findOne({ _id: new ObjectId(id) as unknown as string });
+    if (user?.role === 'admin') {
+      return NextResponse.json(
+        { error: "Cannot delete admin users" },
+        { status: 403 }
+      );
+    }
+
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) as unknown as string });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("DELETE user error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete user" },
+      { status: 500 }
+    );
+  }
+}
+

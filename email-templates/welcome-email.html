@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Welcome to Guangzhou Swift Logistics</title>
+  <style>
+    /* Mobile Responsive Styles */
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 15px !important;
+      }
+      
+      .header-title {
+        font-size: 22px !important;
+        line-height: 1.3 !important;
+      }
+      
+      .header-subtitle {
+        font-size: 14px !important;
+      }
+      
+      .welcome-title {
+        font-size: 20px !important;
+      }
+      
+      .welcome-text {
+        font-size: 16px !important;
+      }
+      
+      .section-title {
+        font-size: 18px !important;
+      }
+      
+      .content-box {
+        padding: 15px !important;
+      }
+      
+      .feature-item {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        margin: 10px 0 !important;
+      }
+      
+      .feature-icon {
+        margin-bottom: 5px !important;
+        margin-right: 0 !important;
+      }
+      
+      .cta-button {
+        display: block !important;
+        width: 100% !important;
+        padding: 16px 20px !important;
+        font-size: 16px !important;
+        text-align: center !important;
+      }
+      
+      .contact-info p {
+        font-size: 14px !important;
+        line-height: 1.6 !important;
+        word-break: break-word !important;
+      }
+      
+      .contact-info a {
+        display: block !important;
+        margin-top: 4px !important;
+        word-break: break-all !important;
+      }
+      
+      .social-links {
+        display: block !important;
+        margin: 5px 0 !important;
+      }
+      
+      .social-links a {
+        display: inline-block !important;
+        margin: 5px 5px 5px 0 !important;
+      }
+      
+      .footer-text {
+        font-size: 12px !important;
+      }
+    }
+    
+    /* Prevent auto-linking of phone numbers and emails on iOS */
+    a[href^="tel:"],
+    a[href^="mailto:"] {
+      color: #219ebc !important;
+      text-decoration: none !important;
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 16px; background-color: #f8fafc; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;" class="email-container">
+
+    <!-- Header with Logo -->
+    <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #219ebc">
+      <a style="text-decoration: none; outline: none; color: inherit;" href="{{login_url}}" target="_blank">
+        <div style="font-size: 28px; font-weight: bold; color: #219ebc; margin-bottom: 8px; line-height: 1.2;" class="header-title">
+          🚢 Guangzhou Swift Logistics
+        </div>
+        <div style="color: #666; font-size: 16px; line-height: 1.4;" class="header-subtitle">Connecting Possibilities, Delivering Excellence</div>
+      </a>
+    </div>
+
+    <!-- Welcome Message -->
+    <div style="text-align: center; margin-bottom: 30px">
+      <h1 style="color: #219ebc; font-size: 24px; margin: 0 0 16px 0; line-height: 1.3;" class="welcome-title">
+        Welcome aboard, {{first_name}}! 🎉
+      </h1>
+      <p style="font-size: 18px; color: #333; margin: 0 0 20px 0; line-height: 1.6;" class="welcome-text">
+        Thank you for choosing Guangzhou Swift Logistics and Trading Company! We're excited to have you as part of our growing community of satisfied customers and look forward to providing you with exceptional logistics services.
+      </p>
+    </div>
+
+    <!-- Account Details -->
+    <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; border-left: 4px solid #219ebc; margin-bottom: 30px;" class="content-box">
+      <h3 style="color: #219ebc; margin: 0 0 16px 0; font-size: 20px;" class="section-title">Your Account Details:</h3>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>Username:</strong> {{username}}
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>Email:</strong> {{user_email}}
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>Account Status:</strong> Active ✅
+      </p>
+    </div>
+
+    <!-- Features Section -->
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;" class="content-box">
+      <h3 style="color: #219ebc; margin: 0 0 16px 0; font-size: 20px;" class="section-title">What you can do now:</h3>
+      
+      <div style="margin: 12px 0; display: flex; align-items: flex-start;" class="feature-item">
+        <span style="color: #219ebc; margin-right: 10px; font-weight: bold; font-size: 18px; flex-shrink: 0;" class="feature-icon">🚢</span>
+        <span style="color: #333; font-size: 15px; line-height: 1.5;">Submit and track your sea shipments (35-45 days delivery)</span>
+      </div>
+      
+      <div style="margin: 12px 0; display: flex; align-items: flex-start;" class="feature-item">
+        <span style="color: #219ebc; margin-right: 10px; font-weight: bold; font-size: 18px; flex-shrink: 0;" class="feature-icon">✈️</span>
+        <span style="color: #333; font-size: 15px; line-height: 1.5;">Book express air shipping (2-5 days delivery)</span>
+      </div>
+      
+      <div style="margin: 12px 0; display: flex; align-items: flex-start;" class="feature-item">
+        <span style="color: #219ebc; margin-right: 10px; font-weight: bold; font-size: 18px; flex-shrink: 0;" class="feature-icon">🛒</span>
+        <span style="color: #333; font-size: 15px; line-height: 1.5;">Request procurement and payment services in China</span>
+      </div>
+      
+      <div style="margin: 12px 0; display: flex; align-items: flex-start;" class="feature-item">
+        <span style="color: #219ebc; margin-right: 10px; font-weight: bold; font-size: 18px; flex-shrink: 0;" class="feature-icon">✅</span>
+        <span style="color: #333; font-size: 15px; line-height: 1.5;">Schedule quality checks for your goods</span>
+      </div>
+      
+      <div style="margin: 12px 0; display: flex; align-items: flex-start;" class="feature-item">
+        <span style="color: #219ebc; margin-right: 10px; font-weight: bold; font-size: 18px; flex-shrink: 0;" class="feature-icon">💱</span>
+        <span style="color: #333; font-size: 15px; line-height: 1.5;">Initiate money transfers from Cedis to RMB</span>
+      </div>
+      
+      <div style="margin: 12px 0; display: flex; align-items: flex-start;" class="feature-item">
+        <span style="color: #219ebc; margin-right: 10px; font-weight: bold; font-size: 18px; flex-shrink: 0;" class="feature-icon">📊</span>
+        <span style="color: #333; font-size: 15px; line-height: 1.5;">View your shipment history and track packages</span>
+      </div>
+      
+      <div style="margin: 12px 0; display: flex; align-items: flex-start;" class="feature-item">
+        <span style="color: #219ebc; margin-right: 10px; font-weight: bold; font-size: 18px; flex-shrink: 0;" class="feature-icon">💬</span>
+        <span style="color: #333; font-size: 15px; line-height: 1.5;">Get 24/7 customer support assistance</span>
+      </div>
+    </div>
+
+    <!-- Call to Action Button -->
+    <div style="text-align: center; margin-bottom: 30px">
+      <a
+        style="
+          display: inline-block;
+          text-decoration: none;
+          outline: none;
+          color: #fff;
+          background: linear-gradient(135deg, #219ebc 0%, #023e8a 100%);
+          padding: 15px 30px;
+          border-radius: 8px;
+          font-weight: bold;
+          font-size: 16px;
+          min-width: 200px;
+        "
+        href="{{login_url}}"
+        target="_blank"
+        class="cta-button"
+      >
+        Login to Your Dashboard
+      </a>
+    </div>
+
+    <!-- Contact Information -->
+    <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 30px;" class="content-box">
+      <h3 style="color: #219ebc; margin: 0 0 16px 0; font-size: 20px;" class="section-title">Need Help?</h3>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        Our support team is here to assist you:
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;" class="contact-info">
+        <strong>📧 Email:</strong><br>
+        <a href="mailto:info@guangzhouswiftlogisticscompany.com" style="text-decoration: none; outline: none; color: #219ebc; font-size: 14px; word-break: break-all;">
+          info@guangzhouswiftlogisticscompany.com
+        </a>
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;" class="contact-info">
+        <strong>📧 Alternative Email:</strong><br>
+        <a href="mailto:guangzhouswiftlogistic@gmail.com" style="text-decoration: none; outline: none; color: #219ebc; font-size: 14px; word-break: break-all;">
+          guangzhouswiftlogistic@gmail.com
+        </a>
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;" class="contact-info">
+        <strong>📞 China:</strong> 
+        <a href="tel:+8613260543058" style="text-decoration: none; outline: none; color: #219ebc;">
+          +86 13260543058
+        </a>
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;" class="contact-info">
+        <strong>📞 Ghana:</strong> 
+        <a href="tel:+233248840661" style="text-decoration: none; outline: none; color: #219ebc;">
+          +233 248840661
+        </a>
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;" class="contact-info">
+        <strong>🕒 Hours:</strong> Monday - Friday: 8:00 AM - 6:00 PM<br>
+        Saturday: 9:00 AM - 4:00 PM
+      </p>
+      <p style="margin: 8px 0; color: #333; font-size: 15px; line-height: 1.6;" class="contact-info">
+        <strong>🌐 Social Media:</strong><br>
+        <span class="social-links">
+          <a href="https://web.facebook.com/guangzhouswiftlogistics" style="text-decoration: none; outline: none; color: #219ebc; margin-right: 8px;" target="_blank">Facebook</a>
+          <a href="https://www.instagram.com/guangzhouswiftlogistics/" style="text-decoration: none; outline: none; color: #219ebc; margin-right: 8px;" target="_blank">Instagram</a>
+          <a href="https://www.tiktok.com/@guangzhouswiftlogistics" style="text-decoration: none; outline: none; color: #219ebc;" target="_blank">TikTok</a>
+        </span>
+      </p>
+    </div>
+
+    <!-- Services Overview -->
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;" class="content-box">
+      <h3 style="color: #219ebc; margin: 0 0 16px 0; font-size: 20px;" class="section-title">Our Services:</h3>
+      <div style="margin: 12px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>🚢 Sea Shipping:</strong> From $240/CBM to Accra (35-45 days)
+      </div>
+      <div style="margin: 12px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>✈️ Air Shipping:</strong> From $18/KG (2-7 days)
+      </div>
+      <div style="margin: 12px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>⚡ Express Air:</strong> From $18/KG (2-5 days)
+      </div>
+      <div style="margin: 12px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>🛒 Procurement & Payment:</strong> Complete sourcing solutions
+      </div>
+      <div style="margin: 12px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>✅ Quality Checks:</strong> Pre-shipment inspections
+      </div>
+      <div style="margin: 12px 0; color: #333; font-size: 15px; line-height: 1.6;">
+        <strong>💱 Money Transfer:</strong> Cedis to RMB (24-48 hours)
+      </div>
+    </div>
+
+    <!-- Closing Message -->
+    <div style="text-align: center; margin-bottom: 30px">
+      <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">
+        We're committed to providing you with the best logistics and trading services, connecting China and Ghana with excellence and reliability. 
+        If you have any questions or need assistance, don't hesitate to reach out to us.
+      </p>
+      <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0;">
+        Thank you for trusting Guangzhou Swift Logistics with your shipping needs!
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px;">
+      <p style="margin: 8px 0; font-size: 14px; line-height: 1.6;" class="footer-text">
+        <strong>Best regards,<br />The Guangzhou Swift Logistics Team</strong>
+      </p>
+      <p style="margin: 8px 0; font-size: 14px; line-height: 1.6;" class="footer-text">
+        © 2024 Guangzhou Swift Logistics and Trading Company. All rights reserved.
+      </p>
+      <p style="margin: 8px 0; font-size: 12px; line-height: 1.6; color: #999;" class="footer-text">
+        This email was sent to {{user_email}}. If you didn't create an account, please ignore this email.
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>
