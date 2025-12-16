@@ -10,7 +10,8 @@ export default async function AdminSupportTickets() {
     redirect("/member-login");
   }
   
-  if (session.user?.role !== "admin") {
+  // Check if user is not admin or staff and redirect to user dashboard
+  if (session.user?.role !== "admin" && session.user?.role !== "staff") {
     redirect("/user-dashboard");
   }
 

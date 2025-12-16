@@ -125,9 +125,9 @@ export default function UserDashboardLayout({ children, activePage = "dashboard"
             {/* <h1 className="text-blue-800 text-lg font-medium">Guangzhou Swift Logistics</h1> */}
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/logo/GUANGHOU-SWIFT-09-logo.png"
-                alt="Guangzhou Swift Logistics"
-                width={200}
+                src="/logo/casecade-logo.png"
+                alt="Cascade Logistics Limited"
+                width={180}
                 height={60}
                 className="h-12 lg:h-18 object-cover"
               />

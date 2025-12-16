@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowRight, Plane, Ship, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Package } from "lucide-react";
+import { ArrowRight, Plane, Ship, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, 
+  // Package 
+} from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 

@@ -126,7 +126,8 @@ export async function POST(request: Request) {
       status: status || 'active',
       createdAt: new Date(),
       updatedAt: new Date(),
-      emailVerified: false
+      // Staff don't need email verification
+      emailVerified: role === 'staff' ? true : false
     };
 
     const result = await usersCollection.insertOne(newUser);

@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Eye, Edit2, Trash2, Download, MapPin, ChevronLeft, ChevronRight, PackagePlus } from "lucide-react";
+import { Search, Eye, Edit2, Trash2, Upload, MapPin, ChevronLeft, ChevronRight, PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ViewShipmentModal from "@/components/modals/ViewShipmentModal";
 import EditShipmentModal from "@/components/modals/EditShipmentModal";
 import CreateShipmentModal from "@/components/modals/CreateShipmentModal";
+import AddInvoiceModal from "@/components/modals/AddInvoiceModal";
 import { Shipment, ShipmentsResponse } from "@/types";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 // Internal type for mapped shipment data in this component
 interface MappedShipment {
@@ -47,6 +46,7 @@ export default function ShipmentManagementSection() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAddInvoiceModal, setShowAddInvoiceModal] = useState(false);
   const itemsPerPage = 10;
 
   const fetchShipments = useCallback(async () => {
@@ -66,7 +66,7 @@ export default function ShipmentManagementSection() {
         const getStatusDisplay = (status: string) => {
           const statusMap: Record<string, { display: string; color: string }> = {
             'pending': { display: 'Pending', color: 'text-yellow-600 bg-yellow-50' },
-            'arrived-at-warehouse-china': { display: 'Arrived at Warehouse (China)', color: 'text-blue-600 bg-blue-50' },
+            'arrived-at-warehouse': { display: 'Arrived at Warehouse ', color: 'text-blue-600 bg-blue-50' },
             'ready-for-shipment': { display: 'Ready for Shipment', color: 'text-purple-600 bg-purple-50' },
             'in-transit': { display: 'In Transit', color: 'text-orange-600 bg-orange-50' },
             'arrived-at-warehouse-ghana': { display: 'Arrived at Warehouse (Ghana)', color: 'text-indigo-600 bg-indigo-50' },
@@ -150,206 +150,10 @@ export default function ShipmentManagementSection() {
     }
   };
 
-  const handleDownloadPDF = async (shipment: MappedShipment) => {
-    // Fetch full shipment details to get sender/receiver info
-    try {
-      const response = await fetch(`/api/admin/shipments/${shipment._id}`);
-      if (!response.ok) throw new Error('Failed to fetch shipment details');
-      
-      const fullShipment = await response.json();
-      
-      const doc = new jsPDF();
-      
-      // Header with logo and company info
-      doc.setFillColor(255, 255, 255); // White background
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      // Add logo
-      try {
-        // Convert logo to base64
-        const logoResponse = await fetch('/logo/GUANGHOU-SWIFT-09-logo.png');
-        const logoBlob = await logoResponse.blob();
-        const logoBase64 = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(logoBlob);
-        });
-        
-        // Add logo to PDF (positioned on the left side of header with proper aspect ratio)
-        doc.addImage(logoBase64, 'PNG', 15, 5, 70, 30);
-      } catch (error) {
-        console.warn('Could not load logo:', error);
-      }
-      
-      // Company name (positioned to the right of logo)
-      doc.setTextColor(5, 91, 142); // #055b8e
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text('GUANGZHOU SWIFT LOGISTICS', 95, 25);
-      
-      // Add border at bottom of header for separation
-      doc.setDrawColor(5, 91, 142); // #055b8e border color
-      doc.setLineWidth(1);
-      doc.line(0, 40, 210, 40);
-      
-      // Document title
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
-      doc.text('SHIPMENT DETAILS REPORT', 20, 55);
-      
-      // Tracking ID section
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Tracking ID:', 20, 75);
-      doc.setFont(undefined, 'normal');
-      doc.text(shipment.id, 60, 75);
-      
-      // Add line separator
-      doc.setDrawColor(5, 91, 142);
-      doc.setLineWidth(0.5);
-      doc.line(20, 85, 190, 85);
-      
-      let yPosition = 100;
-      
-      // Sender Information Table
-      const senderData = [
-        ['Name', fullShipment.senderName || 'N/A'],
-        ['Email', fullShipment.senderEmail || 'N/A'],
-        ['Phone', fullShipment.senderPhone || 'N/A'],
-        ['Address', fullShipment.senderAddress || 'N/A'],
-        ['City', fullShipment.senderCity || 'N/A'],
-        ['Country', fullShipment.senderCountry || 'N/A']
-      ];
-      
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['SENDER INFORMATION', '']],
-        body: senderData,
-        headStyles: {
-          fillColor: [5, 91, 142],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 12
-        },
-        bodyStyles: {
-          fontSize: 10
-        },
-        columnStyles: {
-          0: { cellWidth: 40, fontStyle: 'bold' },
-          1: { cellWidth: 120 }
-        },
-        margin: { left: 20, right: 20 }
-      });
-      
-      yPosition = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 20;
-      
-      // Receiver Information Table
-      const receiverData = [
-        ['Name', fullShipment.receiverName || 'N/A'],
-        ['Email', fullShipment.receiverEmail || 'N/A'],
-        ['Phone', fullShipment.receiverPhone || 'N/A'],
-        ['Address', fullShipment.receiverAddress || 'N/A'],
-        ['City', fullShipment.receiverCity || 'N/A'],
-        ['Country', fullShipment.receiverCountry || 'N/A']
-      ];
-      
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['RECEIVER INFORMATION', '']],
-        body: receiverData,
-        headStyles: {
-          fillColor: [5, 91, 142],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 12
-        },
-        bodyStyles: {
-          fontSize: 10
-        },
-        columnStyles: {
-          0: { cellWidth: 40, fontStyle: 'bold' },
-          1: { cellWidth: 120 }
-        },
-        margin: { left: 20, right: 20 }
-      });
-      
-      yPosition = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 20;
-      
-      // Shipment Details Table
-      const shipmentData = [
-        ['Package Type', shipment.packageType],
-        ['Weight', shipment.weight],
-        ['Service Type', shipment.service],
-        ['Declared Value', shipment.value],
-        ['Dimensions', fullShipment.dimensions || 'N/A'],
-        ['Special Instructions', fullShipment.specialInstructions || 'N/A']
-      ];
-      
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['SHIPMENT DETAILS', '']],
-        body: shipmentData,
-        headStyles: {
-          fillColor: [5, 91, 142],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 12
-        },
-        bodyStyles: {
-          fontSize: 10
-        },
-        columnStyles: {
-          0: { cellWidth: 50, fontStyle: 'bold' },
-          1: { cellWidth: 110 }
-        },
-        margin: { left: 20, right: 20 }
-      });
-      
-      yPosition = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 20;
-      
-      // Status & Dates Table
-      const statusData = [
-        ['Status', shipment.status],
-        ['Created Date', shipment.date],
-        ['Estimated Delivery', shipment.estimatedDelivery],
-        ['Current Location', fullShipment.currentLocation || 'N/A']
-      ];
-      
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['STATUS & DATES', '']],
-        body: statusData,
-        headStyles: {
-          fillColor: [5, 91, 142],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 12
-        },
-        bodyStyles: {
-          fontSize: 10
-        },
-        columnStyles: {
-          0: { cellWidth: 50, fontStyle: 'bold' },
-          1: { cellWidth: 110 }
-        },
-        margin: { left: 20, right: 20 }
-      });
-      
-      // Footer
-      const pageHeight = doc.internal.pageSize.height;
-      doc.setFontSize(10);
-      doc.setTextColor(128, 128, 128);
-      doc.text('Generated by Guangzhou Swift Logistics', 20, pageHeight - 20);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, pageHeight - 10);
-      
-      // Save the PDF
-      doc.save(`shipment-${shipment.id}.pdf`);
-      
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
-    }
+  const handleAddInvoice = (id: string) => {
+    const shipment = shipments.find(s => s._id === id);
+    setSelectedShipment(shipment || null);
+    setShowAddInvoiceModal(true);
   };
 
   return (
@@ -428,7 +232,7 @@ export default function ShipmentManagementSection() {
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
-              <option value="arrived-at-warehouse-china">Arrived at Warehouse (China)</option>
+              <option value="arrived-at-warehouse">Arrived at Warehouse</option>
               <option value="ready-for-shipment">Ready for Shipment</option>
               <option value="in-transit">In Transit</option>
               <option value="arrived-at-warehouse-ghana">Arrived at Warehouse (Ghana)</option>
@@ -530,11 +334,11 @@ export default function ShipmentManagementSection() {
                         <Edit2 className="w-4 h-4 text-blue-600" />
                       </button>
                       <button
-                        onClick={() => handleDownloadPDF(shipment)}
+                        onClick={() => handleAddInvoice(shipment._id)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Download PDF"
+                        title="Add Invoice"
                       >
-                        <Download className="w-4 h-4 text-green-600" />
+                        <Upload className="w-4 h-4 text-green-600" />
                       </button>
                       <button
                         onClick={() => handleDeleteShipment(shipment._id)}
@@ -632,6 +436,22 @@ export default function ShipmentManagementSection() {
           onSave={() => {
             fetchShipments();
             setShowCreateModal(false);
+          }}
+        />
+      )}
+
+      {showAddInvoiceModal && selectedShipment && (
+        <AddInvoiceModal
+          shipmentId={selectedShipment._id}
+          trackingId={selectedShipment.id}
+          onClose={() => {
+            setShowAddInvoiceModal(false);
+            setSelectedShipment(null);
+          }}
+          onSave={() => {
+            fetchShipments();
+            setShowAddInvoiceModal(false);
+            setSelectedShipment(null);
           }}
         />
       )}

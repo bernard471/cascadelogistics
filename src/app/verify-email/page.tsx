@@ -2,17 +2,18 @@ import { Suspense } from "react";
 import TopBanner from "@/components/TopBanner";
 import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
-import MemberLoginSection from "@/components/MemberLoginSection";
+import VerifyEmailSection from "@/components/VerifyEmailSection";
 import Footer from "@/components/Footer";
 
-export default function MemberLogin() {
+export default function VerifyEmail() {
     return (
         <div className="min-h-screen">
             <TopBanner />
             <Navigation />
-            <BreadcrumbHero title="Member Login" 
+            <BreadcrumbHero 
+            title="Verify Your Email" 
             crumbs={[{ label: "Home", href: "/" }, 
-            { label: "Member Login", href: "/member-login" }]} />
+            { label: "Verify Email", href: "/verify-email" }]} />
             <Suspense fallback={
                 <section className="py-16 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-[600px] flex items-center">
                     <div className="max-w-2xl mx-auto px-4 w-full">
@@ -22,9 +23,10 @@ export default function MemberLogin() {
                     </div>
                 </section>
             }>
-                <MemberLoginSection />
+                <VerifyEmailSection />
             </Suspense>
             <Footer />
         </div>
     );
 }
+

@@ -76,7 +76,7 @@ export default function SupportSection() {
       window.open(`tel:${method.phoneNumber}`, '_self');
     } else if (method.actionType === "email") {
       // Open email client
-      const subject = encodeURIComponent("Support Request - Nivamore Courier Services");
+      const subject = encodeURIComponent("Support Request - Cascade Logistics Limited");
       const body = encodeURIComponent(`Hello,\n\nI need assistance with:\n\n[Please describe your issue here]\n\nThank you.`);
       window.open(`mailto:${method.email}?subject=${subject}&body=${body}`, '_self');
     }
@@ -156,22 +156,22 @@ export default function SupportSection() {
       icon: Phone,
       iconColor: "text-blue-500 bg-blue-50",
       title: "Phone Support",
-      description: "+971 52 549 3462",
+      description: "+233 24 189 3393",
       subtitle: "24/7 Available",
       action: "Call Now",
       actionType: "phone",
-      phoneNumber: "+971525493462"
+      phoneNumber: "+233241893393"
     },
     {
       id: 2,
       icon: Mail,
       iconColor: "text-green-500 bg-green-50",
       title: "Email Support",
-      description: "info@nivamore.com",
+      description: "info@cascadelogistics.co",
       subtitle: "Response in 24 hours",
       action: "Send Email",
       actionType: "email",
-      email: "info@nivamore.com"
+      email: "info@cascadelogistics.co"
     },
     {
       id: 3,
@@ -254,19 +254,19 @@ export default function SupportSection() {
       type: "Air Shipping",
       icon: Plane,
       iconColor: "text-blue-500 bg-blue-50",
-      english: "No. 255 Tangge North Road, Baiyun Lake Street, Baiyun District, Guangzhou City, Guangdong Province 888/GSL000",
+      english: "No. 255 Tangge North Road, Baiyun Lake Street, Baiyun District, New York City, Guangdong Province 888/GSL000",
       chinese: "广东省广州市白云区白云湖街道唐阁北路255号888/GSL000",
       phoneNumber: "+132 605 43058 (China)"
     },
-    {
-      id: "sea",
-      type: "Sea Shipping",
-      icon: Ship,
-      iconColor: "text-green-500 bg-green-50",
-      english: "Room 4015, 4th Floor, No. 66 Guangyuan West Road, Yuexiu District, Guangzhou City, Guangdong Province (GSL000)",
-      chinese: "广东省广州市越秀区广园西路66号四楼4015室GSL000",
-      phoneNumber: "+18620065346 (China)"
-    }
+    // {
+    //   id: "sea",
+    //   type: "Sea Shipping",
+    //   icon: Ship,
+    //   iconColor: "text-green-500 bg-green-50",
+    //   english: "Room 4015, 4th Floor, No. 66 Guangyuan West Road, Yuexiu District, Guangzhou City, Guangdong Province (GSL000)",
+    //   chinese: "广东省广州市越秀区广园西路66号四楼4015室GSL000",
+    //   phoneNumber: "+18620065346 (China)"
+    // }
   ];
 
   return (

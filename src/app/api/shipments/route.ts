@@ -122,7 +122,7 @@ export async function POST(request: Request) {
     // Generate tracking ID
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const trackingId = `GSL${timestamp}${random}`;
+    const trackingId = `CLL${timestamp}${random}`;
 
     // Create new shipment
     type ShipmentCreationPayload = Omit<
@@ -140,11 +140,11 @@ export async function POST(request: Request) {
     if (!shippingMark && shipmentPayload.shippingMarkName) {
       const name = shipmentPayload.shippingMarkName.trim();
       if (shipmentPayload.serviceType === 'overnight') {
-        // Sea shipping: GSL000/[NAME]-(888)
-        shippingMark = `GSL000/${name}-(888)`;
+        // Sea shipping: CLL000/[NAME]-(888)
+        shippingMark = `CLL000/${name}-(888)`;
       } else {
-        // Air shipping (standard, express): GSL000/[NAME]-air
-        shippingMark = `GSL000/${name}-air`;
+        // Air shipping (standard, express): CLL000/[NAME]-air
+        shippingMark = `CLL000/${name}-air`;
       }
     }
 

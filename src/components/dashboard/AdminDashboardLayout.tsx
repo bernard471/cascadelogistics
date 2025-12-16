@@ -11,7 +11,7 @@ import {
   BarChart3, 
   Settings, 
     // DollarSign, 
-    // UserCog,
+    UserCog,
   Bell, 
   LogOut,
   Menu,
@@ -30,11 +30,14 @@ interface AdminDashboardLayoutProps {
 }
 
 export default function AdminDashboardLayout({ children, activePage = "dashboard" }: AdminDashboardLayoutProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  
+  // Show loading state while session is being fetched
+  const isLoading = status === "loading";
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/member-login" });
@@ -90,8 +93,10 @@ export default function AdminDashboardLayout({ children, activePage = "dashboard
 
   const adminName = session?.user?.name || "Admin User";
   const adminEmail = session?.user?.email || "admin@nivamore.com";
+  const userRole = session?.user?.role || "user";
 
-  const navigationItems = [
+  // All navigation items
+  const allNavigationItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin-dashboard" },
     { id: "users", label: "User Management", icon: Users, href: "/admin-dashboard/users" },
     { id: "shipments", label: "Shipment Management", icon: Package, href: "/admin-dashboard/shipments" },
@@ -101,9 +106,63 @@ export default function AdminDashboardLayout({ children, activePage = "dashboard
     { id: "newsletter-subscriptions", label: "Newsletter Subscriptions", icon: Newspaper, href: "/admin-dashboard/newsletter-subscriptions" },
     { id: "analytics", label: "Analytics & Reports", icon: BarChart3, href: "/admin-dashboard/analytics" },
     // { id: "revenue", label: "Revenue Management", icon: DollarSign, href: "/admin-dashboard/revenue" },
-    // { id: "staff", label: "Staff Management", icon: UserCog, href: "/admin-dashboard/staff" },
+    { id: "staff", label: "Staff Management", icon: UserCog, href: "/admin-dashboard/staff" },
     { id: "settings", label: "Settings", icon: Settings, href: "/admin-dashboard/settings" },
   ];
+
+  // Filter navigation items based on role
+  // Staff can only see: Dashboard, Shipments, Support Tickets, Contact Submissions
+  const navigationItems = isLoading
+    ? [] // Empty array while loading to prevent flash
+    : userRole === "staff" 
+      ? allNavigationItems.filter(item => 
+          ["dashboard", "shipments", "support-tickets", "contact-submissions"].includes(item.id)
+        )
+      : allNavigationItems;
+
+  // Show loading skeleton while session is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        {/* Header Skeleton */}
+        <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+          <div className="flex items-center justify-between px-4 py-3 lg:px-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-48 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </header>
+
+        {/* Sidebar Skeleton */}
+        <aside className="fixed top-0 left-0 h-full bg-slate-900 w-64 z-40 pt-20">
+          <nav className="px-4 py-6 space-y-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-12 bg-white/10 rounded-lg animate-pulse"></div>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content Skeleton */}
+        <main className="lg:ml-64 pt-20 min-h-screen">
+          <div className="p-4 lg:p-6">
+            <div className="space-y-6">
+              <div className="h-8 w-64 bg-gray-200 rounded animate-pulse"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-32 bg-white rounded-lg shadow-sm border border-gray-200 animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -121,17 +180,19 @@ export default function AdminDashboardLayout({ children, activePage = "dashboard
             
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/logo/GUANGHOU-SWIFT-09-logo.png"
-                alt="Guangzhou Swift Logistics"
-                width={150}
+                src="/logo/casecade-logo.png"
+                alt="Cascade Logistics Limited"
+                width={180}
                 height={60}
                 className="h-12 lg:h-18 object-cover"
               />
             </Link>
             
-            {/* Admin Badge */}
-            <span className="hidden md:inline-flex px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
-              ADMIN
+            {/* Role Badge */}
+            <span className={`hidden md:inline-flex px-3 py-1 text-white text-xs font-bold rounded-full ${
+              userRole === "admin" ? "bg-blue-500" : "bg-[#f7941d]"
+            }`}>
+              {userRole === "admin" ? "ADMIN" : "STAFF"}
             </span>
           </div>
 

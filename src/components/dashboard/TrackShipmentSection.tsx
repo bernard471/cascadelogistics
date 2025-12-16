@@ -115,7 +115,7 @@ export default function TrackShipmentSection() {
       const getStatusDisplay = (status: string) => {
         const statusMap: Record<string, { display: string; color: string }> = {
           'pending': { display: 'Pending', color: 'text-yellow-600' },
-          'arrived-at-warehouse-china': { display: 'Arrived at Warehouse (China)', color: 'text-blue-600' },
+          'arrived-at-warehouse': { display: 'Arrived at Warehouse', color: 'text-blue-600' },
           'ready-for-shipment': { display: 'Ready for Shipment', color: 'text-purple-600' },
           'in-transit': { display: 'In Transit', color: 'text-orange-600' },
           'arrived-at-warehouse-ghana': { display: 'Arrived at Warehouse (Ghana)', color: 'text-indigo-600' },
@@ -280,7 +280,7 @@ export default function TrackShipmentSection() {
                       trackingData.status === 'Arrived at Warehouse (Ghana)' ? '400' :
                       trackingData.status === 'In Transit' ? '900' :
                       trackingData.status === 'Ready for Shipment' ? '1000' :
-                      trackingData.status === 'Arrived at Warehouse (China)' ? '1050' :
+                      trackingData.status === 'Arrived at Warehouse' ? '1050' :
                       '1100'
                     }
                     style={{ transition: 'stroke-dashoffset 2s ease-in-out' }}
@@ -371,7 +371,7 @@ export default function TrackShipmentSection() {
                           <div className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center shadow-xl ring-4 ring-cyan-100 animate-pulse">
                             <Package className="w-10 h-10 text-white" />
                           </div>
-                        ) : trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse (China)' ? (
+                        ) : trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse' ? (
                           <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center shadow-xl ring-4 ring-blue-100">
                             <Package className="w-10 h-10 text-white" />
                           </div>
@@ -395,7 +395,7 @@ export default function TrackShipmentSection() {
                           {trackingData.status}
                         </div>
                       )}
-                      {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse (China)') && (
+                      {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse') && (
                         <div className="text-xs text-blue-600 font-medium flex items-center justify-center gap-1 mt-1">
                           <span className="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                           {trackingData.status}

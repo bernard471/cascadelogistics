@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, Package, MapPin, Weight, Ruler, Calendar, DollarSign, Plane, Ship, Info, CheckCircle, ArrowRight, Mail, Phone, Send } from "lucide-react";
+import { Calculator, Package, MapPin, Weight, Ruler, Calendar, 
+  // DollarSign, 
+  Plane, Ship, Info, CheckCircle,
+  //  ArrowRight, Mail, Phone, 
+   Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -640,7 +644,7 @@ export default function QuoteCalculator() {
                 {isSubmitted && (
                   <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
                     <CheckCircle className="w-5 h-5 inline mr-2" />
-                    Your quote request has been submitted successfully! We'll get back to you soon via email.
+                    Your quote request has been submitted successfully! We&apos;ll get back to you soon via email.
                   </div>
                 )}
               </div>
@@ -683,7 +687,7 @@ export default function QuoteCalculator() {
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-sm">
                     <Info className="w-4 h-4 inline mr-1" />
                     <p className="opacity-90">
-                      This is an estimate. Click "Request Quote" to submit your request and receive a confirmed quote via email.
+                      This is an estimate. Click &quot;Request Quote&quot; to submit your request and receive a confirmed quote via email.
                     </p>
                   </div>
                 </div>
@@ -721,7 +725,7 @@ export default function QuoteCalculator() {
                       </div>
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[#315694] mt-0.5 flex-shrink-0" />
-                        <p>We'll review your request and send you a detailed quote via email within 24 hours.</p>
+                        <p>We&apos;ll review your request and send you a detailed quote via email within 24 hours.</p>
                       </div>
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[#315694] mt-0.5 flex-shrink-0" />

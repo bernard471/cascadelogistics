@@ -20,11 +20,13 @@ export interface User {
   country?: string;
   postalCode?: string;
   bio?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'staff';
   status: 'active' | 'suspended' | 'pending';
   createdAt: Date | string;
   updatedAt: Date | string;
   emailVerified?: boolean;
+  verificationToken?: string; // Email verification token
+  verificationTokenExpiry?: Date | string; // Email verification token expiry
   image?: string;
   profileImage?: string; // Base64 encoded profile image
   memberSince?: Date | string; // When user joined
@@ -97,14 +99,22 @@ export interface Shipment {
   
   // Shipping Mark
   shippingMarkName?: string; // User-provided name for shipping mark (middle part)
-  shippingMark?: string; // Auto-generated shipping mark: GSL000/[NAME]-(888) for sea or GSL000/[NAME]-air for air
+  shippingMark?: string; // Auto-generated shipping mark: CLL000/[NAME]-(888) for sea or CLL000/[NAME]-air for air
   
   // Status
-  status: 'pending' | 'arrived-at-warehouse-china' | 'ready-for-shipment' | 'in-transit' | 'arrived-at-warehouse-ghana' | 'ready-for-pickup' | 'delivered' | 'cancelled' | 'on-hold';
+  status: 'pending' | 'arrived-at-warehouse' | 'ready-for-shipment' | 'in-transit' | 'arrived-at-warehouse-ghana' | 'ready-for-pickup' | 'delivered' | 'cancelled' | 'on-hold';
   currentLocation?: string;
   
   // Tracking Timeline
   timeline: TimelineEvent[];
+  
+  // Invoice
+  invoice?: {
+    url: string; // Vercel Blob Storage URL
+    fileName: string; // Original filename
+    uploadedAt: Date | string; // Upload timestamp
+    uploadedBy: string; // Admin/staff user ID who uploaded it
+  };
   
   // Metadata
   createdAt: Date | string;
@@ -606,7 +616,7 @@ export interface SectionProps {
 // Utility types
 export type Status = 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'delivered' | 'in-transit' | 'on-hold';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'user' | 'admin' | 'staff';
 export type UserStatus = 'active' | 'suspended' | 'pending';
 export type ServiceType = 'standard' | 'express' | 'overnight' | 'economy';
 export type PackageType = 'document' | 'parcel' | 'package' | 'fragile' | 'electronics' | 'other';

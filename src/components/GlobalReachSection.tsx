@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { MapPin, Plane, Ship, Globe, ArrowRight } from "lucide-react";
+import { MapPin, Plane, Ship, Globe, 
+  // ArrowRight 
+  } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+// import Link from "next/link";
 
 export default function GlobalReachSection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -33,41 +35,41 @@ export default function GlobalReachSection() {
     };
   }, []);
 
-  const shippingRoutes = [
-    {
-      id: 1,
-      origin: "United Kingdom",
-      destination: "Ghana",
-      icon: Plane,
-      color: "from-[#315694] to-[#262262]",
-      deliveryTime: "7-10 Days"
-    },
-    {
-      id: 2,
-      origin: "China",
-      destination: "Ghana",
-      icon: Plane,
-      color: "from-[#f7941d] to-[#e6851a]",
-      deliveryTime: "7-10 Days"
-    },
-    {
-      id: 3,
-      origin: "United States",
-      destination: "Ghana",
-      icon: Plane,
-      color: "from-[#315694] to-[#262262]",
-      deliveryTime: "7-10 Days",
-      special: true
-    },
-    {
-      id: 4,
-      origin: "Turkey",
-      destination: "Ghana",
-      icon: Plane,
-      color: "from-[#f7941d] to-[#e6851a]",
-      deliveryTime: "7-10 Days"
-    }
-  ];
+  // const shippingRoutes = [
+  //   {
+  //     id: 1,
+  //     origin: "United Kingdom",
+  //     destination: "Ghana",
+  //     icon: Plane,
+  //     color: "from-[#315694] to-[#262262]",
+  //     deliveryTime: "7-10 Days"
+  //   },
+  //   {
+  //     id: 2,
+  //     origin: "China",
+  //     destination: "Ghana",
+  //     icon: Plane,
+  //     color: "from-[#f7941d] to-[#e6851a]",
+  //     deliveryTime: "7-10 Days"
+  //   },
+  //   {
+  //     id: 3,
+  //     origin: "United States",
+  //     destination: "Ghana",
+  //     icon: Plane,
+  //     color: "from-[#315694] to-[#262262]",
+  //     deliveryTime: "7-10 Days",
+  //     special: true
+  //   },
+  //   {
+  //     id: 4,
+  //     origin: "Turkey",
+  //     destination: "Ghana",
+  //     icon: Plane,
+  //     color: "from-[#f7941d] to-[#e6851a]",
+  //     deliveryTime: "7-10 Days"
+  //   }
+  // ];
 
   const services = [
     {

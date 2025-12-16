@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Ship, Plane, ShoppingCart, DollarSign, CheckCircle, ArrowRight } from "lucide-react";
+import { Ship, Plane, ShoppingCart, 
+  // DollarSign, 
+  CheckCircle, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";

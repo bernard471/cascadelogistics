@@ -109,7 +109,7 @@ export default function PublicTrackShipment() {
       const getStatusDisplay = (status: string) => {
         const statusMap: Record<string, { display: string; color: string }> = {
           'pending': { display: 'Pending', color: 'text-yellow-600' },
-          'arrived-at-warehouse-china': { display: 'Arrived at Warehouse (China)', color: 'text-blue-600' },
+          'arrived-at-warehouse': { display: 'Arrived at Warehouse', color: 'text-blue-600' },
           'ready-for-shipment': { display: 'Ready for Shipment', color: 'text-purple-600' },
           'in-transit': { display: 'In Transit', color: 'text-orange-600' },
           'arrived-at-warehouse-ghana': { display: 'Arrived at Warehouse (Ghana)', color: 'text-indigo-600' },
@@ -253,7 +253,7 @@ export default function PublicTrackShipment() {
                   {(trackingData.status === 'Ready for Pickup' || trackingData.status === 'Arrived at Warehouse (Ghana)') && (
                     <Package className="w-8 h-8 text-cyan-500 mx-2 animate-pulse" />
                   )}
-                  {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse (China)') && (
+                  {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse') && (
                     <Package className="w-8 h-8 text-blue-500 mx-2" />
                   )}
                   {trackingData.status === 'Delivered' && (

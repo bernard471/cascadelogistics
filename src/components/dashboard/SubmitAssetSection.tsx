@@ -180,11 +180,11 @@ export default function SubmitAssetSection() {
     
     const name = shippingMarkName.trim();
     if (serviceType === 'overnight') {
-      // Sea shipping: GSL000/[NAME]-(888)
-      return `GSL000/${name}-(888)`;
+      // Sea shipping: CLL000/[NAME]-(888)
+      return `CLL000/${name}-(888)`;
     } else {
-      // Air shipping (standard, express): GSL000/[NAME]-air
-      return `GSL000/${name}-air`;
+      // Air shipping (standard, express): CLL000/[NAME]-air
+      return `CLL000/${name}-air`;
     }
   };
 
@@ -624,8 +624,7 @@ export default function SubmitAssetSection() {
                 className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
                 required
               >
-                <option value="standard">Air Shipping (10-14 days)</option>
-                <option value="express">Express Air Shipping (2-5 days)</option>
+                <option value="standard">Air Shipping (7-10 days)</option>
                 <option value="overnight">Sea Shipping (35-45 days)</option>
               </select>
             </div>
@@ -664,7 +663,7 @@ export default function SubmitAssetSection() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Package className="w-5 h-5 text-[#055b8e]" />
-              <h3 className="text-lg font-bold text-gray-800">Wholesale Purchase Information (Optional)</h3>
+              <h3 className="text-lg font-bold text-gray-800">Purchase Information</h3>
             </div>
             <Button
               type="button"
@@ -677,13 +676,13 @@ export default function SubmitAssetSection() {
             </Button>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            If you purchased goods from wholesale shops in China and are sending them directly to our warehouse, please provide the following information. You can add multiple entries if you purchased from different shops:
+            If you purchased goods from shops in USA, China or other countries and are sending them directly to our warehouse, please provide the following information. You can add multiple entries if you purchased from different shops:
           </p>
           
           {wholesalePurchases.length === 0 ? (
             <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600 mb-4">No wholesale purchase entries added yet</p>
+              <p className="text-gray-600 mb-4">No purchase entries added yet</p>
               <Button
                 type="button"
                 onClick={addWholesalePurchase}
@@ -691,7 +690,7 @@ export default function SubmitAssetSection() {
                 className="flex items-center gap-2 mx-auto"
               >
                 <Plus className="w-4 h-4" />
-                Add First Entry
+                Add Purchase Entry
               </Button>
             </div>
           ) : (
@@ -715,7 +714,7 @@ export default function SubmitAssetSection() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Name Used for Wholesale Purchase
+                        Name Used for Purchase
                       </label>
                       <Input
                         type="text"
@@ -728,13 +727,13 @@ export default function SubmitAssetSection() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Wholesale Shop Tracking Number
+                        Purchase Shop Tracking Number
                       </label>
                       <Input
                         type="text"
                         value={purchase.trackingNumber}
                         onChange={(e) => updateWholesalePurchase(index, 'trackingNumber', e.target.value)}
-                        placeholder="Enter tracking number from wholesale shop"
+                        placeholder="Enter tracking number from purchase shop"
                         className="h-12"
                       />
                     </div>
@@ -763,10 +762,10 @@ export default function SubmitAssetSection() {
           <p className="text-sm text-gray-600 mb-4">
             Enter a name for your shipping mark. This will be used to identify your package at the warehouse.
             {formData.serviceType === 'overnight' && (
-              <span className="block mt-1">Format: <strong>GSL000/[Your Name]-(888)</strong></span>
+              <span className="block mt-1">Format: <strong>CLL000/[Your Name]-(888)</strong></span>
             )}
             {(formData.serviceType === 'standard' || formData.serviceType === 'express') && (
-              <span className="block mt-1">Format: <strong>GSL000/[Your Name]-air</strong></span>
+              <span className="block mt-1">Format: <strong>CLL000/[Your Name]-air</strong></span>
             )}
           </p>
           
@@ -787,7 +786,7 @@ export default function SubmitAssetSection() {
               {formData.shippingMarkName && (
                 <p className="text-xs text-gray-500 mt-2">
                   Your shipping mark will be: <strong className="text-[#055b8e]">
-                    GSL000/{formData.shippingMarkName}
+                    CLL000/{formData.shippingMarkName}
                     {formData.serviceType === 'overnight' ? '-(888)' : '-air'}
                   </strong>
                 </p>
@@ -800,7 +799,7 @@ export default function SubmitAssetSection() {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Package className="w-5 h-5 text-[#055b8e]" />
-            <h3 className="text-lg font-bold text-gray-800">Pricing Summary</h3>
+            <h3 className="text-lg font-bold text-gray-800">Asset Summary</h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -825,13 +824,13 @@ export default function SubmitAssetSection() {
               </div>
             </div>
             
-            <div className="rounded-lg p-4 border-2 border-[#055b8e] bg-blue-50 md:col-span-2">
+            {/* <div className="rounded-lg p-4 border-2 border-[#055b8e] bg-blue-50 md:col-span-2">
               <div className="text-sm text-gray-600 mb-1">Total Estimated Price</div>
               <div className="text-2xl font-bold text-[#055b8e]">
                 ${calculatePrice().toFixed(2)}
               </div>
               <div className="text-xs text-gray-500">USD · Final price may vary based on actual measurements</div>
-            </div>
+            </div> */}
           </div>
         </div>
 

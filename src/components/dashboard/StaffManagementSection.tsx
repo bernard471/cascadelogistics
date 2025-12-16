@@ -1,71 +1,115 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, UserPlus, Eye, Edit2, Trash2, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, UserPlus, Eye, Edit2, Trash2, 
+  // Shield, 
+  ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Staff } from "@/types";
+import CreateStaffModal from "@/components/modals/CreateStaffModal";
+import ViewStaffModal from "@/components/modals/ViewStaffModal";
+import EditStaffModal from "@/components/modals/EditStaffModal";
+import type { UserWithStats, UsersResponse } from "@/types";
+import type { MappedStaff } from "@/components/modals/types";
 
-// Mapped staff type for internal component use
-interface MappedStaff {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  roleColor: string;
-  department: string;
-  joinDate: string;
-  status: string;
+// Staff user type (User with role 'staff')
+type StaffUser = UserWithStats & {
+  role: 'staff';
+};
+
+// Error response type
+interface ErrorResponse {
+  error: string;
+}
+
+// Staff stats type
+interface StaffStats {
+  total: number;
+  active: number;
+  suspended: number;
+  pending: number;
 }
 
 export default function StaffManagementSection() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [staff, setStaff] = useState<MappedStaff[]>([]);
-  const [staffStats, setStaffStats] = useState<{ total: number; administrators: number; managers: number; onLeave: number } | null>(null);
+  const [staffStats, setStaffStats] = useState<StaffStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<MappedStaff | null>(null);
   const itemsPerPage = 10;
 
   const fetchStaff = useCallback(async () => {
     setIsLoading(true);
     try {
+      // Fetch staff users from the users collection (role: "staff")
       const params = new URLSearchParams({
-        role: roleFilter,
-        search: searchQuery
+        search: searchQuery,
+        ...(statusFilter !== "all" && { status: statusFilter })
       });
       
-      const response = await fetch(`/api/admin/staff?${params}`);
+      const response = await fetch(`/api/admin/users?${params}`);
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as UsersResponse;
         
-        const mappedStaff: MappedStaff[] = data.staff.map((member: Staff) => ({
-          id: member._id,
-          name: `${member.firstName} ${member.lastName}`,
-          email: member.email,
-          phone: member.phone,
-          role: member.role.charAt(0).toUpperCase() + member.role.slice(1).replace('-', ' '),
-          roleColor: member.role === 'administrator' ? 'text-red-600 bg-red-50' :
-                    member.role === 'manager' ? 'text-purple-600 bg-purple-50' :
-                    member.role === 'operator' ? 'text-blue-600 bg-blue-50' :
-                    member.role === 'support' ? 'text-green-600 bg-green-50' :
-                    member.role === 'driver' ? 'text-orange-600 bg-orange-50' :
-                    'text-yellow-600 bg-yellow-50',
-          department: member.department,
-          joinDate: member.joinDate,
-          status: member.status === 'active' ? 'Active' : 'On Leave'
-        }));
+        // Filter to only show users with role "staff"
+        const staffUsers = data.users.filter(
+          (user): user is StaffUser => user.role === 'staff' && !!user._id
+        );
+        
+        const mappedStaff: MappedStaff[] = staffUsers.map((user) => {
+          const createdAt = typeof user.createdAt === 'string' 
+            ? new Date(user.createdAt) 
+            : user.createdAt;
+          
+          const joinDate = user.registeredDate || 
+            (createdAt ? createdAt.toISOString().split('T')[0] : 'N/A');
+          
+          let status: "Active" | "Suspended" | "Pending";
+          if (user.status === 'active') {
+            status = 'Active';
+          } else if (user.status === 'suspended') {
+            status = 'Suspended';
+          } else {
+            status = 'Pending';
+          }
+          
+          return {
+            id: user._id!,
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            username: user.username || 'N/A',
+            phone: user.phone || 'N/A',
+            joinDate,
+            status
+          };
+        });
         
         setStaff(mappedStaff);
-        setStaffStats(data.stats);
+        
+        // Calculate stats
+        const total = staffUsers.length;
+        const active = staffUsers.filter((u) => u.status === 'active').length;
+        const suspended = staffUsers.filter((u) => u.status === 'suspended').length;
+        const pending = staffUsers.filter((u) => u.status === 'pending').length;
+        
+        setStaffStats({
+          total,
+          active,
+          suspended,
+          pending
+        });
       }
     } catch (error) {
       console.error("Failed to fetch staff:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [roleFilter, searchQuery]);
+  }, [searchQuery, statusFilter]);
 
   useEffect(() => {
     fetchStaff();
@@ -80,12 +124,16 @@ export default function StaffManagementSection() {
     if (!confirm("Are you sure you want to remove this staff member?")) return;
     
     try {
-      const response = await fetch(`/api/admin/staff/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
       if (response.ok) {
         fetchStaff();
+      } else {
+        const data = (await response.json()) as ErrorResponse;
+        alert(data.error || "Failed to delete staff member");
       }
     } catch (error) {
       console.error("Failed to delete staff:", error);
+      alert("An error occurred while deleting the staff member");
     }
   };
 
@@ -98,8 +146,8 @@ export default function StaffManagementSection() {
           <p className="text-gray-600 mt-1">Manage your team members and their roles</p>
         </div>
         <Button
-          className="bg-[#055b8e] hover:bg-[#044a73] text-white flex items-center gap-2"
-          style={{ borderRadius: "10px 0px 10px 0px" }}
+          onClick={() => setIsCreateModalOpen(true)}
+          className="bg-gradient-to-r from-[#315694] to-[#262262] hover:from-[#262262] hover:to-[#315694] text-white flex items-center gap-2"
         >
           <UserPlus className="w-4 h-4" />
           Add Staff Member
@@ -113,21 +161,21 @@ export default function StaffManagementSection() {
           <div className="text-2xl font-bold text-gray-800 mt-1">{staffStats?.total || 0}</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="text-sm text-gray-600">Administrators</div>
+          <div className="text-sm text-gray-600">Active</div>
+          <div className="text-2xl font-bold text-green-600 mt-1">
+            {staffStats?.active || 0}
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="text-sm text-gray-600">Suspended</div>
           <div className="text-2xl font-bold text-red-600 mt-1">
-            {staffStats?.administrators || 0}
+            {staffStats?.suspended || 0}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="text-sm text-gray-600">Managers</div>
-          <div className="text-2xl font-bold text-purple-600 mt-1">
-            {staffStats?.managers || 0}
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="text-sm text-gray-600">On Leave</div>
+          <div className="text-sm text-gray-600">Pending</div>
           <div className="text-2xl font-bold text-orange-600 mt-1">
-            {staffStats?.onLeave || 0}
+            {staffStats?.pending || 0}
           </div>
         </div>
       </div>
@@ -149,20 +197,17 @@ export default function StaffManagementSection() {
             </div>
           </div>
 
-          {/* Role Filter */}
+          {/* Status Filter */}
           <div>
             <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#315694]"
             >
-              <option value="all">All Roles</option>
-              <option value="administrator">Administrator</option>
-              <option value="manager">Manager</option>
-              <option value="operator">Operator</option>
-              <option value="support">Support</option>
-              <option value="driver">Driver</option>
-              <option value="warehouse staff">Warehouse Staff</option>
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="pending">Pending</option>
             </select>
           </div>
         </div>
@@ -193,10 +238,7 @@ export default function StaffManagementSection() {
                   Contact
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
+                  Username
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Join Date
@@ -226,13 +268,8 @@ export default function StaffManagementSection() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {member.phone}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${member.roleColor}`}>
-                      {member.role}
-                    </span>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {member.department}
+                    {member.username}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {member.joinDate}
@@ -247,23 +284,31 @@ export default function StaffManagementSection() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => {
+                          setSelectedStaff(member);
+                          setIsViewModalOpen(true);
+                        }}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4 text-gray-600" />
                       </button>
                       <button
+                        onClick={() => {
+                          setSelectedStaff(member);
+                          setIsEditModalOpen(true);
+                        }}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Edit Staff"
                       >
                         <Edit2 className="w-4 h-4 text-blue-600" />
                       </button>
-                      <button
+                      {/* <button
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Manage Permissions"
                       >
                         <Shield className="w-4 h-4 text-purple-600" />
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => handleDeleteStaff(member.id)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -327,6 +372,44 @@ export default function StaffManagementSection() {
           </div>
         )}
       </div>
+
+      {/* Create Staff Modal */}
+      {isCreateModalOpen && (
+        <CreateStaffModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={() => {
+            fetchStaff();
+            setIsCreateModalOpen(false);
+          }}
+        />
+      )}
+
+      {/* View Staff Modal */}
+      {isViewModalOpen && selectedStaff && (
+        <ViewStaffModal
+          staff={selectedStaff}
+          onClose={() => {
+            setIsViewModalOpen(false);
+            setSelectedStaff(null);
+          }}
+        />
+      )}
+
+      {/* Edit Staff Modal */}
+      {isEditModalOpen && selectedStaff && (
+        <EditStaffModal
+          staff={selectedStaff}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedStaff(null);
+          }}
+          onSave={() => {
+            fetchStaff();
+            setIsEditModalOpen(false);
+            setSelectedStaff(null);
+          }}
+        />
+      )}
     </div>
   );
 }

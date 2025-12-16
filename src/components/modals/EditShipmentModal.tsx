@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { X, Save, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Save, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -189,7 +189,7 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
               required
             >
               <option value="pending">Pending</option>
-              <option value="arrived-at-warehouse-china">Arrived at Warehouse (China)</option>
+              <option value="arrived-at-warehouse">Arrived at Warehouse</option>
               <option value="ready-for-shipment">Ready for Shipment</option>
               <option value="in-transit">In Transit</option>
               <option value="arrived-at-warehouse-ghana">Arrived at Warehouse (Ghana)</option>

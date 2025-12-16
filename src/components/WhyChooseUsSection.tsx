@@ -1,6 +1,8 @@
 "use client";
 
-import { CheckCircle2, TrendingUp, Shield, Clock, DollarSign, Globe, ArrowRight } from "lucide-react";
+import { CheckCircle2, TrendingUp, Shield, Clock, 
+  // DollarSign, 
+  Globe, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';

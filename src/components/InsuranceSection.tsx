@@ -211,7 +211,7 @@ export default function InsuranceSection() {
             <div className="bg-gradient-to-br from-[#f7941d] to-[#f7941d]/80 rounded-2xl p-6 text-white">
               <h4 className="text-xl font-bold mb-3">Easy Claims Process</h4>
               <p className="text-white/90 text-sm leading-relaxed">
-                If you need to file a claim, our process is simple and straightforward. We're here to help you through every step.
+                If you need to file a claim, our process is simple and straightforward. We&apos;re here to help you through every step.
               </p>
             </div>
           </div>

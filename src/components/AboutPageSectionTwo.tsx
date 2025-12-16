@@ -1,9 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { Ship, Package, Globe, CheckCircle2, ArrowRight, TrendingUp, Shield, Clock, Users, Plane } from "lucide-react";
+import { 
+  // Ship, 
+  Package, Globe, CheckCircle2, 
+  // ArrowRight, 
+  TrendingUp, Shield, 
+  // Clock, Users, 
+  Plane } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+// import Link from "next/link";
 
 export default function AboutPageSectionTwo() {
   const [isVisible, setIsVisible] = useState(false);

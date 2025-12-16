@@ -2,19 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
-import emailjs from '@emailjs/browser';
+import { useState } from "react";
+import { Mail, CheckCircle2 } from "lucide-react";
 
 export default function ForgotPasswordSection() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  // Initialize EmailJS
-  useEffect(() => {
-    emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '');
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -29,7 +24,7 @@ export default function ForgotPasswordSection() {
     setMessage("");
 
     try {
-      // Call API to generate reset token
+      // Call API to generate reset token and send email
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: {
@@ -46,26 +41,8 @@ export default function ForgotPasswordSection() {
         return;
       }
 
-      // Send password reset email via EmailJS
-      try {
-        const emailParams = {
-          to_email: email,
-          first_name: data.user?.firstName || "User",
-          user_email: email,
-          reset_url: `${process.env.NEXT_PUBLIC_NEXTAUTH_URL || 'http://localhost:3001'}/reset-password?token=${data.resetToken}`
-        };
-
-        await emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
-          process.env.NEXT_PUBLIC_EMAILJS_PASSWORD_RESET_TEMPLATE_ID || '',
-          emailParams
-        );
-
-        setMessage("Password reset email sent! Please check your inbox and follow the instructions.");
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-        setError("Account found but failed to send email. Please try again or contact support.");
-      }
+      // Success message (API handles email sending)
+      setMessage("If an account with that email exists, we've sent a password reset link. Please check your inbox and follow the instructions.");
 
     } catch (error) {
       console.error("Forgot password error:", error);
@@ -76,45 +53,57 @@ export default function ForgotPasswordSection() {
   };
 
   return (
-    <section className="py-16 lg:py-24 bg-gray-200 min-h-[600px] flex items-center">
-      <div className="max-w-7xl mx-auto px-4 w-full">
+    <section className="py-16 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-[600px] flex items-center">
+      <div className="max-w-2xl mx-auto px-4 w-full">
         {/* Forgot Password Form Card */}
-        <p className="text-gray-700 mb-8">
-            Enter your email address and we&apos;ll send you a link you can use to pick a new password.
-          </p>
-        <div className="bg-white border border-gray-200 p-8">
-          {/* Instructional Text */}
-         
+        <div className="bg-white p-8 lg:p-12 border border-gray-200 rounded-2xl shadow-xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+              Forgot Your Password?
+            </h1>
+            <p className="text-gray-600">
+              Enter your email address and we&apos;ll send you a link to reset your password.
+            </p>
+          </div>
 
           {/* Forgot Password Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             {/* Success Message */}
             {message && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                {message}
+              <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-lg text-sm flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold mb-1">Email Sent!</p>
+                  <p>{message}</p>
+                  <div className="mt-3 flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4" />
+                    <span>Check your inbox for the reset link</span>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Email Field */}
             <div>
-              <label className="block text-gray-400 mb-2">
-                Email
+              <label className="block text-gray-700 font-semibold mb-2">
+                Email Address *
               </label>
               <Input
                 type="email"
                 name="email"
                 value={email}
                 onChange={handleInputChange}
-                className="w-full h-15 border-gray-300 focus:border-[#055b8e] focus:ring-[#055b8e]"
+                className="w-full h-12 border-gray-300 focus:border-[#315694] focus:ring-[#315694]"
                 required
                 disabled={isLoading}
+                placeholder="Enter your email address"
               />
             </div>
 
@@ -123,11 +112,20 @@ export default function ForgotPasswordSection() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-800 hover:bg-blue-700 text-white p-8 font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ borderRadius: '10px 0px 10px 0px' }}
+                className="w-full bg-gradient-to-r from-[#315694] to-[#262262] hover:from-[#262262] hover:to-[#315694] text-white p-6 text-lg font-semibold rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105"
               >
-                {isLoading ? "SENDING..." : "RESET PASSWORD"}
+                {isLoading ? "SENDING..." : "SEND RESET LINK"}
               </Button>
+            </div>
+
+            {/* Back to Login */}
+            <div className="text-center">
+              <p className="text-gray-600 text-sm">
+                Remember your password?{" "}
+                <a href="/member-login" className="text-[#315694] hover:underline font-semibold">
+                  Sign in here
+                </a>
+              </p>
             </div>
           </form>
         </div>

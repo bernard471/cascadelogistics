@@ -40,6 +40,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             throw new Error("Account is suspended or pending activation");
           }
 
+          // Check if email is verified (skip for staff role)
+          if (!user.emailVerified && user.role !== "staff") {
+            throw new Error("Please verify your email address before logging in. Check your inbox for the verification link.");
+          }
+
           // Verify password
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string,

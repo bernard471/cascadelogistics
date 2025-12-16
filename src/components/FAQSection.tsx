@@ -1,7 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronDown, HelpCircle, Plane, Package, Shield, Clock, Phone, Mail, MessageCircle, FileCheck, Truck, Globe } from "lucide-react";
+import { ChevronDown, HelpCircle, Plane, 
+  // Package, 
+  Shield, Clock, Phone, Mail, MessageCircle, FileCheck, Truck, 
+  // Globe 
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 

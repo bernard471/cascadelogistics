@@ -16,7 +16,7 @@ export async function GET(
   try {
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || (session.user.role !== "admin" && session.user.role !== "staff")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -52,7 +52,7 @@ export async function PATCH(
   try {
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || (session.user.role !== "admin" && session.user.role !== "staff")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -202,10 +202,10 @@ export async function PATCH(
             ...(imageUrl && { imageUrl, imageName })
           };
           break;
-        case 'arrived-at-warehouse-china':
+        case 'arrived-at-warehouse':
           timelineEvent = {
-            status: 'Arrived at Warehouse (China)',
-            location: currentLocation || 'China',
+            status: 'Arrived at Warehouse',
+            location: currentLocation || 'Warehouse',
             date: now,
             time: timeStr,
             completed: true,
@@ -359,7 +359,7 @@ export async function DELETE(
   try {
     const session = await auth();
     
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || (session.user.role !== "admin" && session.user.role !== "staff")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

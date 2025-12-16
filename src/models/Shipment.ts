@@ -55,7 +55,7 @@ export interface Shipment {
   shippingMark?: string; // Auto-generated shipping mark: GSL000/[NAME]-(888) for sea or GSL000/[NAME]-air for air
   
   // Status
-  status: 'pending' | 'arrived-at-warehouse-china' | 'ready-for-shipment' | 'in-transit' | 'arrived-at-warehouse-ghana' | 'ready-for-pickup' | 'delivered' | 'cancelled' | 'on-hold';
+  status: 'pending' | 'arrived-at-warehouse' | 'ready-for-shipment' | 'in-transit' | 'arrived-at-warehouse-ghana' | 'ready-for-pickup' | 'delivered' | 'cancelled' | 'on-hold';
   currentLocation?: string;
   
   // Tracking Timeline
@@ -68,6 +68,14 @@ export interface Shipment {
     imageUrl?: string; // Vercel Blob Storage URL for update image
     imageName?: string; // Original filename of the image
   }[];
+  
+  // Invoice
+  invoice?: {
+    url: string; // Vercel Blob Storage URL
+    fileName: string; // Original filename
+    uploadedAt: Date; // Upload timestamp
+    uploadedBy: string; // Admin/staff user ID who uploaded it
+  };
   
   // Metadata
   createdAt: Date;

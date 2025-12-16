@@ -93,14 +93,54 @@ export default function AdminDashboardOverview() {
     },
   ];
 
-  // Add colors to shipment status data
-  const shipmentStatusWithColors = (dashboardData.shipmentStatusData || []).map((item: StatusData) => ({
-    ...item,
-    color: item.name === 'Delivered' ? '#10b981' :
-           item.name === 'In Transit' ? '#f59e0b' :
-           item.name === 'Pending' ? '#eab308' :
-           '#ef4444'
-  }));
+  // Status mapping (matching ShipmentManagementSection)
+  const statusMap: Record<string, { display: string; color: string }> = {
+    'pending': { display: 'Pending', color: '#eab308' }, // yellow-600
+    'arrived-at-warehouse': { display: 'Arrived at Warehouse', color: '#2563eb' }, // blue-600
+    'ready-for-shipment': { display: 'Ready for Shipment', color: '#9333ea' }, // purple-600
+    'in-transit': { display: 'In Transit', color: '#ea580c' }, // orange-600
+    'arrived-at-warehouse-ghana': { display: 'Arrived at Warehouse (Ghana)', color: '#4f46e5' }, // indigo-600
+    'ready-for-pickup': { display: 'Ready for Pickup', color: '#0891b2' }, // cyan-600
+    'delivered': { display: 'Delivered', color: '#16a34a' }, // green-600
+    'cancelled': { display: 'Cancelled', color: '#dc2626' }, // red-600
+    'on-hold': { display: 'On Hold', color: '#4b5563' } // gray-600
+  };
+
+  // Helper function to get status display info
+  // const getStatusDisplay = (status: string) => {
+  //   return statusMap[status] || { display: status, color: '#6b7280' }; // gray-500 fallback
+  // };
+
+  // Map shipment status data to use proper display names and colors
+  const shipmentStatusWithColors = (dashboardData.shipmentStatusData || []).map((item: StatusData) => {
+    // Normalize the status name - convert to lowercase and replace spaces with hyphens
+    const normalizedStatus = item.name.toLowerCase().replace(/\s+/g, '-');
+    
+    // Check if normalized status exists as a key in our map
+    let statusInfo = statusMap[normalizedStatus];
+    
+    // If not found by key, try to find by display name (reverse lookup)
+    if (!statusInfo) {
+      for (const [key, value] of Object.entries(statusMap)) {
+        console.log(key, value);
+        if (value.display === item.name) {
+          statusInfo = value;
+          break;
+        }
+      }
+    }
+    
+    // Fallback if still not found
+    if (!statusInfo) {
+      statusInfo = { display: item.name, color: '#6b7280' };
+    }
+    
+    return {
+      ...item,
+      name: statusInfo.display,
+      color: statusInfo.color
+    };
+  });
 
   return (
     <div className="space-y-6">

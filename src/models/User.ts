@@ -11,11 +11,13 @@ export interface User {
   country?: string;
   postalCode?: string;
   bio?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'staff';
   status: 'active' | 'suspended' | 'pending';
   createdAt: Date;
   updatedAt: Date;
   emailVerified?: boolean;
+  verificationToken?: string; // Email verification token
+  verificationTokenExpiry?: Date; // Email verification token expiry
   image?: string;
   profileImage?: string; // Base64 encoded profile image
   memberSince?: Date; // When user joined
@@ -29,6 +31,6 @@ export interface UserSession {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'staff';
 }
 
