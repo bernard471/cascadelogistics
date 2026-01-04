@@ -19,15 +19,20 @@ export default function CreateUserModal({ onClose, onSave }: CreateUserModalProp
     password: "",
     phone: "",
     role: "user",
-    status: "active"
+    status: "active",
+    emailVerified: false
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
     setError("");
   };
 
@@ -209,6 +214,7 @@ export default function CreateUserModal({ onClose, onSave }: CreateUserModalProp
               >
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
               </select>
             </div>
 
@@ -227,6 +233,30 @@ export default function CreateUserModal({ onClose, onSave }: CreateUserModalProp
                 <option value="pending">Pending</option>
                 <option value="suspended">Suspended</option>
               </select>
+            </div>
+          </div>
+
+          {/* Email Verification Option */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="emailVerified"
+                name="emailVerified"
+                checked={formData.emailVerified}
+                onChange={handleInputChange}
+                className="w-4 h-4 text-[#055b8e] border-gray-300 rounded focus:ring-[#055b8e] mt-1"
+              />
+              <div className="flex-1">
+                <label htmlFor="emailVerified" className="block text-sm font-medium text-gray-700 cursor-pointer">
+                  Mark email as verified
+                </label>
+                <p className="text-xs text-gray-600 mt-1">
+                  {formData.emailVerified 
+                    ? "Email will be marked as verified. No verification email will be sent to the user."
+                    : "Email will NOT be verified. A welcome/verification email will be sent to the user to verify their email before they can login."}
+                </p>
+              </div>
             </div>
           </div>
 

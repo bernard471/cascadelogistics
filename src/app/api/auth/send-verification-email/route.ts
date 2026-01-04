@@ -75,7 +75,8 @@ export async function POST(request: Request) {
     });
 
     // Verification URL
-    const verificationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+    const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
 
     // Email HTML
     const emailHtml = `
