@@ -64,8 +64,32 @@ export async function PUT(request: Request) {
 
     const body = await request.json();
     
-    // Remove fields that shouldn't be updated via this endpoint
-    const { password, role, status, createdAt, ...updateData } = body;
+    // Define allowed fields that users can update
+    type AllowedProfileField = 'firstName' | 'lastName' | 'email' | 'phone' | 'address' | 'city' | 'country' | 'postalCode' | 'bio' | 'profileImage';
+    const allowedFields: AllowedProfileField[] = [
+      'firstName',
+      'lastName',
+      'email',
+      'phone',
+      'address',
+      'city',
+      'country',
+      'postalCode',
+      'bio',
+      'profileImage'
+    ];
+    
+    // Only include fields that are allowed and actually provided
+    const updateData: Partial<Pick<User, AllowedProfileField | 'updatedAt'>> & { updatedAt: Date } = {
+      updatedAt: new Date()
+    };
+    
+    // Only add fields that are in the allowed list and have values
+    for (const field of allowedFields) {
+      if (field in body && body[field] !== undefined && body[field] !== null) {
+        (updateData as Record<string, unknown>)[field] = body[field];
+      }
+    }
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
@@ -74,14 +98,7 @@ export async function PUT(request: Request) {
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(session.user.id) as unknown as string },
       { 
-        $set: { 
-          password: password,
-          role: role,
-          status: status,
-          createdAt: createdAt,
-          ...updateData,
-          updatedAt: new Date()
-        } 
+        $set: updateData
       }
     );
 

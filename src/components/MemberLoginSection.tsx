@@ -11,7 +11,6 @@ import { CheckCircle2, Mail } from "lucide-react";
 export default function MemberLoginSection() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const messageParam = searchParams.get('message');
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -23,10 +22,11 @@ export default function MemberLoginSection() {
 
   // Check for message from query params
   useEffect(() => {
+    const messageParam = searchParams.get('message');
     if (messageParam) {
       setMessage(messageParam);
     }
-  }, [messageParam]);
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { MongoQuery } from "@/types";
 
@@ -118,6 +119,19 @@ export async function POST(request: Request) {
     const client = await clientPromise;
     const db = client.db("guangzhou");
     const shipmentsCollection = db.collection<Shipment>("shipments");
+    const usersCollection = db.collection("users");
+
+    // Get user info for sender/receiver
+    const user = await usersCollection.findOne({
+      _id: new ObjectId(session.user.id)
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
 
     // Generate tracking ID
     const timestamp = Date.now().toString().slice(-6);
@@ -127,7 +141,7 @@ export async function POST(request: Request) {
     // Create new shipment
     type ShipmentCreationPayload = Omit<
       Shipment,
-      '_id' | 'trackingId' | 'userId' | 'status' | 'timeline' | 'createdAt' | 'updatedAt' | 'documents'
+      '_id' | 'trackingId' | 'userId' | 'status' | 'timeline' | 'createdAt' | 'updatedAt' | 'documents' | 'senderName' | 'senderEmail' | 'senderPhone' | 'senderAddress' | 'senderCity' | 'senderCountry' | 'receiverName' | 'receiverEmail' | 'receiverPhone' | 'receiverAddress' | 'receiverCity' | 'receiverCountry'
     >;
 
     const shipmentPayload = body as ShipmentCreationPayload;
@@ -148,18 +162,33 @@ export async function POST(request: Request) {
       }
     }
 
+    // Set standard route: USA Warehouse, USA → Ghana Warehouse, Ghana
     const newShipment: Omit<Shipment, '_id'> = {
       ...shipmentPayload,
       goodsType,
       trackingId,
       userId: session.user.id,
-      status: 'pending',
+      status: 'pending', // User creates with pending status
       shippingMark, // Add shipping mark
       documents: uploadedDocuments?.length ? uploadedDocuments : undefined,
+      // Standard sender info (USA Warehouse)
+      senderName: `${user.firstName} ${user.lastName}`,
+      senderEmail: user.email,
+      senderPhone: user.phone || '',
+      senderAddress: 'USA Warehouse',
+      senderCity: 'USA Warehouse',
+      senderCountry: 'USA',
+      // Standard receiver info (Ghana Warehouse)
+      receiverName: `${user.firstName} ${user.lastName}`,
+      receiverEmail: user.email,
+      receiverPhone: user.phone || '',
+      receiverAddress: 'Ghana Warehouse',
+      receiverCity: 'Ghana Warehouse',
+      receiverCountry: 'Ghana',
       timeline: [
         {
           status: 'Order Placed',
-          location: body.senderCity + ', ' + body.senderCountry,
+          location: 'USA Warehouse, USA',
           date: new Date(),
           time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
           completed: true
@@ -187,7 +216,7 @@ export async function POST(request: Request) {
     const adminNotification = {
       userId: "admin",
       title: "New Shipment Created",
-      message: `A new shipment ${trackingId} has been created by ${body.senderName}.`,
+      message: `A new shipment ${trackingId} has been created by ${user.firstName} ${user.lastName}.`,
       type: "shipment",
       isRead: false,
       relatedShipmentId: result.insertedId.toString(),

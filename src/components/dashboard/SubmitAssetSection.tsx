@@ -2,7 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package, MapPin, User, Calendar, 
+import { Package, MapPin, 
+ // User,
+   Calendar, 
   Upload, Plus, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,18 +22,6 @@ export default function SubmitAssetSection() {
   const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
   
   const [formData, setFormData] = useState<{
-    senderName: string;
-    senderEmail: string;
-    senderPhone: string;
-    senderAddress: string;
-    senderCity: string;
-    senderCountry: string;
-    receiverName: string;
-    receiverEmail: string;
-    receiverPhone: string;
-    receiverAddress: string;
-    receiverCity: string;
-    receiverCountry: string;
     packageType: string;
     weight: string;
     dimensions: string;
@@ -45,22 +35,6 @@ export default function SubmitAssetSection() {
     specialInstructions: string;
     shippingMarkName: string;
   }>({
-    // Sender Information
-    senderName: "",
-    senderEmail: "",
-    senderPhone: "",
-    senderAddress: "",
-    senderCity: "",
-    senderCountry: "",
-    
-    // Receiver Information
-    receiverName: "",
-    receiverEmail: "",
-    receiverPhone: "",
-    receiverAddress: "",
-    receiverCity: "",
-    receiverCountry: "",
-    
     // Shipment Details
     packageType: "",
     weight: "",
@@ -207,9 +181,9 @@ export default function SubmitAssetSection() {
       
       const payload = {
         ...formData,
-        weight: parseFloat(formData.weight),
-        quantity: parseInt(formData.quantity),
-        declaredValue: parseFloat(formData.declaredValue),
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        quantity: formData.quantity ? parseInt(formData.quantity) : undefined,
+        declaredValue: formData.declaredValue ? parseFloat(formData.declaredValue) : undefined,
         pickupDate: formData.pickupDate ? new Date(formData.pickupDate) : undefined,
         servicePrice: calculatePrice(),
         goodsType: formData.goodsType,
@@ -278,204 +252,15 @@ export default function SubmitAssetSection() {
           </div>
         )}
 
-        {/* Sender Information */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <User className="w-5 h-5 text-[#055b8e]" />
-            <h3 className="text-lg font-bold text-gray-800">Sender Information</h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name *
-              </label>
-              <Input
-                type="text"
-                name="senderName"
-                value={formData.senderName}
-                onChange={handleInputChange}
-                placeholder="Enter sender's full name"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <Input
-                type="email"
-                name="senderEmail"
-                value={formData.senderEmail}
-                onChange={handleInputChange}
-                placeholder="Enter sender's email"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number *
-              </label>
-              <Input
-                type="tel"
-                name="senderPhone"
-                value={formData.senderPhone}
-                onChange={handleInputChange}
-                placeholder="Enter sender's phone"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City *
-              </label>
-              <Input
-                type="text"
-                name="senderCity"
-                value={formData.senderCity}
-                onChange={handleInputChange}
-                placeholder="Enter sender's city"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address *
-              </label>
-              <Input
-                type="text"
-                name="senderAddress"
-                value={formData.senderAddress}
-                onChange={handleInputChange}
-                placeholder="Enter sender's full address"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Country *
-              </label>
-              <Input
-                type="text"
-                name="senderCountry"
-                value={formData.senderCountry}
-                onChange={handleInputChange}
-                placeholder="Enter sender's country"
-                className="h-12"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Receiver Information */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-2 mb-6">
+        {/* Route Information */}
+        <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-200 p-6">
+          <div className="flex items-center gap-2 mb-2">
             <MapPin className="w-5 h-5 text-[#055b8e]" />
-            <h3 className="text-lg font-bold text-gray-800">Receiver Information</h3>
+            <h3 className="text-lg font-bold text-gray-800">Shipment Route</h3>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name *
-              </label>
-              <Input
-                type="text"
-                name="receiverName"
-                value={formData.receiverName}
-                onChange={handleInputChange}
-                placeholder="Enter receiver's full name"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <Input
-                type="email"
-                name="receiverEmail"
-                value={formData.receiverEmail}
-                onChange={handleInputChange}
-                placeholder="Enter receiver's email"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number *
-              </label>
-              <Input
-                type="tel"
-                name="receiverPhone"
-                value={formData.receiverPhone}
-                onChange={handleInputChange}
-                placeholder="Enter receiver's phone"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City *
-              </label>
-              <Input
-                type="text"
-                name="receiverCity"
-                value={formData.receiverCity}
-                onChange={handleInputChange}
-                placeholder="Enter receiver's city"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address *
-              </label>
-              <Input
-                type="text"
-                name="receiverAddress"
-                value={formData.receiverAddress}
-                onChange={handleInputChange}
-                placeholder="Enter receiver's full address"
-                className="h-12"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Country *
-              </label>
-              <Input
-                type="text"
-                name="receiverCountry"
-                value={formData.receiverCountry}
-                onChange={handleInputChange}
-                placeholder="Enter receiver's country"
-                className="h-12"
-                required
-              />
-            </div>
-          </div>
+          <p className="text-sm text-gray-700">
+            <strong>Origin:</strong> USA Warehouse, USA → <strong>Destination:</strong> Ghana Warehouse, Ghana
+          </p>
         </div>
 
         {/* Shipment Details */}
@@ -526,7 +311,7 @@ export default function SubmitAssetSection() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Weight (kg) *
+                Weight (kg)
               </label>
               <Input
                 type="number"
@@ -535,7 +320,8 @@ export default function SubmitAssetSection() {
                 onChange={handleInputChange}
                 placeholder="Enter weight in kg"
                 className="h-12"
-                required
+                step="0.1"
+                min="0"
               />
             </div>
 
@@ -561,7 +347,7 @@ export default function SubmitAssetSection() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity *
+                Quantity
               </label>
               <Input
                 type="number"
@@ -570,7 +356,7 @@ export default function SubmitAssetSection() {
                 onChange={handleInputChange}
                 placeholder="Enter quantity"
                 className="h-12"
-                required
+                min="1"
               />
             </div>
 
@@ -590,7 +376,7 @@ export default function SubmitAssetSection() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Declared Value (USD) *
+                Declared Value (USD)
               </label>
               <Input
                 type="number"
@@ -599,7 +385,8 @@ export default function SubmitAssetSection() {
                 onChange={handleInputChange}
                 placeholder="Enter declared value"
                 className="h-12"
-                required
+                step="0.01"
+                min="0"
               />
             </div>
           </div>

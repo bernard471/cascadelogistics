@@ -72,8 +72,8 @@ export default function MyAssetsListSection() {
           const statusInfo = getStatusDisplay(shipment.status);
           return {
             id: shipment.trackingId,
-            destination: `${shipment.receiverCity}, ${shipment.receiverCountry}`,
-            origin: `${shipment.senderCity}, ${shipment.senderCountry}`,
+            destination: 'Ghana Warehouse, Ghana',
+            origin: 'USA Warehouse, USA',
             status: statusInfo.display,
             statusColor: statusInfo.color,
           date: new Date(shipment.createdAt).toISOString().split('T')[0],
@@ -423,12 +423,12 @@ export default function MyAssetsListSection() {
       {/* View Modal */}
       {showViewModal && selectedAsset && (
         <ViewShipmentModal
-          shipment={{
+            shipment={{
             id: selectedAsset.trackingId,
             _id: selectedAsset._id || '',
             customer: `${selectedAsset.senderName}`,
-            origin: `${selectedAsset.senderCity}, ${selectedAsset.senderCountry}`,
-            destination: `${selectedAsset.receiverCity}, ${selectedAsset.receiverCountry}`,
+            origin: 'USA Warehouse, USA',
+            destination: 'Ghana Warehouse, Ghana',
             status: selectedAsset.status === 'in-transit' ? 'In Transit' :
                     selectedAsset.status === 'pending' ? 'Pending' :
                     selectedAsset.status === 'delivered' ? 'Delivered' :

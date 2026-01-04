@@ -17,7 +17,8 @@ interface MappedShipment {
   customer: string;
   origin: string;
   destination: string;
-  status: string;
+  status: string; // Display name
+  statusValue: string; // Actual status value (e.g., 'pending', 'in-transit')
   statusColor: string;
   date: string;
   estimatedDelivery: string;
@@ -85,9 +86,10 @@ export default function ShipmentManagementSection() {
             id: shipment.trackingId,
             _id: shipment._id,
             customer: shipment.customer,
-            origin: `${shipment.senderCity}, ${shipment.senderCountry}`,
-            destination: `${shipment.receiverCity}, ${shipment.receiverCountry}`,
+            origin: 'USA Warehouse, USA',
+            destination: 'Ghana Warehouse, Ghana',
             status: statusInfo.display,
+            statusValue: shipment.status, // Store actual status value
             statusColor: statusInfo.color,
           date: new Date(shipment.createdAt).toISOString().split('T')[0],
           estimatedDelivery: shipment.estimatedDelivery ?

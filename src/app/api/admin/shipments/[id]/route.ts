@@ -77,7 +77,6 @@ export async function PATCH(
       estimatedDelivery?: string;
       specialInstructions?: string;
     } = {};
-    let updateImage: File | null = null;
     let imageUrl: string | undefined;
     let imageName: string | undefined;
 
@@ -114,8 +113,6 @@ export async function PATCH(
             { status: 400 }
           );
         }
-
-        updateImage = imageFile;
         
         // Upload to Vercel Blob Storage
         const imageBuffer = Buffer.from(await imageFile.arrayBuffer());

@@ -13,7 +13,8 @@ interface MappedShipment {
   customer: string;
   origin: string;
   destination: string;
-  status: string;
+  status: string; // Display name
+  statusValue?: string; // Actual status value (e.g., 'pending', 'in-transit')
   statusColor: string;
   date: string;
   estimatedDelivery: string;
@@ -30,8 +31,28 @@ interface EditShipmentModalProps {
 }
 
 export default function EditShipmentModal({ shipment, onClose, onSave }: EditShipmentModalProps) {
+  // Use statusValue if available, otherwise try to convert display name to status value
+  const getStatusValue = () => {
+    if (shipment.statusValue) {
+      return shipment.statusValue;
+    }
+    // Fallback: convert display name to status value
+    const statusMap: Record<string, string> = {
+      'Pending': 'pending',
+      'Arrived at Warehouse': 'arrived-at-warehouse',
+      'Ready for Shipment': 'ready-for-shipment',
+      'In Transit': 'in-transit',
+      'Arrived at Warehouse (Ghana)': 'arrived-at-warehouse-ghana',
+      'Ready for Pickup': 'ready-for-pickup',
+      'Delivered': 'delivered',
+      'Cancelled': 'cancelled',
+      'On Hold': 'on-hold'
+    };
+    return statusMap[shipment.status] || 'pending';
+  };
+
   const [formData, setFormData] = useState({
-    status: shipment.status.toLowerCase().replace(' ', '-') || "pending",
+    status: getStatusValue(),
     currentLocation: "",
     estimatedDelivery: shipment.estimatedDelivery || "",
     specialInstructions: ""

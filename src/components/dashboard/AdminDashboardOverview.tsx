@@ -7,10 +7,13 @@ import { Users, Package,
   
 } from "lucide-react";
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  // BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { AdminStats, Activity, StatusData, RouteData } from "@/types";
+import { AdminStats, Activity, StatusData, 
+  // RouteData 
+  } from "@/types";
 
 export default function AdminDashboardOverview() {
   const [isLoading, setIsLoading] = useState(true);
@@ -180,22 +183,29 @@ export default function AdminDashboardOverview() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
+        {/* Recent Activities */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6">Monthly Revenue</h3>
-          {dashboardData.monthlyRevenue && dashboardData.monthlyRevenue.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dashboardData.monthlyRevenue}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="#055b8e" />
-              </BarChart>
-            </ResponsiveContainer>
+          <h3 className="text-lg font-bold text-gray-800 mb-6">Recent Activities</h3>
+          {dashboardData.recentActivities && dashboardData.recentActivities.length > 0 ? (
+            <div className="space-y-4">
+              {dashboardData.recentActivities.map((activity: Activity, index: number) => (
+                <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-b-0">
+                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                    activity.type === 'payment' ? 'bg-green-500' :
+                    activity.type === 'user' ? 'bg-blue-500' :
+                    activity.type === 'delivery' ? 'bg-purple-500' :
+                    'bg-orange-500'
+                  }`}></div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-800">{activity.action}</p>
+                    <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-500">
-              No revenue data available
+            <div className="py-12 text-center text-gray-500">
+              No recent activities
             </div>
           )}
         </div>
@@ -232,9 +242,9 @@ export default function AdminDashboardOverview() {
       </div>
 
       {/* Top Routes and Recent Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> */}
         {/* Top Performing Routes */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-6">Top Performing Routes</h3>
           {dashboardData.topRoutes && dashboardData.topRoutes.length > 0 ? (
             <div className="space-y-4">
@@ -258,10 +268,10 @@ export default function AdminDashboardOverview() {
               No route data available yet
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Recent Activities */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-6">Recent Activities</h3>
           {dashboardData.recentActivities && dashboardData.recentActivities.length > 0 ? (
             <div className="space-y-4">
@@ -285,8 +295,8 @@ export default function AdminDashboardOverview() {
               No recent activities
             </div>
           )}
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

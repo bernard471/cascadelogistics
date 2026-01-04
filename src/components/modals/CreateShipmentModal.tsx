@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Save, PackagePlus, User, MapPin, Upload } from "lucide-react";
+import { X, Save, PackagePlus, User,
+ //  MapPin, 
+   Upload, Plus, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,31 +19,29 @@ interface CreateShipmentModalProps {
 
 export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentModalProps) {
   const [users, setUsers] = useState<UserType[]>([]);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     userId: "",
-    senderName: "",
-    senderEmail: "",
-    senderPhone: "",
-    senderAddress: "",
-    senderCity: "",
-    senderCountry: "",
-    receiverName: "",
-    receiverEmail: "",
-    receiverPhone: "",
-    receiverAddress: "",
-    receiverCity: "",
-    receiverCountry: "",
     packageType: "parcel",
     weight: "",
-    quantity: "1",
+    quantity: "",
     description: "",
     declaredValue: "",
     dimensions: "",
     goodsType: "normal" as GoodsType,
     serviceType: "standard" as ServiceType,
     pickupDate: "",
-    specialInstructions: ""
+    specialInstructions: "",
+    shippingMarkName: ""
   });
+
+  // Wholesale purchase entries (array of name + tracking number pairs)
+  const [wholesalePurchases, setWholesalePurchases] = useState<Array<{
+    name: string;
+    trackingNumber: string;
+  }>>([]);
 
   // Calculate total price using actual pricing structure
   const calculatePrice = () => {
@@ -59,6 +59,20 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
       formData.description,
       formData.packageType
     );
+  };
+
+  // Generate shipping mark based on service type
+  const generateShippingMark = (serviceType: ServiceType, shippingMarkName: string): string => {
+    if (!shippingMarkName.trim()) return '';
+    
+    const name = shippingMarkName.trim();
+    if (serviceType === 'overnight') {
+      // Sea shipping: CLL000/[NAME]-(888)
+      return `CLL000/${name}-(888)`;
+    } else {
+      // Air shipping (standard, express): CLL000/[NAME]-air
+      return `CLL000/${name}-air`;
+    }
   };
 
   // Get service info for display
@@ -135,20 +149,66 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     documentInputRef.current?.click();
   };
 
-  const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedUser = users.find(u => u._id === e.target.value);
+  // Filter users based on search query
+  const filteredUsers = users.filter(user => {
+    const searchLower = userSearchQuery.toLowerCase();
+    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+    const email = user.email.toLowerCase();
+    return fullName.includes(searchLower) || email.includes(searchLower);
+  });
+
+  const handleUserSelect = (userId: string) => {
+    const selectedUser = users.find(u => u._id === userId);
     if (selectedUser && selectedUser._id) {
       setFormData(prev => ({
         ...prev,
-        userId: selectedUser._id!,
-        senderName: `${selectedUser.firstName} ${selectedUser.lastName}`,
-        senderEmail: selectedUser.email,
-        senderPhone: selectedUser.phone || "",
-        senderAddress: selectedUser.address || "",
-        senderCity: selectedUser.city || "",
-        senderCountry: selectedUser.country || ""
+        userId: selectedUser._id!
       }));
+      setUserSearchQuery(`${selectedUser.firstName} ${selectedUser.lastName} (${selectedUser.email})`);
+      setShowUserDropdown(false);
     }
+  };
+
+  // Get selected user display name
+  const getSelectedUserDisplay = () => {
+    if (!formData.userId) return "";
+    const selectedUser = users.find(u => u._id === formData.userId);
+    if (selectedUser) {
+      return `${selectedUser.firstName} ${selectedUser.lastName} (${selectedUser.email})`;
+    }
+    return "";
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    if (showUserDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showUserDropdown]);
+
+  // Handle wholesale purchase entries
+  const addWholesalePurchase = () => {
+    setWholesalePurchases(prev => [...prev, { name: "", trackingNumber: "" }]);
+  };
+
+  const removeWholesalePurchase = (index: number) => {
+    setWholesalePurchases(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateWholesalePurchase = (index: number, field: 'name' | 'trackingNumber', value: string) => {
+    setWholesalePurchases(prev => prev.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,22 +217,35 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     setError("");
     setSuccess("");
 
+    // Validate user is selected
+    if (!formData.userId) {
+      setError("Please select a user");
+      setIsSaving(false);
+      return;
+    }
+
     try {
+      // Generate shipping mark
+      const shippingMark = generateShippingMark(formData.serviceType, formData.shippingMarkName);
+      
       const payload = {
         ...formData,
-        weight: parseFloat(formData.weight),
-        quantity: parseInt(formData.quantity),
-        declaredValue: parseFloat(formData.declaredValue),
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        quantity: formData.quantity ? parseInt(formData.quantity) : undefined,
+        declaredValue: formData.declaredValue ? parseFloat(formData.declaredValue) : undefined,
         pickupDate: formData.pickupDate ? new Date(formData.pickupDate) : undefined,
         servicePrice: calculatePrice(),
         goodsType: formData.goodsType,
+        shippingMark, // Add generated shipping mark
+        // Add wholesale purchases (only non-empty entries)
+        wholesalePurchases: wholesalePurchases.filter(p => p.name.trim() || p.trackingNumber.trim()),
       };
 
       const requestBody = new FormData();
       requestBody.append("payload", JSON.stringify(payload));
       documents.forEach(file => requestBody.append("documents", file));
 
-      const response = await fetch("/api/shipments", {
+      const response = await fetch("/api/admin/shipments", {
         method: "POST",
         body: requestBody
       });
@@ -188,6 +261,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
       setSuccess(`Shipment created successfully! Tracking ID: ${data.trackingId}`);
       setIsSaving(false);
       setDocuments([]);
+      setWholesalePurchases([]); // Reset wholesale purchases
       if (documentInputRef.current) {
         documentInputRef.current.value = "";
       }
@@ -237,182 +311,85 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
             </div>
           )}
 
-          {/* Select User */}
-          <div>
+          {/* Select User - Searchable */}
+          <div className="relative" ref={userDropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select User (Auto-fill Sender) *
+              Select User *
             </label>
-            <select
-              onChange={handleUserSelect}
-              className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
-            >
-              <option value="">Select a user...</option>
-              {users.map(user => (
-                <option key={user._id} value={user._id}>
-                  {user.firstName} {user.lastName} ({user.email})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sender Information */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <User className="w-5 h-5 text-[#055b8e]" />
-              <h3 className="font-bold text-gray-800">Sender Information</h3>
+            <div className="relative">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  type="text"
+                  value={userSearchQuery}
+                  onChange={(e) => {
+                    setUserSearchQuery(e.target.value);
+                    setShowUserDropdown(true);
+                    if (!e.target.value) {
+                      setFormData(prev => ({ ...prev, userId: "" }));
+                    }
+                  }}
+                  onFocus={() => setShowUserDropdown(true)}
+                  placeholder="Search by name or email..."
+                  className="h-12 pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <ChevronDown className={`w-5 h-5 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+              
+              {/* Dropdown */}
+              {showUserDropdown && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {filteredUsers.length > 0 ? (
+                    <ul className="py-1">
+                      {filteredUsers.map(user => (
+                        <li
+                          key={user._id}
+                          onClick={() => handleUserSelect(user._id!)}
+                          className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+                            formData.userId === user._id ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-gray-400" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {user.firstName} {user.lastName}
+                              </div>
+                              <div className="text-xs text-gray-500">{user.email}</div>
+                            </div>
+                            {formData.userId === user._id && (
+                              <div className="ml-auto text-[#055b8e]">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                      No users found
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
-                </label>
-                <Input
-                  type="text"
-                  name="senderName"
-                  value={formData.senderName}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
-                <Input
-                  type="email"
-                  name="senderEmail"
-                  value={formData.senderEmail}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone *
-                </label>
-                <Input
-                  type="tel"
-                  name="senderPhone"
-                  value={formData.senderPhone}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
-                </label>
-                <Input
-                  type="text"
-                  name="senderCity"
-                  value={formData.senderCity}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country *
-                </label>
-                <Input
-                  type="text"
-                  name="senderCountry"
-                  value={formData.senderCountry}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Receiver Information */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin className="w-5 h-5 text-[#055b8e]" />
-              <h3 className="font-bold text-gray-800">Receiver Information</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
-                </label>
-                <Input
-                  type="text"
-                  name="receiverName"
-                  value={formData.receiverName}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
-                <Input
-                  type="email"
-                  name="receiverEmail"
-                  value={formData.receiverEmail}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone *
-                </label>
-                <Input
-                  type="tel"
-                  name="receiverPhone"
-                  value={formData.receiverPhone}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
-                </label>
-                <Input
-                  type="text"
-                  name="receiverCity"
-                  value={formData.receiverCity}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country *
-                </label>
-                <Input
-                  type="text"
-                  name="receiverCountry"
-                  value={formData.receiverCountry}
-                  onChange={handleInputChange}
-                  className="h-12"
-                  required
-                />
-              </div>
-            </div>
+            {formData.userId && (
+              <p className="text-xs text-green-600 mt-1">
+                Selected: {getSelectedUserDisplay()}
+              </p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Route: USA Warehouse, USA → Ghana Warehouse, Ghana
+            </p>
           </div>
 
           {/* Package Details */}
@@ -439,7 +416,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Weight (kg) *
+                Weight (kg)
               </label>
               <Input
                 type="number"
@@ -448,14 +425,13 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                 onChange={handleInputChange}
                 className="h-12"
                 step="0.1"
-                min="0.1"
-                required
+                min="0"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity *
+                Quantity
               </label>
               <Input
                 type="number"
@@ -464,7 +440,6 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                 onChange={handleInputChange}
                 className="h-12"
                 min="1"
-                required
               />
             </div>
           </div>
@@ -508,7 +483,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Declared Value ($) *
+              Declared Value ($)
             </label>
             <Input
               type="number"
@@ -518,7 +493,6 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
               className="h-12"
               step="0.01"
               min="0"
-              required
             />
           </div>
 
@@ -606,6 +580,140 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
               className="min-h-[80px] resize-none"
               required
             />
+          </div>
+
+          {/* Wholesale Purchase Information */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <PackagePlus className="w-5 h-5 text-[#055b8e]" />
+                <h3 className="font-bold text-gray-800">Purchase Information</h3>
+              </div>
+              <Button
+                type="button"
+                onClick={addWholesalePurchase}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Entry
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              If you purchased goods from shops in USA, China or other countries and are sending them directly to our warehouse, please provide the following information. You can add multiple entries if you purchased from different shops:
+            </p>
+            
+            {wholesalePurchases.length === 0 ? (
+              <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                <PackagePlus className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600 mb-4">No purchase entries added yet</p>
+                <Button
+                  type="button"
+                  onClick={addWholesalePurchase}
+                  variant="outline"
+                  className="flex items-center gap-2 mx-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Purchase Entry
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {wholesalePurchases.map((purchase, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-semibold text-gray-700">Entry #{index + 1}</h4>
+                      {wholesalePurchases.length > 1 && (
+                        <Button
+                          type="button"
+                          onClick={() => removeWholesalePurchase(index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Name Used for Purchase
+                        </label>
+                        <Input
+                          type="text"
+                          value={purchase.name}
+                          onChange={(e) => updateWholesalePurchase(index, 'name', e.target.value)}
+                          placeholder="Enter the name you used when purchasing"
+                          className="h-12"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Purchase Shop Tracking Number
+                        </label>
+                        <Input
+                          type="text"
+                          value={purchase.trackingNumber}
+                          onChange={(e) => updateWholesalePurchase(index, 'trackingNumber', e.target.value)}
+                          placeholder="Enter tracking number from purchase shop"
+                          className="h-12"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  onClick={addWholesalePurchase}
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Another Entry
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Shipping Mark */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <PackagePlus className="w-5 h-5 text-[#055b8e]" />
+              <h3 className="font-bold text-gray-800">Shipping Mark</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Enter a name for your shipping mark. This will be used to identify your package at the warehouse.
+              {formData.serviceType === 'overnight' && (
+                <span className="block mt-1">Format: <strong>CLL000/[Your Name]-(888)</strong></span>
+              )}
+              {(formData.serviceType === 'standard' || formData.serviceType === 'express') && (
+                <span className="block mt-1">Format: <strong>CLL000/[Your Name]-air</strong></span>
+              )}
+            </p>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Shipping Mark Name
+              </label>
+              <Input
+                type="text"
+                name="shippingMarkName"
+                value={formData.shippingMarkName}
+                onChange={handleInputChange}
+                placeholder="Enter name for shipping mark (e.g., Cyber, John, ABC)"
+                className="h-12"
+              />
+              {formData.shippingMarkName && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Your shipping mark will be: <strong className="text-[#055b8e]">
+                    CLL000/{formData.shippingMarkName}
+                    {formData.serviceType === 'overnight' ? '-(888)' : '-air'}
+                  </strong>
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Document Upload */}

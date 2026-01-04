@@ -133,8 +133,8 @@ export default function TrackShipmentSection() {
         trackingId: data.trackingId,
         status: statusInfo.display,
         statusColor: statusInfo.color,
-        origin: data.origin,
-        destination: data.destination,
+        origin: 'USA Warehouse, USA',
+        destination: 'Ghana Warehouse, Ghana',
         estimatedDelivery: data.estimatedDelivery ? 
           new Date(data.estimatedDelivery).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 
           'TBD',
@@ -596,7 +596,7 @@ export default function TrackShipmentSection() {
                   <div className="text-left">
                     <div className="font-medium text-gray-800">{shipment.trackingId}</div>
                     <div className="text-xs text-gray-500">
-                      {shipment.senderCity} → {shipment.receiverCity}
+                      USA Warehouse, USA → Ghana Warehouse, Ghana
                     </div>
                   </div>
                 </div>

@@ -13,15 +13,7 @@ export default function MemberLogin() {
             <BreadcrumbHero title="Member Login" 
             crumbs={[{ label: "Home", href: "/" }, 
             { label: "Member Login", href: "/member-login" }]} />
-            <Suspense fallback={
-                <section className="py-16 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-[600px] flex items-center">
-                    <div className="max-w-2xl mx-auto px-4 w-full">
-                        <div className="bg-white p-8 lg:p-12 border border-gray-200 rounded-2xl shadow-xl text-center">
-                            <p className="text-gray-600">Loading...</p>
-                        </div>
-                    </div>
-                </section>
-            }>
+            <Suspense fallback={<div className="min-h-[600px] flex items-center justify-center"><div className="text-gray-600">Loading...</div></div>}>
                 <MemberLoginSection />
             </Suspense>
             <Footer />

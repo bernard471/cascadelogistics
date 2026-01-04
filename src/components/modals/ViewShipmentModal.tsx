@@ -111,8 +111,8 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                   <span className="ml-2 text-gray-800 font-medium">{shipment.customer}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Location:</span>
-                  <span className="ml-2 text-gray-800 font-medium">{shipment.origin}</span>
+                  <span className="text-gray-600">Origin:</span>
+                  <span className="ml-2 text-gray-800 font-medium">USA Warehouse, USA</span>
                 </div>
               </div>
             </div>
@@ -121,12 +121,12 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-[#055b8e]" />
-                <h3 className="font-bold text-gray-800">Receiver Information</h3>
+                <h3 className="font-bold text-gray-800">Destination Information</h3>
               </div>
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-gray-600">Destination:</span>
-                  <span className="ml-2 text-gray-800 font-medium">{shipment.destination}</span>
+                  <span className="ml-2 text-gray-800 font-medium">Ghana Warehouse, Ghana</span>
                 </div>
               </div>
             </div>
