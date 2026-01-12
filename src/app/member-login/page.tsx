@@ -14,7 +14,7 @@ export default function MemberLogin() {
             crumbs={[{ label: "Home", href: "/" }, 
             { label: "Member Login", href: "/member-login" }]} />
             <Suspense fallback={<div className="min-h-[600px] flex items-center justify-center"><div className="text-gray-600">Loading...</div></div>}>
-                <MemberLoginSection />
+            <MemberLoginSection />
             </Suspense>
             <Footer />
         </div>

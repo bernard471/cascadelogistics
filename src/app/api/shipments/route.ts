@@ -149,19 +149,6 @@ export async function POST(request: Request) {
     // Ensure goodsType defaults to 'normal' if not provided (for backward compatibility)
     const goodsType = shipmentPayload.goodsType || 'normal';
 
-    // Generate shipping mark if shippingMarkName is provided but shippingMark is not
-    let shippingMark = shipmentPayload.shippingMark;
-    if (!shippingMark && shipmentPayload.shippingMarkName) {
-      const name = shipmentPayload.shippingMarkName.trim();
-      if (shipmentPayload.serviceType === 'overnight') {
-        // Sea shipping: CLL000/[NAME]-(888)
-        shippingMark = `CLL000/${name}-(888)`;
-      } else {
-        // Air shipping (standard, express): CLL000/[NAME]-air
-        shippingMark = `CLL000/${name}-air`;
-      }
-    }
-
     // Set standard route: USA Warehouse, USA → Ghana Warehouse, Ghana
     const newShipment: Omit<Shipment, '_id'> = {
       ...shipmentPayload,
@@ -169,7 +156,6 @@ export async function POST(request: Request) {
       trackingId,
       userId: session.user.id,
       status: 'pending', // User creates with pending status
-      shippingMark, // Add shipping mark
       documents: uploadedDocuments?.length ? uploadedDocuments : undefined,
       // Standard sender info (USA Warehouse)
       senderName: `${user.firstName} ${user.lastName}`,

@@ -15,6 +15,7 @@ interface MappedRecentShipment {
   statusColor: string;
   estimatedDelivery: string;
   createdAt: string;
+  deltaNumber?: string;
 }
 
 interface MappedActivity {
@@ -135,7 +136,8 @@ export default function DashboardOverview() {
                         'text-gray-600 bg-gray-50',
             estimatedDelivery: shipment.estimatedDelivery ? 
               new Date(shipment.estimatedDelivery).toISOString().split('T')[0] : 'TBD',
-            createdAt: new Date(shipment.createdAt).toISOString().split('T')[0]
+            createdAt: new Date(shipment.createdAt).toISOString().split('T')[0],
+            deltaNumber: shipment.deltaNumber
           }));
           
           setRecentShipments(mappedShipments);
@@ -261,6 +263,9 @@ export default function DashboardOverview() {
                       Tracking ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      DELTA Number
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Destination
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -280,6 +285,11 @@ export default function DashboardOverview() {
                             {shipment.id}
                           </span>
                         </Link>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">
+                          {shipment.deltaNumber || "-"}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm text-gray-900">Ghana Warehouse, Ghana</span>

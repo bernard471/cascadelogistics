@@ -76,6 +76,7 @@ export async function PATCH(
       currentLocation?: string;
       estimatedDelivery?: string;
       specialInstructions?: string;
+      deltaNumber?: string;
     } = {};
     let imageUrl: string | undefined;
     let imageName: string | undefined;
@@ -88,12 +89,14 @@ export async function PATCH(
       const currentLocation = formData.get("currentLocation");
       const estimatedDelivery = formData.get("estimatedDelivery");
       const specialInstructions = formData.get("specialInstructions");
+      const deltaNumber = formData.get("deltaNumber");
       const imageFile = formData.get("updateImage") as File | null;
 
       if (status && typeof status === 'string') body.status = status;
       if (currentLocation && typeof currentLocation === 'string') body.currentLocation = currentLocation;
       if (estimatedDelivery && typeof estimatedDelivery === 'string') body.estimatedDelivery = estimatedDelivery;
       if (specialInstructions && typeof specialInstructions === 'string') body.specialInstructions = specialInstructions;
+      if (deltaNumber && typeof deltaNumber === 'string') body.deltaNumber = deltaNumber;
 
       // Handle image upload
       if (imageFile && imageFile.size > 0) {
@@ -143,6 +146,10 @@ export async function PATCH(
       updateData.estimatedDelivery = new Date(body.estimatedDelivery);
     }
     if (body.specialInstructions) updateData.specialInstructions = body.specialInstructions;
+    if (body.deltaNumber !== undefined) {
+      // Allow empty string to clear DELTA number, or set it if provided
+      updateData.deltaNumber = body.deltaNumber.trim() || undefined;
+    }
 
     // Auto-generate timeline events based on status changes
     const oldStatus = shipment.status;

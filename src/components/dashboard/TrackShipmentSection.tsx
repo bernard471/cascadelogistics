@@ -33,6 +33,7 @@ interface MappedTrackingData {
   weight: string;
   service: string;
   timeline: MappedTimelineEvent[];
+  deltaNumber?: string;
 }
 
 export default function TrackShipmentSection() {
@@ -145,7 +146,8 @@ export default function TrackShipmentSection() {
                 data.serviceType === 'standard' ? 'Standard Delivery' :
                 data.serviceType === 'overnight' ? 'Overnight Delivery' :
                 'Economy Delivery',
-        timeline: timelineWithIcons
+        timeline: timelineWithIcons,
+        deltaNumber: data.deltaNumber
       };
       
       setTrackingData(mappedTrackingData);
@@ -249,6 +251,15 @@ export default function TrackShipmentSection() {
                 <div className="text-lg font-bold text-gray-800">{trackingData.estimatedDelivery}</div>
               </div>
             </div>
+            {trackingData.deltaNumber && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="w-5 h-5 text-[#055b8e]" />
+                  <span className="text-sm text-gray-600">DELTA Number:</span>
+                </div>
+                <div className="text-lg font-bold text-[#055b8e]">{trackingData.deltaNumber}</div>
+              </div>
+            )}
           </div>
 
           {/* Route Map - Enhanced Curved Path Visualization */}

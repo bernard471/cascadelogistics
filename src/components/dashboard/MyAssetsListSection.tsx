@@ -23,6 +23,7 @@ interface MappedAsset {
   weight: string;
   value: string;
   trackingId: string;
+  deltaNumber?: string;
 }
 
 export default function MyAssetsListSection() {
@@ -82,7 +83,8 @@ export default function MyAssetsListSection() {
           packageType: shipment.packageType.charAt(0).toUpperCase() + shipment.packageType.slice(1),
           weight: `${shipment.weight} kg`,
           value: `$${shipment.declaredValue}`,
-          trackingId: shipment.trackingId
+          trackingId: shipment.trackingId,
+          deltaNumber: shipment.deltaNumber
           };
         });
         
@@ -286,6 +288,9 @@ export default function MyAssetsListSection() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tracking ID
                 </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  DELTA Number
+                </th>
                 <th className="px-16 md:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Origin → Destination
                 </th>
@@ -315,6 +320,11 @@ export default function MyAssetsListSection() {
                         {asset.trackingId}
                       </span>
                     </Link>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {asset.deltaNumber || "-"}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
@@ -423,7 +433,7 @@ export default function MyAssetsListSection() {
       {/* View Modal */}
       {showViewModal && selectedAsset && (
         <ViewShipmentModal
-            shipment={{
+          shipment={{
             id: selectedAsset.trackingId,
             _id: selectedAsset._id || '',
             customer: `${selectedAsset.senderName}`,
@@ -450,8 +460,7 @@ export default function MyAssetsListSection() {
             servicePrice: selectedAsset.servicePrice,
             documents: selectedAsset.documents,
             wholesalePurchases: selectedAsset.wholesalePurchases,
-            shippingMarkName: selectedAsset.shippingMarkName,
-            shippingMark: selectedAsset.shippingMark
+            deltaNumber: selectedAsset.deltaNumber
           }}
           onClose={() => {
             setShowViewModal(false);

@@ -112,7 +112,8 @@ export async function GET(
       destination: `${shipment.receiverCity}, ${shipment.receiverCountry}`,
       packageType: shipment.packageType,
       weight: shipment.weight,
-      serviceType: shipment.serviceType
+      serviceType: shipment.serviceType,
+      deltaNumber: shipment.deltaNumber
     };
 
     return NextResponse.json(publicData);

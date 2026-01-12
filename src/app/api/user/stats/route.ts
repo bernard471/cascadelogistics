@@ -136,7 +136,8 @@ export async function GET() {
         destination: `${s.receiverCity}, ${s.receiverCountry}`,
         status: s.status,
         estimatedDelivery: s.estimatedDelivery,
-        createdAt: s.createdAt
+        createdAt: s.createdAt,
+        deltaNumber: s.deltaNumber
       })),
       recentActivities: limitedActivities,
       notifications: {

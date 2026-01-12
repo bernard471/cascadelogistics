@@ -34,7 +34,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     serviceType: "standard" as ServiceType,
     pickupDate: "",
     specialInstructions: "",
-    shippingMarkName: ""
+    deltaNumber: ""
   });
 
   // Wholesale purchase entries (array of name + tracking number pairs)
@@ -59,20 +59,6 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
       formData.description,
       formData.packageType
     );
-  };
-
-  // Generate shipping mark based on service type
-  const generateShippingMark = (serviceType: ServiceType, shippingMarkName: string): string => {
-    if (!shippingMarkName.trim()) return '';
-    
-    const name = shippingMarkName.trim();
-    if (serviceType === 'overnight') {
-      // Sea shipping: CLL000/[NAME]-(888)
-      return `CLL000/${name}-(888)`;
-    } else {
-      // Air shipping (standard, express): CLL000/[NAME]-air
-      return `CLL000/${name}-air`;
-    }
   };
 
   // Get service info for display
@@ -225,9 +211,6 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     }
 
     try {
-      // Generate shipping mark
-      const shippingMark = generateShippingMark(formData.serviceType, formData.shippingMarkName);
-      
       const payload = {
         ...formData,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
@@ -236,7 +219,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
         pickupDate: formData.pickupDate ? new Date(formData.pickupDate) : undefined,
         servicePrice: calculatePrice(),
         goodsType: formData.goodsType,
-        shippingMark, // Add generated shipping mark
+        deltaNumber: formData.deltaNumber.trim() || undefined, // DELTA number (optional, admin/staff only)
         // Add wholesale purchases (only non-empty entries)
         wholesalePurchases: wholesalePurchases.filter(p => p.name.trim() || p.trackingNumber.trim()),
       };
@@ -677,42 +660,31 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
             )}
           </div>
 
-          {/* Shipping Mark */}
+          {/* DELTA Number */}
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <PackagePlus className="w-5 h-5 text-[#055b8e]" />
-              <h3 className="font-bold text-gray-800">Shipping Mark</h3>
+              <h3 className="font-bold text-gray-800">DELTA Number (Optional)</h3>
             </div>
             <p className="text-sm text-gray-600 mb-4">
-              Enter a name for your shipping mark. This will be used to identify your package at the warehouse.
-              {formData.serviceType === 'overnight' && (
-                <span className="block mt-1">Format: <strong>CLL000/[Your Name]-(888)</strong></span>
-              )}
-              {(formData.serviceType === 'standard' || formData.serviceType === 'express') && (
-                <span className="block mt-1">Format: <strong>CLL000/[Your Name]-air</strong></span>
-              )}
+              Enter a DELTA number to group shipments arriving to Ghana. Multiple tracking IDs can belong to one DELTA number.
             </p>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Shipping Mark Name
+                DELTA Number
               </label>
               <Input
                 type="text"
-                name="shippingMarkName"
-                value={formData.shippingMarkName}
+                name="deltaNumber"
+                value={formData.deltaNumber}
                 onChange={handleInputChange}
-                placeholder="Enter name for shipping mark (e.g., Cyber, John, ABC)"
+                placeholder="Enter DELTA number (e.g., DELTA85720)"
                 className="h-12"
               />
-              {formData.shippingMarkName && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Your shipping mark will be: <strong className="text-[#055b8e]">
-                    CLL000/{formData.shippingMarkName}
-                    {formData.serviceType === 'overnight' ? '-(888)' : '-air'}
-                  </strong>
-                </p>
-              )}
+              <p className="text-xs text-gray-500 mt-2">
+                Format: DELTA + numbers (e.g., DELTA85720)
+              </p>
             </div>
           </div>
 

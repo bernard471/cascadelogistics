@@ -26,8 +26,7 @@ interface MappedShipment {
     name: string;
     trackingNumber: string;
   }>;
-  shippingMarkName?: string;
-  shippingMark?: string;
+  deltaNumber?: string;
 }
 
 interface ViewShipmentModalProps {
@@ -132,6 +131,20 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             </div>
           </div>
 
+          {/* DELTA Number */}
+          {shipment.deltaNumber && (
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="w-5 h-5 text-[#055b8e]" />
+                <h3 className="font-bold text-gray-800">DELTA Number</h3>
+              </div>
+              <div className="text-sm">
+                <span className="text-gray-600 block mb-1">DELTA Number:</span>
+                <span className="text-lg font-bold text-[#055b8e]">{shipment.deltaNumber}</span>
+              </div>
+            </div>
+          )}
+
           {/* Shipment Details */}
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
@@ -206,19 +219,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             </div>
           )}
 
-          {/* Shipping Mark */}
-          {shipment.shippingMark && (
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Package className="w-5 h-5 text-[#055b8e]" />
-                <h3 className="font-bold text-gray-800">Shipping Mark</h3>
-              </div>
-              <div className="text-sm">
-                <span className="text-gray-600 block mb-1">Your shipping mark:</span>
-                <span className="text-lg font-bold text-[#055b8e]">{shipment.shippingMark}</span>
-              </div>
-            </div>
-          )}
+
 
           {/* Route Visualization */}
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">

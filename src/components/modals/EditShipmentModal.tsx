@@ -22,6 +22,7 @@ interface MappedShipment {
   weight: string;
   value: string;
   service: string;
+  deltaNumber?: string;
 }
 
 interface EditShipmentModalProps {
@@ -51,11 +52,22 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
     return statusMap[shipment.status] || 'pending';
   };
 
+  // Normalize estimatedDelivery - convert "-" or invalid dates to empty string for date input
+  const normalizeEstimatedDelivery = (value: string | undefined): string => {
+    if (!value || value === "-" || value === "TBD") return "";
+    // Try to parse as date, if invalid return empty string
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return "";
+    // Return in YYYY-MM-DD format for date input
+    return date.toISOString().split('T')[0];
+  };
+
   const [formData, setFormData] = useState({
     status: getStatusValue(),
     currentLocation: "",
-    estimatedDelivery: shipment.estimatedDelivery || "",
-    specialInstructions: ""
+    estimatedDelivery: normalizeEstimatedDelivery(shipment.estimatedDelivery),
+    specialInstructions: "",
+    deltaNumber: shipment.deltaNumber || ""
   });
   const [updateImage, setUpdateImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -118,11 +130,15 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
       if (formData.currentLocation) {
         formDataToSend.append("currentLocation", formData.currentLocation);
       }
-      if (formData.estimatedDelivery) {
+      // Only send estimatedDelivery if it's a valid date string (not empty)
+      if (formData.estimatedDelivery && formData.estimatedDelivery.trim() !== "") {
         formDataToSend.append("estimatedDelivery", formData.estimatedDelivery);
       }
       if (formData.specialInstructions) {
         formDataToSend.append("specialInstructions", formData.specialInstructions);
+      }
+      if (formData.deltaNumber !== undefined) {
+        formDataToSend.append("deltaNumber", formData.deltaNumber);
       }
       if (updateImage) {
         formDataToSend.append("updateImage", updateImage);
@@ -259,6 +275,23 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
               placeholder="Any special handling instructions..."
               className="min-h-[100px] resize-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              DELTA Number (Optional)
+            </label>
+            <Input
+              type="text"
+              name="deltaNumber"
+              value={formData.deltaNumber}
+              onChange={handleInputChange}
+              placeholder="Enter DELTA number (e.g., DELTA85720)"
+              className="h-12"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Group shipments arriving to Ghana with the same DELTA number
+            </p>
           </div>
 
           {/* Update Image Upload */}

@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { Search, Eye, Edit2, Trash2, Upload, MapPin, ChevronLeft, ChevronRight, PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import ViewShipmentModal from "@/components/modals/ViewShipmentModal";
 import EditShipmentModal from "@/components/modals/EditShipmentModal";
 import CreateShipmentModal from "@/components/modals/CreateShipmentModal";
 import AddInvoiceModal from "@/components/modals/AddInvoiceModal";
+import BulkUpdateShipmentModal from "@/components/modals/BulkUpdateShipmentModal";
 import { Shipment, ShipmentsResponse } from "@/types";
 
 // Internal type for mapped shipment data in this component
@@ -32,8 +34,7 @@ interface MappedShipment {
     name: string;
     trackingNumber: string;
   }>;
-  shippingMarkName?: string;
-  shippingMark?: string;
+  deltaNumber?: string;
 }
 
 export default function ShipmentManagementSection() {
@@ -48,6 +49,8 @@ export default function ShipmentManagementSection() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddInvoiceModal, setShowAddInvoiceModal] = useState(false);
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
+  const [selectedShipmentIds, setSelectedShipmentIds] = useState<Set<string>>(new Set());
   const itemsPerPage = 10;
 
   const fetchShipments = useCallback(async () => {
@@ -103,8 +106,7 @@ export default function ShipmentManagementSection() {
           servicePrice: shipment.servicePrice,
           documents: shipment.documents,
           wholesalePurchases: shipment.wholesalePurchases,
-          shippingMarkName: shipment.shippingMarkName,
-          shippingMark: shipment.shippingMark
+          deltaNumber: shipment.deltaNumber
           };
         });
         
@@ -126,6 +128,29 @@ export default function ShipmentManagementSection() {
   const totalPages = Math.ceil(shipments.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedShipments = shipments.slice(startIndex, startIndex + itemsPerPage);
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(paginatedShipments.map(s => s._id));
+      setSelectedShipmentIds(allIds);
+    } else {
+      setSelectedShipmentIds(new Set());
+    }
+  };
+
+  const handleSelectShipment = (shipmentId: string, checked: boolean) => {
+    const newSelected = new Set(selectedShipmentIds);
+    if (checked) {
+      newSelected.add(shipmentId);
+    } else {
+      newSelected.delete(shipmentId);
+    }
+    setSelectedShipmentIds(newSelected);
+  };
+
+  const isAllSelected = paginatedShipments.length > 0 && paginatedShipments.every(s => selectedShipmentIds.has(s._id));
+  const isIndeterminate = paginatedShipments.some(s => selectedShipmentIds.has(s._id)) && !isAllSelected;
 
   const handleViewShipment = (id: string) => {
     const shipment = shipments.find(s => s.id === id);
@@ -210,6 +235,29 @@ export default function ShipmentManagementSection() {
 
       {/* Filters and Search */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          {selectedShipmentIds.size > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">
+                {selectedShipmentIds.size} shipment(s) selected
+              </span>
+              <Button
+                onClick={() => setShowBulkUpdateModal(true)}
+                className="bg-[#055b8e] hover:bg-[#044a73] text-white"
+                style={{ borderRadius: "10px 0px 10px 0px" }}
+              >
+                Bulk Update
+              </Button>
+              <Button
+                onClick={() => setSelectedShipmentIds(new Set())}
+                variant="outline"
+                size="sm"
+              >
+                Clear Selection
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="md:col-span-2">
@@ -219,7 +267,7 @@ export default function ShipmentManagementSection() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by tracking ID, customer, origin, or destination..."
+                placeholder="Search by tracking ID, DELTA number, customer, origin, or destination..."
                 className="pl-10 h-12"
               />
             </div>
@@ -265,8 +313,17 @@ export default function ShipmentManagementSection() {
             <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tracking ID
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  DELTA Number
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Customer
@@ -274,9 +331,9 @@ export default function ShipmentManagementSection() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Route
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Service
-                </th>
+                </th> */}
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -292,8 +349,19 @@ export default function ShipmentManagementSection() {
               {paginatedShipments.map((shipment) => (
                 <tr key={shipment.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
+                    <Checkbox
+                      checked={selectedShipmentIds.has(shipment._id)}
+                      onCheckedChange={(checked) => handleSelectShipment(shipment._id, checked as boolean)}
+                    />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm font-medium text-[#055b8e]">
                       {shipment.id}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {shipment.deltaNumber || "-"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -308,9 +376,9 @@ export default function ShipmentManagementSection() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {shipment.service}
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${shipment.statusColor}`}>
                       {shipment.status}
@@ -454,6 +522,21 @@ export default function ShipmentManagementSection() {
             fetchShipments();
             setShowAddInvoiceModal(false);
             setSelectedShipment(null);
+          }}
+        />
+      )}
+
+      {showBulkUpdateModal && (
+        <BulkUpdateShipmentModal
+          selectedIds={Array.from(selectedShipmentIds)}
+          onClose={() => {
+            setShowBulkUpdateModal(false);
+            setSelectedShipmentIds(new Set());
+          }}
+          onSave={() => {
+            fetchShipments();
+            setShowBulkUpdateModal(false);
+            setSelectedShipmentIds(new Set());
           }}
         />
       )}

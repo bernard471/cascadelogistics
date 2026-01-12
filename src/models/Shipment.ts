@@ -50,9 +50,8 @@ export interface Shipment {
     trackingNumber: string; // Tracking number from wholesale shop
   }>;
   
-  // Shipping Mark
-  shippingMarkName?: string; // User-provided name for shipping mark (middle part)
-  shippingMark?: string; // Auto-generated shipping mark: GSL000/[NAME]-(888) for sea or GSL000/[NAME]-air for air
+  // DELTA Number (Admin/Staff only - groups shipments arriving to Ghana)
+  deltaNumber?: string; // Format: DELTA + numbers (e.g., DELTA85720)
   
   // Status
   status: 'pending' | 'arrived-at-warehouse' | 'ready-for-shipment' | 'in-transit' | 'arrived-at-warehouse-ghana' | 'ready-for-pickup' | 'delivered' | 'cancelled' | 'on-hold';

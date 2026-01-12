@@ -52,7 +52,8 @@ export async function GET(request: Request) {
         { senderName: { $regex: search, $options: 'i' } },
         { receiverName: { $regex: search, $options: 'i' } },
         { senderCity: { $regex: search, $options: 'i' } },
-        { receiverCity: { $regex: search, $options: 'i' } }
+        { receiverCity: { $regex: search, $options: 'i' } },
+        { deltaNumber: { $regex: search, $options: 'i' } }
       ];
     }
 
@@ -195,18 +196,8 @@ export async function POST(request: Request) {
     // Ensure goodsType defaults to 'normal' if not provided
     const goodsType = shipmentPayload.goodsType || 'normal';
 
-    // Generate shipping mark if shippingMarkName is provided but shippingMark is not
-    let shippingMark = shipmentPayload.shippingMark;
-    if (!shippingMark && shipmentPayload.shippingMarkName) {
-      const name = shipmentPayload.shippingMarkName.trim();
-      if (shipmentPayload.serviceType === 'overnight') {
-        // Sea shipping: CLL000/[NAME]-(888)
-        shippingMark = `CLL000/${name}-(888)`;
-      } else {
-        // Air shipping (standard, express): CLL000/[NAME]-air
-        shippingMark = `CLL000/${name}-air`;
-      }
-    }
+    // Get DELTA number if provided (optional, admin/staff only)
+    const deltaNumber = shipmentPayload.deltaNumber?.trim() || undefined;
 
     // Set standard route: USA Warehouse, USA → Ghana Warehouse, Ghana
     const newShipment: Omit<Shipment, '_id'> = {
@@ -215,7 +206,7 @@ export async function POST(request: Request) {
       trackingId,
       userId: body.userId as string,
       status: 'arrived-at-warehouse', // Admin/staff creates with arrived-at-warehouse status
-      shippingMark,
+      deltaNumber,
       documents: uploadedDocuments?.length ? uploadedDocuments : undefined,
       // Standard sender info (USA Warehouse)
       senderName: `${user.firstName} ${user.lastName}`,

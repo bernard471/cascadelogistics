@@ -33,7 +33,6 @@ export default function SubmitAssetSection() {
     pickupDate: string;
     deliveryDate: string;
     specialInstructions: string;
-    shippingMarkName: string;
   }>({
     // Shipment Details
     packageType: "",
@@ -49,9 +48,6 @@ export default function SubmitAssetSection() {
     pickupDate: "",
     deliveryDate: "",
     specialInstructions: "",
-    
-    // Shipping Mark
-    shippingMarkName: "",
   });
 
   // Wholesale purchase entries (array of name + tracking number pairs)
@@ -148,37 +144,13 @@ export default function SubmitAssetSection() {
     documentInputRef.current?.click();
   };
 
-  // Generate shipping mark based on service type
-  const generateShippingMark = (serviceType: ServiceType, shippingMarkName: string): string => {
-    if (!shippingMarkName.trim()) return '';
-    
-    const name = shippingMarkName.trim();
-    if (serviceType === 'overnight') {
-      // Sea shipping: CLL000/[NAME]-(888)
-      return `CLL000/${name}-(888)`;
-    } else {
-      // Air shipping (standard, express): CLL000/[NAME]-air
-      return `CLL000/${name}-air`;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setIsLoading(true);
 
-    // Validate shipping mark name
-    if (!formData.shippingMarkName || !formData.shippingMarkName.trim()) {
-      setError("Shipping mark name is required");
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      // Generate shipping mark
-      const shippingMark = generateShippingMark(formData.serviceType, formData.shippingMarkName);
-      
       const payload = {
         ...formData,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
@@ -187,7 +159,6 @@ export default function SubmitAssetSection() {
         pickupDate: formData.pickupDate ? new Date(formData.pickupDate) : undefined,
         servicePrice: calculatePrice(),
         goodsType: formData.goodsType,
-        shippingMark, // Add generated shipping mark
         // Add wholesale purchases (only non-empty entries)
         wholesalePurchases: wholesalePurchases.filter(p => p.name.trim() || p.trackingNumber.trim()),
       };
@@ -538,48 +509,6 @@ export default function SubmitAssetSection() {
               </Button>
             </div>
           )}
-        </div>
-
-        {/* Shipping Mark */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Package className="w-5 h-5 text-[#055b8e]" />
-            <h3 className="text-lg font-bold text-gray-800">Shipping Mark *</h3>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
-            Enter a name for your shipping mark. This will be used to identify your package at the warehouse.
-            {formData.serviceType === 'overnight' && (
-              <span className="block mt-1">Format: <strong>CLL000/[Your Name]-(888)</strong></span>
-            )}
-            {(formData.serviceType === 'standard' || formData.serviceType === 'express') && (
-              <span className="block mt-1">Format: <strong>CLL000/[Your Name]-air</strong></span>
-            )}
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Shipping Mark Name *
-              </label>
-              <Input
-                type="text"
-                name="shippingMarkName"
-                value={formData.shippingMarkName}
-                onChange={handleInputChange}
-                placeholder="Enter name for shipping mark (e.g., Cyber, John, ABC)"
-                className="h-12"
-                required
-              />
-              {formData.shippingMarkName && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Your shipping mark will be: <strong className="text-[#055b8e]">
-                    CLL000/{formData.shippingMarkName}
-                    {formData.serviceType === 'overnight' ? '-(888)' : '-air'}
-                  </strong>
-                </p>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Pricing Summary */}
