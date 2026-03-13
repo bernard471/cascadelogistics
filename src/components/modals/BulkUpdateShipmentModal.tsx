@@ -14,7 +14,8 @@ interface BulkUpdateShipmentModalProps {
 export default function BulkUpdateShipmentModal({ selectedIds, onClose, onSave }: BulkUpdateShipmentModalProps) {
   const [formData, setFormData] = useState({
     status: "",
-    estimatedDelivery: ""
+    estimatedDelivery: "",
+    deltaNumber: ""
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -30,8 +31,8 @@ export default function BulkUpdateShipmentModal({ selectedIds, onClose, onSave }
     setIsSaving(true);
     setError("");
 
-    if (!formData.status) {
-      setError("Please select a status");
+    if (!formData.status && !formData.deltaNumber.trim()) {
+      setError("Please select a status and/or enter a DELTA number");
       setIsSaving(false);
       return;
     }
@@ -42,8 +43,9 @@ export default function BulkUpdateShipmentModal({ selectedIds, onClose, onSave }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shipmentIds: selectedIds,
-          status: formData.status,
-          estimatedDelivery: formData.estimatedDelivery || undefined
+          status: formData.status || undefined,
+          estimatedDelivery: formData.estimatedDelivery || undefined,
+          deltaNumber: formData.deltaNumber.trim() || undefined
         })
       });
 
@@ -91,19 +93,36 @@ export default function BulkUpdateShipmentModal({ selectedIds, onClose, onSave }
             </div>
           )}
 
+          {/* DELTA Number - set one DELTA for all selected shipments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              DELTA Number
+            </label>
+            <Input
+              type="text"
+              name="deltaNumber"
+              value={formData.deltaNumber}
+              onChange={handleInputChange}
+              placeholder="e.g., DELTA85720"
+              className="h-12"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Set one DELTA number for all {selectedIds.length} selected shipment(s). Leave empty to keep existing.
+            </p>
+          </div>
+
           {/* Status Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Status *
+              New Status
             </label>
             <select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
               className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
-              required
             >
-              <option value="">Select a status</option>
+              <option value="">No change</option>
               <option value="pending">Pending</option>
               <option value="arrived-at-warehouse">Arrived at Warehouse</option>
               <option value="ready-for-shipment">Ready for Shipment</option>
@@ -114,6 +133,9 @@ export default function BulkUpdateShipmentModal({ selectedIds, onClose, onSave }
               <option value="cancelled">Cancelled</option>
               <option value="on-hold">On Hold</option>
             </select>
+            <p className="text-xs text-gray-500 mt-2">
+              Provide at least one: DELTA number and/or new status.
+            </p>
           </div>
 
           {/* Estimated Delivery Date (only for in-transit) */}

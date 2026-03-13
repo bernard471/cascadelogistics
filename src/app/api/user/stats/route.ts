@@ -38,6 +38,44 @@ export async function GET() {
       .limit(4)
       .toArray();
 
+    // All shipments for this user (any status) - for tracking numbers table
+    const allShipmentsForTracking = await shipmentsCollection
+      .find({ userId: session.user.id })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    const statusToDisplay: Record<string, string> = {
+      pending: "Pending",
+      "arrived-at-warehouse": "Arrived at Warehouse (USA)",
+      "ready-for-shipment": "Ready for Shipment",
+      "in-transit": "In Transit",
+      "arrived-at-warehouse-ghana": "Arrived at Warehouse (Ghana)",
+      "ready-for-pickup": "Ready for Pickup",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+      "on-hold": "On Hold"
+    };
+
+    // Wholesale/purchase shop tracking numbers only (not shipment ID), with shipment and status
+    const allTrackingNumbers: { trackingNumber: string; shipmentTrackingId: string; dateAdded: string; status: string }[] = [];
+    for (const s of allShipmentsForTracking) {
+      const dateAdded = new Date(s.createdAt).toISOString().split("T")[0];
+      const shipmentTrackingId = s.trackingId || "";
+      const status = (s as { status?: string }).status || "pending";
+      const statusDisplay = statusToDisplay[status] || status;
+      const purchases = (s as { wholesalePurchases?: Array<{ trackingNumber?: string }> }).wholesalePurchases || [];
+      for (const p of purchases) {
+        if (p.trackingNumber && p.trackingNumber.trim()) {
+          allTrackingNumbers.push({
+            trackingNumber: p.trackingNumber.trim(),
+            shipmentTrackingId,
+            dateAdded,
+            status: statusDisplay
+          });
+        }
+      }
+    }
+
     // Get notifications count
     const notificationsCollection = db.collection("notifications");
     const unreadNotifications = await notificationsCollection.countDocuments({
@@ -139,6 +177,7 @@ export async function GET() {
         createdAt: s.createdAt,
         deltaNumber: s.deltaNumber
       })),
+      allTrackingNumbers,
       recentActivities: limitedActivities,
       notifications: {
         unread: unreadNotifications

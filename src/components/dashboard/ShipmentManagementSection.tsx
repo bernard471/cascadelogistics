@@ -150,7 +150,6 @@ export default function ShipmentManagementSection() {
   };
 
   const isAllSelected = paginatedShipments.length > 0 && paginatedShipments.every(s => selectedShipmentIds.has(s._id));
-  const isIndeterminate = paginatedShipments.some(s => selectedShipmentIds.has(s._id)) && !isAllSelected;
 
   const handleViewShipment = (id: string) => {
     const shipment = shipments.find(s => s.id === id);

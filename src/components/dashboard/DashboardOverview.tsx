@@ -1,9 +1,10 @@
 "use client";
 
-import { Package, MapPin, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Package, MapPin, Clock, CheckCircle, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { RecentShipment, Activity } from "@/types";
 
 // Internal types for mapped data in this component
@@ -73,7 +74,14 @@ export default function DashboardOverview() {
 
   const [recentShipments, setRecentShipments] = useState<MappedRecentShipment[]>([]);
   const [recentActivities, setRecentActivities] = useState<MappedActivity[]>([]);
+  const [allTrackingNumbers, setAllTrackingNumbers] = useState<Array<{ trackingNumber: string; shipmentTrackingId: string; dateAdded: string; status: string }>>([]);
+  const [trackingTablePage, setTrackingTablePage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+
+  const TRACKING_PAGE_SIZE = 10;
+  const trackingTotalPages = Math.ceil(allTrackingNumbers.length / TRACKING_PAGE_SIZE);
+  const trackingStart = (trackingTablePage - 1) * TRACKING_PAGE_SIZE;
+  const paginatedTrackingNumbers = allTrackingNumbers.slice(trackingStart, trackingStart + TRACKING_PAGE_SIZE);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -141,6 +149,9 @@ export default function DashboardOverview() {
           }));
           
           setRecentShipments(mappedShipments);
+
+          setAllTrackingNumbers(data.allTrackingNumbers || []);
+          setTrackingTablePage(1);
 
           // Map recent activities
           const mappedActivities: MappedActivity[] = (data.recentActivities || []).map((activity: Activity, index: number) => {
@@ -238,6 +249,104 @@ export default function DashboardOverview() {
             </div>
           );
         })}
+      </div>
+
+      {/* Your Tracking Numbers - All statuses, with pagination */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-bold text-gray-800">Your Tracking Numbers</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            All purchase shop tracking numbers linked to your shipments, the shipment they belong to, and current status.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          {allTrackingNumbers.length > 0 ? (
+            <>
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Tracking Number
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Shipment
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Date Added
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {paginatedTrackingNumbers.map((row, index) => (
+                    <tr key={`${row.trackingNumber}-${row.shipmentTrackingId}-${trackingStart + index}`} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-medium text-[#055b8e]">{row.trackingNumber}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Link href={`/user-dashboard/track-shipment?id=${row.shipmentTrackingId}`}>
+                          <span className="text-sm text-gray-900 hover:text-[#055b8e] hover:underline">
+                            {row.shipmentTrackingId}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {row.dateAdded}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {trackingTotalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Showing {trackingStart + 1} to {Math.min(trackingStart + TRACKING_PAGE_SIZE, allTrackingNumbers.length)} of {allTrackingNumbers.length} tracking numbers
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                      onClick={() => setTrackingTablePage((p) => Math.max(1, p - 1))}
+                      disabled={trackingTablePage === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-600 px-2">
+                      Page {trackingTablePage} of {trackingTotalPages}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                      onClick={() => setTrackingTablePage((p) => Math.min(trackingTotalPages, p + 1))}
+                      disabled={trackingTablePage === trackingTotalPages}
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="p-12 text-center">
+              <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-800 mb-2">No tracking numbers yet</h3>
+              <p className="text-gray-600">When you add purchase shop tracking numbers to your shipments, they will appear here.</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Content Grid */}

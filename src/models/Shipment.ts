@@ -2,8 +2,9 @@ export interface ShipmentDocument {
   name: string;
   type: string;
   size: number;
-  data: string; // Base64 data URL or remote URL
+  data: string; // Legacy: base64 data URL; when url is set, data may be empty
   uploadedAt: Date | string;
+  url?: string; // Vercel Blob Storage URL (preferred for new uploads)
 }
 
 export interface Shipment {

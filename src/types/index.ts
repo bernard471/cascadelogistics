@@ -47,8 +47,9 @@ export interface ShipmentDocument {
   name: string;
   type: string;
   size: number;
-  data: string;
+  data: string; // Legacy: base64 data URL; when url is set, data may be empty
   uploadedAt: Date | string;
+  url?: string; // Vercel Blob Storage URL (preferred for new uploads)
 }
 
 export interface Shipment {
@@ -395,6 +396,15 @@ export interface ServicePerformance {
   service: string;
   shipments: number;
   revenue: number;
+}
+
+export interface DeltaReportRow {
+  customerName: string;
+  /** Wholesale / purchase shop tracking numbers only (not shipment tracking ID) */
+  wholesaleTrackingNumbers: string[];
+  description: string;
+  quantity: number;
+  totalWeightKg: number;
 }
 
 // Pagination types

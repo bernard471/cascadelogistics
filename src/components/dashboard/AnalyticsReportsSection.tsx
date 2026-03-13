@@ -1,37 +1,47 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Download, TrendingUp, Users, Package, 
-  // DollarSign, 
+import { useState, useEffect, useCallback } from "react";
+import { Download, TrendingUp, Users, Package,
+  // DollarSign,
   Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} from 'recharts';
-import { AnalyticsData } from "@/types";
+} from "recharts";
+import jsPDF from "jspdf";
+import { autoTable } from "jspdf-autotable";
+import { AnalyticsData, DeltaReportRow } from "@/types";
+
+const MONTHS_OPTIONS = [3, 6, 12] as const;
 
 export default function AnalyticsReportsSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [months, setMonths] = useState<number>(6);
+  const [deltaNumbersInput, setDeltaNumbersInput] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  const fetchAnalytics = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/admin/analytics?months=${months}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAnalyticsData(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch analytics:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [months]);
 
   useEffect(() => {
-    async function fetchAnalytics() {
-      setIsLoading(true);
-      try {
-        const response = await fetch("/api/admin/analytics?months=6");
-        if (response.ok) {
-          const data = await response.json();
-          setAnalyticsData(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch analytics:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
     fetchAnalytics();
-  }, []);
+  }, [fetchAnalytics]);
 
   if (isLoading || !analyticsData) {
     return (
@@ -61,6 +71,69 @@ export default function AnalyticsReportsSection() {
   const activeUsers = analyticsData.totals?.activeUsers || 0;
 
   const avgShipmentValue = totalShipments > 0 ? Math.floor(totalRevenue / totalShipments) : 0;
+
+  const handleExportReport = async (format: "pdf" | "excel") => {
+    const deltaNumbers = deltaNumbersInput
+      .split(",")
+      .map((d) => d.trim())
+      .filter(Boolean);
+    if (deltaNumbers.length === 0) {
+      setExportError("Enter at least one DELTA number (e.g. DELTA85720). Multiple: comma-separated.");
+      return;
+    }
+    setExportError("");
+    setExportLoading(true);
+    try {
+      const params = new URLSearchParams({ deltaNumbers: deltaNumbers.join(",") });
+      const response = await fetch(`/api/admin/reports/delta?${params}`);
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to fetch report data");
+      }
+      const { rows } = await response.json() as { rows: DeltaReportRow[] };
+
+      if (format === "pdf") {
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("Delta Report", 14, 20);
+        doc.setFontSize(10);
+        doc.text(`DELTA: ${deltaNumbers.join(", ")}`, 14, 28);
+        const tableBody = rows.map((r) => [
+          r.customerName,
+          r.wholesaleTrackingNumbers.join(", ") || "-",
+          (r.description || "").slice(0, 40) + (r.description && r.description.length > 40 ? "…" : ""),
+          String(r.quantity),
+          `${r.totalWeightKg} kg`
+        ]);
+        autoTable(doc, {
+          startY: 34,
+          head: [["Customer", "Wholesale Tracking Numbers", "Description", "Quantity", "Total Weight"]],
+          body: tableBody,
+          theme: "grid",
+          headStyles: { fillColor: [5, 91, 142] }
+        });
+        doc.save(`delta-report-${deltaNumbers.join("-")}-${new Date().toISOString().slice(0, 10)}.pdf`);
+      } else {
+        const header = "Customer,Wholesale Tracking Numbers,Description,Quantity,Total Weight (kg)\n";
+        const csvRows = rows.map(
+          (r) =>
+            `"${(r.customerName || "").replace(/"/g, '""')}","${(r.wholesaleTrackingNumbers.join(", ") || "").replace(/"/g, '""')}","${(r.description || "").replace(/"/g, '""')}",${r.quantity},${r.totalWeightKg}`
+        );
+        const csv = header + csvRows.join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `delta-report-${deltaNumbers.join("-")}-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   const quickStats = [
     // {
@@ -100,26 +173,70 @@ export default function AnalyticsReportsSection() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Analytics & Reports</h1>
-          <p className="text-gray-600 mt-1">Comprehensive insights and performance metrics</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Analytics & Reports</h1>
+            <p className="text-gray-600 mt-1">Comprehensive insights and performance metrics</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {MONTHS_OPTIONS.map((m) => (
+              <Button
+                key={m}
+                variant={months === m ? "default" : "outline"}
+                size="sm"
+                className={months === m ? "bg-[#055b8e] hover:bg-[#044a73]" : ""}
+                onClick={() => setMonths(m)}
+              >
+                <Calendar className="w-4 h-4 mr-1" />
+                Last {m} Months
+              </Button>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Calendar className="w-4 h-4" />
-            Last 6 Months
-          </Button>
-          <Button
-            className="bg-[#055b8e] hover:bg-[#044a73] text-white flex items-center gap-2"
-            style={{ borderRadius: "10px 0px 10px 0px" }}
-          >
-            <Download className="w-4 h-4" />
-            Export Report
-          </Button>
+
+        {/* Export by DELTA */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Export report by DELTA number(s)</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Report includes: customer name, wholesale/purchase tracking numbers (not shipment ID), description, quantity, and total weight per shipment for the selected DELTA.
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[200px] flex-1">
+              <Input
+                placeholder="e.g. DELTA85720 or DELTA1, DELTA2"
+                value={deltaNumbersInput}
+                onChange={(e) => {
+                  setDeltaNumbersInput(e.target.value);
+                  setExportError("");
+                }}
+                className="h-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                disabled={exportLoading}
+                className="bg-[#055b8e] hover:bg-[#044a73] text-white flex items-center gap-2"
+                style={{ borderRadius: "10px 0px 10px 0px" }}
+                onClick={() => handleExportReport("pdf")}
+              >
+                <Download className="w-4 h-4" />
+                {exportLoading ? "Generating…" : "Export PDF"}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={exportLoading}
+                className="flex items-center gap-2"
+                onClick={() => handleExportReport("excel")}
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </Button>
+            </div>
+          </div>
+          {exportError && (
+            <p className="text-sm text-red-600 mt-2">{exportError}</p>
+          )}
         </div>
       </div>
 

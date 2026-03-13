@@ -28,7 +28,6 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     weight: "",
     quantity: "",
     description: "",
-    declaredValue: "",
     dimensions: "",
     goodsType: "normal" as GoodsType,
     serviceType: "standard" as ServiceType,
@@ -215,13 +214,12 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
         ...formData,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         quantity: formData.quantity ? parseInt(formData.quantity) : undefined,
-        declaredValue: formData.declaredValue ? parseFloat(formData.declaredValue) : undefined,
         pickupDate: formData.pickupDate ? new Date(formData.pickupDate) : undefined,
         servicePrice: calculatePrice(),
         goodsType: formData.goodsType,
         deltaNumber: formData.deltaNumber.trim() || undefined, // DELTA number (optional, admin/staff only)
-        // Add wholesale purchases (only non-empty entries)
-        wholesalePurchases: wholesalePurchases.filter(p => p.name.trim() || p.trackingNumber.trim()),
+        // Add wholesale purchases (only non-empty entries; name commented out in UI so may be empty)
+        wholesalePurchases: wholesalePurchases.filter(p => p.trackingNumber.trim()),
       };
 
       const requestBody = new FormData();
@@ -459,24 +457,9 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                 required={formData.serviceType === 'overnight'}
               />
               {formData.serviceType === 'overnight' && (
-                <p className="text-xs text-gray-500 mt-1">Required for sea shipping</p>
+                <p className="text-xs text-gray-500 mt-1">Required for Shipping</p>
               )}
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Declared Value ($)
-            </label>
-            <Input
-              type="number"
-              name="declaredValue"
-              value={formData.declaredValue}
-              onChange={handleInputChange}
-              className="h-12"
-              step="0.01"
-              min="0"
-            />
           </div>
 
           {/* Service & Date */}
@@ -492,13 +475,12 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                 className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
                 required
               >
-                <option value="standard">Air Shipping (10-14 days)</option>
-                <option value="express">Express Air Shipping (2-5 days)</option>
-                <option value="overnight">Sea Shipping (35-45 days)</option>
+                <option value="standard">Air</option>
+                <option value="overnight">Shipping</option>
               </select>
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Pickup Date
               </label>
@@ -509,7 +491,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                 onChange={handleInputChange}
                 className="h-12"
               />
-            </div>
+            </div> */}
           </div>
 
           {/* Pricing Summary */}
@@ -619,6 +601,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                       )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Name Used for Purchase - commented out; only Purchase Shop Tracking Number needed for now
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Name Used for Purchase
@@ -631,8 +614,9 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                           className="h-12"
                         />
                       </div>
+                      */}
 
-                      <div>
+                      <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Purchase Shop Tracking Number
                         </label>

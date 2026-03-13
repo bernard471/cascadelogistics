@@ -264,7 +264,8 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                     typeof doc === "string"
                       ? { name: `Document ${index + 1}`, size: 0, type: "file", data: doc }
                       : doc;
-                  
+                  const docWithUrl = normalized as ShipmentDocument & { url?: string };
+                  const documentUrl = (normalized.data && String(normalized.data).trim()) ? normalized.data : (docWithUrl.url && docWithUrl.url.trim()) ? docWithUrl.url : null;
                   const isImage = isImageDocument(doc);
 
                   return (
@@ -273,23 +274,22 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                       className="flex flex-col md:flex-row md:items-center md:justify-between rounded-lg border border-gray-200 px-4 py-3 text-sm gap-3"
                     >
                       <div className="flex items-center gap-3 flex-1">
-                        {isImage && (
+                        {isImage && documentUrl && (
                           <div className="flex-shrink-0">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={normalized.data}
+                              src={documentUrl}
                               alt={normalized.name}
                               className="w-16 h-16 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
-                              onClick={() => setViewingImage(normalized.data)}
+                              onClick={() => setViewingImage(documentUrl)}
                               onError={(e) => {
-                                // Fallback if image fails to load
                                 const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
+                                target.style.display = "none";
                               }}
                             />
                           </div>
                         )}
-                        {!isImage && (
+                        {(!isImage || !documentUrl) && (
                           <div className="flex-shrink-0 w-16 h-16 bg-gray-200 rounded-lg border border-gray-300 flex items-center justify-center">
                             <ImageIcon className="w-8 h-8 text-gray-400" />
                           </div>
@@ -303,38 +303,42 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                         </div>
                       </div>
                       <div className="flex items-center gap-2 md:ml-auto">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="w-full md:w-auto"
-                          asChild
-                        >
-                          <a href={normalized.data} download={normalized.name}>
-                            Download
-                          </a>
-                        </Button>
-                        {isImage && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto"
-                            onClick={() => setViewingImage(normalized.data)}
-                          >
-                            View
-                          </Button>
-                        )}
-                        {!isImage && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto"
-                            asChild
-                          >
-                            <a href={normalized.data} target="_blank" rel="noreferrer">
-                              View
-                            </a>
-                          </Button>
+                        {documentUrl && (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full md:w-auto"
+                              asChild
+                            >
+                              <a href={documentUrl} download={normalized.name}>
+                                Download
+                              </a>
+                            </Button>
+                            {isImage && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto"
+                                onClick={() => setViewingImage(documentUrl)}
+                              >
+                                View
+                              </Button>
+                            )}
+                            {!isImage && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto"
+                                asChild
+                              >
+                                <a href={documentUrl} target="_blank" rel="noreferrer">
+                                  View
+                                </a>
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

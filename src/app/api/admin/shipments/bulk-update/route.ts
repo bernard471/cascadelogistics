@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { shipmentIds, status, estimatedDelivery } = body;
+    const { shipmentIds, status, estimatedDelivery, deltaNumber } = body;
 
     if (!Array.isArray(shipmentIds) || shipmentIds.length === 0) {
       return NextResponse.json(
@@ -24,9 +24,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!status) {
+    if (!status && deltaNumber === undefined) {
       return NextResponse.json(
-        { error: "Status is required" },
+        { error: "At least one of status or deltaNumber is required" },
         { status: 400 }
       );
     }
@@ -53,12 +53,17 @@ export async function POST(request: Request) {
 
     // Prepare update data
     const updateData: Partial<Shipment> & { updatedAt: Date } = {
-      status: status as Shipment['status'],
       updatedAt: new Date()
     };
 
+    if (status) {
+      updateData.status = status as Shipment['status'];
+    }
     if (estimatedDelivery) {
       updateData.estimatedDelivery = new Date(estimatedDelivery);
+    }
+    if (deltaNumber !== undefined) {
+      updateData.deltaNumber = typeof deltaNumber === "string" && deltaNumber.trim() ? deltaNumber.trim() : undefined;
     }
 
     // Update all shipments
@@ -69,7 +74,7 @@ export async function POST(request: Request) {
 
     // For each shipment, add timeline event if status changed
     const bulkOperations = shipments.map(async (shipment) => {
-      if (shipment.status !== status) {
+      if (status && shipment.status !== status) {
         const timeline: TimelineEvent[] = Array.isArray(shipment.timeline) ? [...shipment.timeline] : [];
         const now = new Date();
         const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });

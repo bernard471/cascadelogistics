@@ -2,22 +2,28 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { put } from "@vercel/blob";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { MongoQuery } from "@/types";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
-async function fileToShipmentDocument(file: File): Promise<ShipmentDocument> {
+/** Upload a file to Vercel Blob and return a document record with url (no base64 stored in DB). */
+async function uploadDocumentToBlob(file: File, trackingId: string): Promise<ShipmentDocument & { url: string }> {
   const buffer = Buffer.from(await file.arrayBuffer());
-  const base64 = buffer.toString("base64");
   const mimeType = file.type || "application/octet-stream";
-
+  const blob = await put(
+    `shipment-documents/${trackingId}/${Date.now()}-${file.name}`,
+    buffer,
+    { access: "public", contentType: mimeType }
+  );
   return {
     name: file.name,
     type: mimeType,
     size: file.size,
-    data: `data:${mimeType};base64,${base64}`,
-    uploadedAt: new Date()
+    data: "", // legacy field; new docs use url
+    uploadedAt: new Date(),
+    url: blob.url
   };
 }
 
@@ -121,7 +127,7 @@ export async function POST(request: Request) {
 
     const contentType = request.headers.get("content-type") || "";
     let body: Record<string, unknown> = {};
-    let uploadedDocuments: ShipmentDocument[] | undefined;
+    let uploadedDocuments: (ShipmentDocument & { url?: string })[] | undefined;
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
@@ -141,13 +147,20 @@ export async function POST(request: Request) {
             );
           }
         }
-        uploadedDocuments = await Promise.all(files.map(fileToShipmentDocument));
+        // Generate trackingId once for Blob path (will be reused when creating shipment below)
+        const ts = Date.now().toString().slice(-6);
+        const rnd = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+        const trackingIdForBlob = `CLL${ts}${rnd}`;
+        uploadedDocuments = await Promise.all(
+          files.map((file) => uploadDocumentToBlob(file, trackingIdForBlob))
+        );
+        (body as Record<string, unknown>).__trackingIdFromBlob = trackingIdForBlob;
       }
     } else {
       body = await request.json();
 
       if (Array.isArray(body.documents)) {
-        uploadedDocuments = body.documents as ShipmentDocument[];
+        uploadedDocuments = body.documents as (ShipmentDocument & { url?: string })[];
       }
     }
 
@@ -162,7 +175,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     const client = await clientPromise;
     const db = client.db("guangzhou");
     const shipmentsCollection = db.collection<Shipment>("shipments");
@@ -180,10 +193,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate tracking ID
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const trackingId = `CLL${timestamp}${random}`;
+    // Generate tracking ID (reuse the one from Blob upload if we uploaded documents)
+    const trackingId =
+      typeof (body as Record<string, unknown>).__trackingIdFromBlob === "string"
+        ? ((body as Record<string, unknown>).__trackingIdFromBlob as string)
+        : (() => {
+            const timestamp = Date.now().toString().slice(-6);
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+            return `CLL${timestamp}${random}`;
+          })();
+    delete (body as Record<string, unknown>).__trackingIdFromBlob;
 
     // Create new shipment
     type ShipmentCreationPayload = Omit<
@@ -202,6 +221,7 @@ export async function POST(request: Request) {
     // Set standard route: USA Warehouse, USA → Ghana Warehouse, Ghana
     const newShipment: Omit<Shipment, '_id'> = {
       ...shipmentPayload,
+      declaredValue: Number((shipmentPayload as Record<string, unknown>).declaredValue) || 0,
       goodsType,
       trackingId,
       userId: body.userId as string,
