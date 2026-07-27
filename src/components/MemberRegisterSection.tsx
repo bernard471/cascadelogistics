@@ -73,6 +73,8 @@ const steps = [
   { number: 3, label: "Identity", icon: ShieldCheck },
 ];
 
+const IDENTITY_UPLOAD_TIMEOUT_MS = 60_000;
+
 const documentLabels: Record<IdentityDocumentType, string> = {
   "ghana-card": "Ghana Card",
   passport: "Passport",
@@ -270,15 +272,33 @@ export default function MemberRegisterSection() {
     kind: IdentityFileKind,
     file: File
   ) => {
-    return upload(
-      `identity-verifications/${attemptId}/${kind}/${safeFileName(file.name)}`,
-      file,
-      {
-        access: "private",
-        handleUploadUrl: "/api/auth/registration-upload",
-        clientPayload: JSON.stringify({ attemptToken, kind }),
-      }
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(
+      () => controller.abort(),
+      IDENTITY_UPLOAD_TIMEOUT_MS
     );
+
+    try {
+      return await upload(
+        `identity-verifications/${attemptId}/${kind}/${safeFileName(file.name)}`,
+        file,
+        {
+          abortSignal: controller.signal,
+          access: "private",
+          handleUploadUrl: "/api/auth/registration-upload",
+          clientPayload: JSON.stringify({ attemptToken, kind }),
+        }
+      );
+    } catch (uploadError) {
+      if (controller.signal.aborted) {
+        throw new Error(
+          "The secure identity upload timed out. Please check your connection and try again."
+        );
+      }
+      throw uploadError;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
