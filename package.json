@@ -88,13 +88,5 @@
     "lodash": "4.18.1",
     "postcss": "8.5.23",
     "sharp": "0.35.3"
-  },
-  "optionalDependencies": {
-    "@mongodb-js/zstd": "*",
-    "aws4": "^1.13.2",
-    "gcp-metadata": "*",
-    "kerberos": "*",
-    "snappy": "*",
-    "socks": "*"
   }
 }
