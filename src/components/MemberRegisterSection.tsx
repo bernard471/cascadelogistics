@@ -134,6 +134,21 @@ export default function MemberRegisterSection() {
 
   useEffect(() => stopCamera, [stopCamera]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!cameraOpen || !video || !stream) return;
+
+    video.srcObject = stream;
+    void video.play().catch(() => {
+      setError("The camera opened but the preview could not start. Please try again or upload a selfie.");
+    });
+
+    return () => {
+      if (video.srcObject === stream) video.srcObject = null;
+    };
+  }, [cameraOpen]);
+
   const setField = (name: keyof FormState, value: string | boolean) => {
     setForm((current) => ({ ...current, [name]: value }));
     setErrors((current) => {
@@ -208,12 +223,6 @@ export default function MemberRegisterSection() {
       });
       streamRef.current = stream;
       setCameraOpen(true);
-      window.setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          void videoRef.current.play();
-        }
-      }, 0);
     } catch {
       setError("Camera access was unavailable. You can upload a recent, unedited selfie instead.");
     }
@@ -555,7 +564,7 @@ export default function MemberRegisterSection() {
                   <p className="mb-4 text-sm text-gray-600">Use a well-lit, recent photo without sunglasses, filters, or another person in frame.</p>
                   {cameraOpen ? (
                     <div className="space-y-3">
-                      <video ref={videoRef} muted playsInline className="max-h-80 w-full rounded-xl bg-black object-cover" />
+                      <video ref={videoRef} autoPlay muted playsInline className="max-h-80 w-full rounded-xl bg-black object-cover" />
                       <div className="flex flex-wrap gap-3">
                         <Button type="button" onClick={captureSelfie}><Camera className="mr-2 h-4 w-4" />Capture selfie</Button>
                         <Button type="button" variant="outline" onClick={stopCamera}>Cancel camera</Button>

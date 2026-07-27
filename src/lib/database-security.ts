@@ -6,46 +6,54 @@ export function ensureSecurityIndexes(db: Db) {
   const existing = indexPromises.get(db);
   if (existing) return existing;
 
-  const promise = Promise.all([
-    db.collection("users").createIndex(
+  // Build indexes sequentially. Several of these collections may not exist on
+  // the first production registration, and concurrent first-time index builds
+  // can race while MongoDB creates their namespaces.
+  const promise = (async () => {
+    await db.collection("users").createIndex(
       { emailNormalized: 1 },
       { unique: true, sparse: true, name: "users_email_normalized_unique" }
-    ),
-    db.collection("users").createIndex(
+    );
+    await db.collection("users").createIndex(
       { usernameNormalized: 1 },
       { unique: true, sparse: true, name: "users_username_normalized_unique" }
-    ),
-    db.collection("identity_verifications").createIndex(
+    );
+    await db.collection("identity_verifications").createIndex(
       { documentNumberHash: 1 },
       { unique: true, name: "identity_document_hash_unique" }
-    ),
-    db.collection("identity_verifications").createIndex(
+    );
+    await db.collection("identity_verifications").createIndex(
       { status: 1, submittedAt: -1 },
       { name: "identity_review_queue" }
-    ),
-    db.collection("identity_verifications").createIndex(
+    );
+    await db.collection("identity_verifications").createIndex(
       { documentRetentionExpiresAt: 1 },
       { name: "identity_retention_cleanup" }
-    ),
-    db.collection("registration_attempts").createIndex(
+    );
+    await db.collection("registration_attempts").createIndex(
       { tokenHash: 1 },
       { unique: true, name: "registration_attempt_token_unique" }
-    ),
-    db.collection("registration_attempts").createIndex(
+    );
+    await db.collection("registration_attempts").createIndex(
       { deleteAt: 1 },
       { expireAfterSeconds: 0, name: "registration_attempt_expiry" }
-    ),
-    db.collection("rate_limits").createIndex(
+    );
+    await db.collection("rate_limits").createIndex(
       { expiresAt: 1 },
       { expireAfterSeconds: 0, name: "rate_limit_expiry" }
-    ),
-    db.collection("audit_logs").createIndex(
+    );
+    await db.collection("audit_logs").createIndex(
       { entityType: 1, entityId: 1, createdAt: -1 },
       { name: "audit_log_entity_history" }
-    ),
-  ]).then(() => undefined);
+    );
+  })();
 
   indexPromises.set(db, promise);
+  void promise.catch(() => {
+    // A transient first attempt should be retryable in the same function
+    // instance instead of leaving a rejected promise cached indefinitely.
+    indexPromises.delete(db);
+  });
   return promise;
 }
 
