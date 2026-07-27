@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide - Nivamore Courier Services
+# Quick Start Guide - Cascade Logistics
 
 ## Step 1: Install Dependencies ✅ (Already Done)
 
@@ -13,9 +13,9 @@ The following packages have been installed:
 Create a file named `.env.local` in the root directory with:
 
 ```env
-MONGO=mongodb+srv://nextauth:vDdOjXSh8Er5yz6L@cluster0.soo8n.mongodb.net/logistics?retryWrites=true&w=majority&appName=Cluster0
+MONGO=mongodb+srv://USERNAME:PASSWORD@HOST/DATABASE
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=PASTE_YOUR_GENERATED_SECRET_HERE
+NEXTAUTH_SECRET=replace-with-a-long-random-secret
 ```
 
 ### Generate NEXTAUTH_SECRET:
@@ -40,10 +40,7 @@ Run this command to create your first admin user:
 node scripts/create-admin.js
 ```
 
-**Default Admin Credentials:**
-- **Username:** `admin`
-- **Password:** `admin123`
-- **Email:** `admin@nivamore.com`
+Before running the command, set `ADMIN_INITIAL_PASSWORD` to a unique temporary value of at least 12 characters. The script creates the `admin` account at `admin@cascadelogistics.com`. Remove the environment variable and change the password after first login.
 
 ## Step 4: Start the Development Server
 
@@ -56,7 +53,7 @@ npm run dev
 ### Test Admin Login:
 1. Go to: http://localhost:3000/member-login
 2. Enter username: `admin`
-3. Enter password: `admin123`
+3. Enter the password supplied through `ADMIN_INITIAL_PASSWORD`
 4. Click "SIGN IN"
 5. You should be redirected to: http://localhost:3000/admin-dashboard
 
@@ -150,7 +147,7 @@ src/
 ## Next Steps
 
 After setting up:
-1. ✅ Login as admin and change default password
+1. ✅ Login as admin and change the temporary password
 2. ✅ Test user registration and login
 3. ✅ Explore both dashboards
 4. Configure additional settings as needed

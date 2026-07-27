@@ -1,7 +1,16 @@
 const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
-const uri = "mongodb+srv://logistics_db_user:7pNGrpcWbDOlVcOT@cluster0.cwnkqv9.mongodb.net/guangzhou?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGO;
+const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
+
+if (!uri) {
+  throw new Error("MONGO must be set before running this script.");
+}
+
+if (!initialPassword || initialPassword.length < 12) {
+  throw new Error("ADMIN_INITIAL_PASSWORD must be set to at least 12 characters.");
+}
 
 async function createAdminUser() {
   const client = new MongoClient(uri);
@@ -22,7 +31,7 @@ async function createAdminUser() {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash("cascade123", 10);
+    const hashedPassword = await bcrypt.hash(initialPassword, 12);
 
     // Create admin user
     const adminUser = {
@@ -42,7 +51,7 @@ async function createAdminUser() {
     console.log("Admin user created successfully!");
     console.log("Email: admin@cascadelogistics.com");
     console.log("Username: admin");
-    console.log("Password: cascade123");
+    console.log("Password: supplied securely through ADMIN_INITIAL_PASSWORD");
     console.log("ID:", result.insertedId);
 
   } catch (error) {
@@ -53,4 +62,3 @@ async function createAdminUser() {
 }
 
 createAdminUser();
-

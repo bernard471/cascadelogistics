@@ -1,170 +1,300 @@
-import { NextResponse } from "next/server";
+import { del, head } from "@vercel/blob";
 import bcrypt from "bcryptjs";
-import clientPromise from "@/lib/mongodb";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { NextResponse } from "next/server";
+import type { ObjectId } from "mongodb";
+import clientPromise from "@/lib/mongodb";
+import { ensureSecurityIndexes } from "@/lib/database-security";
+import { sendVerificationEmail } from "@/lib/email";
+import {
+  getPrivateBlobToken,
+  getRequestIp,
+  hashIdentityNumber,
+  hashOpaqueToken,
+} from "@/lib/identity-security";
+import {
+  normalizeEmail,
+  normalizeUsername,
+  registrationSubmissionSchema,
+} from "@/lib/registration-validation";
+import type {
+  IdentityFileKind,
+  IdentityVerification,
+  PrivateIdentityFile,
+} from "@/models/IdentityVerification";
+import type { RegistrationAttempt } from "@/models/RegistrationAttempt";
 import type { User } from "@/models/User";
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { firstName, lastName, email, username, password } = body;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_DOCUMENT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+const ALLOWED_SELFIE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-    // Validation
-    if (!firstName || !lastName || !email || !username || !password) {
+async function verifyUploadedFile(input: {
+  pathname: string;
+  attemptId: string;
+  kind: IdentityFileKind;
+  token?: string;
+  captureMethod?: "camera" | "upload";
+}) {
+  const expectedPrefix = `identity-verifications/${input.attemptId}/${input.kind}/`;
+  if (!input.pathname.startsWith(expectedPrefix)) {
+    throw new Error("One or more uploaded files are not authorized for this registration");
+  }
+
+  const blob = await head(input.pathname, { token: input.token });
+  const allowedTypes = input.kind === "selfie" ? ALLOWED_SELFIE_TYPES : ALLOWED_DOCUMENT_TYPES;
+  if (!allowedTypes.includes(blob.contentType) || blob.size > MAX_FILE_SIZE) {
+    throw new Error("An uploaded file has an unsupported type or size");
+  }
+
+  const originalName = input.pathname.split("/").pop() || input.kind;
+  const file: PrivateIdentityFile = {
+    pathname: blob.pathname,
+    url: blob.url,
+    originalName,
+    contentType: blob.contentType,
+    size: blob.size,
+    uploadedAt: blob.uploadedAt,
+    captureMethod: input.captureMethod,
+  };
+  return file;
+}
+
+export async function POST(request: Request) {
+  const uploadedPathnames: string[] = [];
+  let insertedUserId: string | undefined;
+  let insertedVerificationId: string | undefined;
+  let insertedUserObjectId: ObjectId | undefined;
+  let insertedVerificationObjectId: ObjectId | undefined;
+
+  try {
+    const parsed = registrationSubmissionSchema.safeParse(await request.json());
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        {
+          error: parsed.error.issues[0]?.message || "Invalid registration details",
+          field: parsed.error.issues[0]?.path.join("."),
+        },
         { status: 400 }
       );
     }
 
-    // Connect to MongoDB
+    const data = parsed.data;
+    const emailNormalized = normalizeEmail(data.email);
+    const usernameNormalized = normalizeUsername(data.username);
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const usersCollection = db.collection<User>("users");
+    await ensureSecurityIndexes(db);
 
-    // Check if user already exists
-    const existingUser = await usersCollection.findOne({
-      $or: [
-        { email: email },
-        { username: username }
-      ]
+    const attempt = await db.collection<RegistrationAttempt>("registration_attempts").findOne({
+      tokenHash: hashOpaqueToken(data.attemptToken),
+      emailNormalized,
+      usernameNormalized,
+      usedAt: { $exists: false },
+      expiresAt: { $gt: new Date() },
     });
 
-    if (existingUser) {
+    if (!attempt?._id) {
       return NextResponse.json(
-        { error: "User with this email or username already exists" },
+        { error: "Your secure registration session expired. Please submit the form again." },
         { status: 400 }
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const users = db.collection<User>("users");
+    const existingUser = await users.findOne({
+      $or: [
+        { emailNormalized },
+        { usernameNormalized },
+        { email: emailNormalized },
+        { username: usernameNormalized },
+      ],
+    });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "An account with this email or username already exists" },
+        { status: 409 }
+      );
+    }
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const blobToken = getPrivateBlobToken();
+    const attemptId = attempt._id.toString();
+    const [documentFront, documentBack, selfie] = await Promise.all([
+      verifyUploadedFile({
+        pathname: data.documentFront.pathname,
+        attemptId,
+        kind: "documentFront",
+        token: blobToken,
+      }),
+      data.documentBack
+        ? verifyUploadedFile({
+            pathname: data.documentBack.pathname,
+            attemptId,
+            kind: "documentBack",
+            token: blobToken,
+          })
+        : Promise.resolve(undefined),
+      verifyUploadedFile({
+        pathname: data.selfie.pathname,
+        attemptId,
+        kind: "selfie",
+        token: blobToken,
+        captureMethod: data.selfieCaptureMethod,
+      }),
+    ]);
 
-    // Create new user
-    const newUser: Omit<User, '_id'> = {
-      firstName,
-      lastName,
-      email,
-      username,
+    uploadedPathnames.push(
+      documentFront.pathname,
+      selfie.pathname,
+      ...(documentBack ? [documentBack.pathname] : [])
+    );
+
+    const documentNumberNormalized = data.documentNumber.replace(/[\s-]/g, "").toUpperCase();
+    const documentNumberHash = hashIdentityNumber(data.documentType, documentNumberNormalized);
+    const duplicateIdentity = await db.collection<IdentityVerification>("identity_verifications").findOne({
+      documentNumberHash,
+    });
+    if (duplicateIdentity) {
+      return NextResponse.json(
+        { error: "This identity document is already associated with an account" },
+        { status: 409 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const now = new Date();
+    const newUser: Omit<User, "_id"> = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: emailNormalized,
+      emailNormalized,
+      username: usernameNormalized,
+      usernameNormalized,
       password: hashedPassword,
+      phone: data.phone,
+      address: data.address,
+      addressLine2: data.addressLine2 || undefined,
+      city: data.city,
+      stateRegion: data.stateRegion,
+      country: data.country,
+      postalCode: data.postalCode || undefined,
+      digitalAddress: data.digitalAddress || undefined,
       role: "user",
       status: "active",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
       emailVerified: false,
       verificationToken,
-      verificationTokenExpiry
+      verificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      identityVerificationStatus: "pending",
     };
 
-    const result = await usersCollection.insertOne(newUser);
+    const userResult = await users.insertOne(newUser);
+    insertedUserObjectId = userResult.insertedId as unknown as ObjectId;
+    insertedUserId = userResult.insertedId.toString();
 
-    // Send verification email
+    const ipAddress = getRequestIp(request);
+    const identityRecord: IdentityVerification = {
+      userId: insertedUserId,
+      status: "pending",
+      documentType: data.documentType,
+      documentNumberHash,
+      documentNumberLast4: documentNumberNormalized.slice(-4),
+      documentFront,
+      documentBack,
+      selfie,
+      selfieCaptureMethod: data.selfieCaptureMethod,
+      livenessStatus: "not-configured",
+      consent: {
+        accepted: true,
+        version: "2026-07-identity-v1",
+        acceptedAt: now,
+        ipAddress,
+        userAgent: request.headers.get("user-agent") || undefined,
+      },
+      submittedAt: now,
+      reviewHistory: [{ action: "submitted", createdAt: now }],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const identityResult = await db
+      .collection<IdentityVerification>("identity_verifications")
+      .insertOne(identityRecord);
+    insertedVerificationId = identityResult.insertedId.toString();
+    insertedVerificationObjectId = identityResult.insertedId;
+
+    await users.updateOne(
+      { _id: userResult.insertedId as never },
+      { $set: { identityVerificationId: insertedVerificationId } }
+    );
+    await db.collection<RegistrationAttempt>("registration_attempts").updateOne(
+      { _id: attempt._id },
+      { $set: { usedAt: now } }
+    );
+    await db.collection("audit_logs").insertOne({
+      action: "identity.submitted",
+      entityType: "identity_verification",
+      entityId: insertedVerificationId,
+      userId: insertedUserId,
+      createdAt: now,
+      metadata: { documentType: data.documentType, selfieCaptureMethod: data.selfieCaptureMethod },
+    });
+
+    let emailSent = true;
     try {
-      const emailUser = process.env.EMAIL_USER;
-      const emailPassword = process.env.EMAIL_PASSWORD;
-
-      if (emailUser && emailPassword) {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: emailUser,
-            pass: emailPassword,
-          },
-        });
-
-        const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
-        const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
-
-        const emailHtml = `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #315694 0%, #262262 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
-                .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; }
-                .button { display: inline-block; padding: 12px 30px; background: #315694; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                .footer { background: #262262; color: white; padding: 15px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <div class="header">
-                  <h2>Welcome to Cascade Logistics!</h2>
-                </div>
-                <div class="content">
-                  <p>Hello ${firstName},</p>
-                  <p>Thank you for registering with Cascade Logistics! We're excited to have you on board.</p>
-                  <p>To complete your registration, please verify your email address by clicking the button below:</p>
-                  <div style="text-align: center;">
-                    <a href="${verificationUrl}" class="button" style="color: white;">Verify Email Address</a>
-                  </div>
-                  <p>Or copy and paste this link into your browser:</p>
-                  <p style="word-break: break-all; color: #315694;">${verificationUrl}</p>
-                  <p><strong>This verification link will expire in 24 hours.</strong></p>
-                  <p>Once verified, you'll be able to access all our shipping services and track your shipments.</p>
-                  <p>If you didn't create an account with Cascade Logistics, please ignore this email.</p>
-                </div>
-                <div class="footer">
-                  This email was sent from Cascade Logistics. Please do not reply to this email.<br>
-                  Need help? Contact us at info@cascadelogistics.co
-                </div>
-              </div>
-            </body>
-          </html>
-        `;
-
-        const textVersion = `
-Hello ${firstName},
-
-Thank you for registering with Cascade Logistics! We're excited to have you on board.
-
-To complete your registration, please verify your email address by clicking the link below:
-
-${verificationUrl}
-
-This verification link will expire in 24 hours.
-
-Once verified, you'll be able to access all our shipping services and track your shipments.
-
-If you didn't create an account with Cascade Logistics, please ignore this email.
-
-Best regards,
-Cascade Logistics Team
-        `;
-
-        await transporter.sendMail({
-          from: emailUser,
-          to: email,
-          subject: "Welcome to Cascade Logistics - Verify Your Email",
-          text: textVersion,
-          html: emailHtml,
-        });
-      }
+      await sendVerificationEmail({
+        firstName: data.firstName,
+        email: emailNormalized,
+        verificationToken,
+      });
     } catch (emailError) {
-      console.error("Error sending verification email:", emailError);
-      // Don't fail registration if email fails, but log it
+      emailSent = false;
+      console.error("Verification email delivery failed:", emailError);
     }
 
     return NextResponse.json(
-      { 
-        message: "User registered successfully. Please check your email to verify your account.",
-        userId: result.insertedId.toString()
+      {
+        message:
+          "Registration submitted. Verify your email while our team reviews your identity documents.",
+        userId: insertedUserId,
+        emailSent,
+        identityStatus: "pending",
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Registration error:", error);
+
+    if (insertedUserId) {
+      try {
+        const client = await clientPromise;
+        const db = client.db("guangzhou");
+        if (insertedUserObjectId) {
+          await db.collection("users").deleteOne({ _id: insertedUserObjectId });
+        }
+        if (insertedVerificationObjectId) {
+          await db.collection("identity_verifications").deleteOne({
+            _id: insertedVerificationObjectId,
+          });
+        }
+      } catch (rollbackError) {
+        console.error("Registration rollback failed:", rollbackError);
+      }
+    }
+
+    if (uploadedPathnames.length > 0) {
+      try {
+        await del(uploadedPathnames, { token: getPrivateBlobToken() });
+      } catch (cleanupError) {
+        console.error("Registration file cleanup failed:", cleanupError);
+      }
+    }
+
     return NextResponse.json(
-      { error: "An error occurred during registration" },
+      { error: error instanceof Error ? error.message : "Registration failed" },
       { status: 500 }
     );
   }
 }
-

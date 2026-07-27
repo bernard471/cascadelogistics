@@ -17,7 +17,7 @@ This will create 2 sample shipments and 3 notifications for testing.
 ### **Step 3: Login & Test**
 ```
 http://localhost:3000/member-login
-Username: bernardo471
+Username: your test user's username
 Password: <your-password>
 ```
 
@@ -169,4 +169,3 @@ User:
 ---
 
 **Everything is ready! Start testing and enjoy your fully integrated User Dashboard!** 🎉
-

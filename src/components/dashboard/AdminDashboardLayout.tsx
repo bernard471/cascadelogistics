@@ -20,7 +20,8 @@ import {
   MessageCircle,
   Mail,
   Newspaper,
-  CreditCard
+  CreditCard,
+  ShieldCheck
 } from "lucide-react";
 import AdminNotificationDropdown from "@/components/modals/AdminNotificationDropdown";
 
@@ -92,13 +93,14 @@ export default function AdminDashboardLayout({ children, activePage = "dashboard
   };
 
   const adminName = session?.user?.name || "Admin User";
-  const adminEmail = session?.user?.email || "admin@nivamore.com";
+  const adminEmail = session?.user?.email || "admin@cascadelogistics.com";
   const userRole = session?.user?.role || "user";
 
   // All navigation items
   const allNavigationItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin-dashboard" },
     { id: "users", label: "User Management", icon: Users, href: "/admin-dashboard/users" },
+    { id: "identity-verifications", label: "Identity Verification", icon: ShieldCheck, href: "/admin-dashboard/identity-verifications" },
     { id: "shipments", label: "Shipment Management", icon: Package, href: "/admin-dashboard/shipments" },
     { id: "payments", label: "Payment Verification", icon: CreditCard, href: "/admin-dashboard/payments" },
     { id: "support-tickets", label: "Support Tickets", icon: MessageCircle, href: "/admin-dashboard/support-tickets" },
@@ -325,5 +327,3 @@ export default function AdminDashboardLayout({ children, activePage = "dashboard
     </div>
   );
 }
-
-

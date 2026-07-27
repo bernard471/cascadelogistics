@@ -1,7 +1,10 @@
 const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
-const uri = "mongodb+srv://nextauth:vDdOjXSh8Er5yz6L@cluster0.soo8n.mongodb.net/logistics?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGO;
+if (!uri) {
+  throw new Error("MONGO must be set before running this script.");
+}
 
 async function debugAuth() {
   const client = new MongoClient(uri);
@@ -14,7 +17,7 @@ async function debugAuth() {
     await client.connect();
     console.log("\n✅ MongoDB Connection: SUCCESS");
 
-    const db = client.db("logistics");
+    const db = client.db("guangzhou");
     const usersCollection = db.collection("users");
 
     // Get all users
@@ -63,10 +66,10 @@ async function debugAuth() {
     console.log(`\n✅ bcryptjs can create and verify hashes: ${canVerify ? "YES" : "NO"}`);
 
     // Test with user's actual hash type
-    const bernardUser = users.find(u => u.username === "bernardo471");
+    const bernardUser = users.find(u => u.username === process.env.DEBUG_USERNAME);
     if (bernardUser) {
       console.log("\n" + "=".repeat(60));
-      console.log("BERNARD'S ACCOUNT STATUS:");
+      console.log("SELECTED ACCOUNT STATUS:");
       console.log("=".repeat(60));
       console.log(`✅ User exists: YES`);
       console.log(`✅ Status: ${bernardUser.status}`);
@@ -99,9 +102,7 @@ async function debugAuth() {
     console.log("=".repeat(60));
     console.log("1. Restart your development server (npm run dev)");
     console.log("2. Go to http://localhost:3000/member-login");
-    console.log(`3. Login with:`);
-    console.log(`   Username: bernardo471`);
-    console.log(`   Password: <your-password>`);
+    console.log("3. Login with the account credentials you want to test");
     console.log("\n4. Check browser console and terminal for errors");
 
   } catch (error) {
@@ -112,4 +113,3 @@ async function debugAuth() {
 }
 
 debugAuth();
-

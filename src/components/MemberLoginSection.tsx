@@ -50,10 +50,13 @@ export default function MemberLoginSection() {
       });
 
       if (result?.error) {
-        // Check for specific error messages from auth
-        if (result.error.includes("verify your email")) {
+        if (result.code === "email_unverified") {
           setError("Please verify your email address before logging in. Check your inbox for the verification link.");
-        } else if (result.error.includes("suspended") || result.error.includes("pending")) {
+        } else if (result.code === "identity_pending") {
+          setError("Your email may be verified, but your identity documents are still under review. We will email you when approval is complete.");
+        } else if (result.code === "identity_rejected") {
+          setError("Your identity verification needs attention. Please check your email or contact support.");
+        } else if (result.code === "account_suspended") {
           setError("Your account is suspended or pending activation. Please contact support.");
         } else {
           setError("Invalid username or password");
@@ -68,7 +71,10 @@ export default function MemberLoginSection() {
         const session = await response.json();
         
         // Redirect based on role
-        if (session?.user?.role === "admin" || session?.user?.role === "staff") {
+        const callbackUrl = searchParams.get("callbackUrl");
+        if (callbackUrl?.startsWith("/")) {
+          router.push(callbackUrl);
+        } else if (session?.user?.role === "admin" || session?.user?.role === "staff") {
           router.push("/admin-dashboard");
         } else {
           router.push("/user-dashboard");

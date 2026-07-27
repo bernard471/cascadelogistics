@@ -9,12 +9,12 @@
 Create a `.env.local` file in the root of your project with the following variables:
 
 ```env
-# MongoDB Connection String (Already provided)
-MONGO=mongodb+srv://nextauth:vDdOjXSh8Er5yz6L@cluster0.soo8n.mongodb.net/logistics?retryWrites=true&w=majority&appName=Cluster0
+# MongoDB connection string
+MONGO=mongodb+srv://USERNAME:PASSWORD@HOST/DATABASE
 
 # NextAuth Configuration
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key-here-please-change-this-to-a-random-string
+NEXTAUTH_SECRET=replace-with-a-long-random-secret
 ```
 
 ### Generate NEXTAUTH_SECRET
@@ -44,12 +44,7 @@ Run this command to create an admin user in your database:
 node scripts/create-admin.js
 ```
 
-**Admin Credentials:**
-- Username: `admin`
-- Password: `admin123`
-- Email: `admin@nivamore.com`
-
-**⚠️ IMPORTANT:** Change the admin password after first login!
+Set `ADMIN_INITIAL_PASSWORD` to a unique temporary value of at least 12 characters before running the script. The admin username is `admin` and the email is `admin@cascadelogistics.com`. Remove the environment variable and change the password after first login.
 
 ### 2. Test User Registration
 
@@ -113,7 +108,7 @@ node scripts/create-admin.js
 ### 3. Test Admin Login:
 - Go to: http://localhost:3000/member-login
 - Username: `admin`
-- Password: `admin123`
+- Password: the value supplied through `ADMIN_INITIAL_PASSWORD`
 - Should redirect to: http://localhost:3000/admin-dashboard
 
 ### 4. Test User Registration:

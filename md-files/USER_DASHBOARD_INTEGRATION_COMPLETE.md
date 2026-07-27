@@ -107,7 +107,7 @@ npm run dev
 ### **2. Login:**
 ```
 http://localhost:3000/member-login
-Username: bernardo471
+Username: your test user's username
 Password: <your-password>
 ```
 
@@ -238,4 +238,3 @@ All 6 user dashboard components now use real data from your MongoDB database. Us
 - ✅ View real-time statistics
 
 **Ready to test? Restart your server and try creating your first shipment!** 🚀
-

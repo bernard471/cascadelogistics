@@ -41,9 +41,9 @@ Get-Content .env.local
 
 Should show:
 ```
-MONGO=mongodb+srv://...
+MONGO=mongodb+srv://USERNAME:PASSWORD@HOST/DATABASE
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=<your-secret>
+NEXTAUTH_SECRET=replace-with-a-long-random-secret
 ```
 
 **Step 2: Restart Development Server**
@@ -232,7 +232,7 @@ npm run dev
 ### Create Fresh Admin:
 1. Delete admin from MongoDB Atlas
 2. Run: `node scripts/create-admin.js`
-3. Login with: admin / admin123
+3. Login as `admin` with the password supplied through `ADMIN_INITIAL_PASSWORD`, then change it
 
 ### Test with New User:
 1. Go to http://localhost:3000/member-register
@@ -246,9 +246,9 @@ npm run dev
 Your `.env.local` should look exactly like this:
 
 ```env
-MONGO=mongodb+srv://nextauth:vDdOjXSh8Er5yz6L@cluster0.soo8n.mongodb.net/logistics?retryWrites=true&w=majority&appName=Cluster0
+MONGO=mongodb+srv://USERNAME:PASSWORD@HOST/DATABASE
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=0/wjbpiZ94wctUZ4rqHHi4AO/QgxvG1JeQhRnQLemAc=
+NEXTAUTH_SECRET=replace-with-a-long-random-secret
 ```
 
 Make sure:

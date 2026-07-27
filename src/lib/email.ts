@@ -1,276 +1,107 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
-// Create Gmail transporter
-const createTransporter = () => {
+function getTransporter() {
+  const user = process.env.EMAIL_USER;
+  const password = process.env.EMAIL_PASSWORD;
+
+  if (!user || !password) {
+    throw new Error("EMAIL_USER and EMAIL_PASSWORD must be configured");
+  }
+
   return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
+    service: "gmail",
+    auth: { user, pass: password },
   });
-};
+}
 
-// Welcome email template
-export const createWelcomeEmailTemplate = (userData: {
-  firstName: string;
-  lastName: string;
-  email: string;
-  username: string;
-}) => {
-  return {
-    from: `"Guangzhou Swift Logistics" <info@guangzhouswiftlogistics.com>`,
-    to: userData.email,
-    subject: `Welcome to Guangzhou Swift Logistics, ${userData.firstName}!`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Guangzhou Swift Logistics</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-          }
-          .container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 40px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #055b8e;
-          }
-          .logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: #055b8e;
-            margin-bottom: 10px;
-          }
-          .tagline {
-            color: #666;
-            font-size: 16px;
-          }
-          .welcome-message {
-            font-size: 24px;
-            color: #055b8e;
-            margin-bottom: 20px;
-            text-align: center;
-          }
-          .content {
-            margin-bottom: 30px;
-          }
-          .highlight {
-            background-color: #f0f8ff;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #055b8e;
-            margin: 20px 0;
-          }
-          .cta-button {
-            display: inline-block;
-            background-color: #055b8e;
-            color: white;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
-            transition: background-color 0.3s;
-          }
-          .cta-button:hover {
-            background-color: #044a73;
-          }
-          .features {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-          }
-          .feature-item {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-          }
-          .feature-icon {
-            color: #055b8e;
-            margin-right: 10px;
-            font-weight: bold;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #666;
-            font-size: 14px;
-          }
-          .contact-info {
-            background-color: #f0f8ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">🚚 Guangzhou Swift Logistics</div>
-            <div class="tagline">Your Trusted Logistics Partner</div>
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[character] || character
+  );
+}
+
+function getBaseUrl() {
+  return (process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/$/, "");
+}
+
+function messageShell(content: string) {
+  return `
+    <!doctype html>
+    <html>
+      <body style="margin:0;background:#f4f6f9;font-family:Arial,sans-serif;color:#1f2937">
+        <div style="max-width:620px;margin:0 auto;padding:32px 16px">
+          <div style="background:#315694;color:#fff;padding:22px 28px;border-radius:12px 12px 0 0">
+            <h1 style="font-size:22px;margin:0">Cascade Logistics</h1>
           </div>
-
-          <div class="welcome-message">
-            Welcome aboard, ${userData.firstName}! 🎉
+          <div style="background:#fff;padding:30px 28px;border:1px solid #e5e7eb;border-top:0">
+            ${content}
           </div>
-
-          <div class="content">
-            <p>Dear ${userData.firstName} ${userData.lastName},</p>
-            
-            <p>Thank you for choosing Nivamore Courier Services! We're thrilled to have you as part of our growing community of satisfied customers.</p>
-
-            <div class="highlight">
-              <h3 style="color: #055b8e; margin-top: 0;">Your Account Details:</h3>
-              <p><strong>Username:</strong> ${userData.username}</p>
-              <p><strong>Email:</strong> ${userData.email}</p>
-              <p><strong>Account Status:</strong> Active ✅</p>
-            </div>
-
-            <p>You can now access all our premium services and features:</p>
-
-            <div class="features">
-              <h3 style="color: #055b8e; margin-top: 0;">What you can do now:</h3>
-              <div class="feature-item">
-                <span class="feature-icon">📦</span>
-                <span>Submit and track your shipments in real-time</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">🗺️</span>
-                <span>View detailed shipment routes and progress</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">📱</span>
-                <span>Receive instant notifications and updates</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">💬</span>
-                <span>Get 24/7 customer support assistance</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">📊</span>
-                <span>Access your shipment history and analytics</span>
-              </div>
-            </div>
-
-            <div style="text-align: center;">
-              <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/member-login" class="cta-button">
-                Login to Your Dashboard
-              </a>
-            </div>
-
-            <div class="contact-info">
-              <h3 style="color: #055b8e; margin-top: 0;">Need Help?</h3>
-              <p>Our support team is here to assist you:</p>
-              <p><strong>📧 Email:</strong> guangzhouswiftlogistic@gmail.com</p>
-              <p><strong>📞 Phone:</strong> +86 132 605 43058 / +233 248 84 0661</p>
-              <p><strong>🕒 Hours:</strong> Monday - Friday: 9:00 AM - 6:00 PM (GST)</p>
-            </div>
-
-            <p>We're committed to providing you with the best courier and logistics services. If you have any questions or need assistance, don't hesitate to reach out to us.</p>
-
-            <p>Thank you for trusting us with your shipping needs!</p>
-
-            <p>Best regards,<br>
-            <strong>The Guangzhou Swift Logistics Team</strong></p>
-          </div>
-
-          <div class="footer">
-            <p>© 2024 Guangzhou Swift Logistics. All rights reserved.</p>
-            <p>This email was sent to ${userData.email}. If you didn't create an account, please ignore this email.</p>
+          <div style="background:#262262;color:#fff;padding:16px 28px;border-radius:0 0 12px 12px;font-size:12px">
+            Need help? Contact info@cascadelogistics.co
           </div>
         </div>
       </body>
-      </html>
-    `,
-    text: `
-      Welcome to Guangzhou Swift Logistics, ${userData.firstName}!
+    </html>
+  `;
+}
 
-      Dear ${userData.firstName} ${userData.lastName},
-
-      Thank you for choosing Guangzhou Swift Logistics! We're thrilled to have you as part of our growing community of satisfied customers.
-
-      Your Account Details:
-      - Username: ${userData.username}
-      - Email: ${userData.email}
-      - Account Status: Active ✅
-
-      What you can do now:
-      📦 Submit and track your shipments in real-time
-      🗺️ View detailed shipment routes and progress
-      📱 Receive instant notifications and updates
-      💬 Get 24/7 customer support assistance
-      📊 Access your shipment history and analytics
-
-      Login to your dashboard: ${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/member-login
-
-      Need Help?
-      📧 Email: info@guangzhouswiftlogistics.com
-      📞 Phone: +86 132 605 43058 / +233 248 84 0661
-      🕒 Hours: Monday - Friday: 9:00 AM - 6:00 PM (GST)
-
-      We're committed to providing you with the best courier and logistics services. If you have any questions or need assistance, don't hesitate to reach out to us.
-
-      Thank you for trusting us with your shipping needs!
-
-      Best regards,
-      The Guangzhou Swift Logistics Team
-
-      © 2024 Guangzhou Swift Logistics. All rights reserved.
-      This email was sent to ${userData.email}. If you didn't create an account, please ignore this email.
-    `
-  };
-};
-
-// Send welcome email using Gmail SMTP
-export const sendWelcomeEmail = async (userData: {
+export async function sendVerificationEmail(input: {
   firstName: string;
-  lastName: string;
   email: string;
-  username: string;
-}) => {
-  try {
-    const transporter = createTransporter();
-    const mailOptions = createWelcomeEmailTemplate(userData);
-    
-    const result = await transporter.sendMail(mailOptions);
-    console.log('Welcome email sent successfully:', result.messageId);
-    return { success: true, messageId: result.messageId };
-  } catch (error) {
-    console.error('Error sending welcome email:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
-};
+  verificationToken: string;
+}) {
+  const firstName = escapeHtml(input.firstName);
+  const verificationUrl = `${getBaseUrl()}/verify-email?token=${encodeURIComponent(input.verificationToken)}`;
 
-// Test email configuration with Gmail SMTP
-export const testEmailConnection = async () => {
-  try {
-    const transporter = createTransporter();
-    await transporter.verify();
-    console.log('Gmail SMTP connection verified successfully');
-    return { success: true };
-  } catch (error) {
-    console.error('Gmail SMTP connection failed:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
-};
+  await getTransporter().sendMail({
+    from: `"Cascade Logistics" <${process.env.EMAIL_USER}>`,
+    to: input.email,
+    subject: "Verify your Cascade Logistics email",
+    text: `Hello ${input.firstName},\n\nVerify your email: ${verificationUrl}\n\nYour identity documents are also awaiting administrative review. You can sign in after both checks are complete.\n\nThis link expires in 24 hours.`,
+    html: messageShell(`
+      <p>Hello ${firstName},</p>
+      <p>Thank you for registering. Please verify your email address using the button below.</p>
+      <p style="margin:26px 0">
+        <a href="${verificationUrl}" style="background:#315694;color:#fff;text-decoration:none;padding:13px 22px;border-radius:7px;display:inline-block">Verify email address</a>
+      </p>
+      <p>Your identity documents are awaiting administrative review. You can sign in after both email and identity verification are complete.</p>
+      <p style="font-size:13px;color:#6b7280">This verification link expires in 24 hours.</p>
+    `),
+  });
+}
+
+export async function sendIdentityDecisionEmail(input: {
+  firstName: string;
+  email: string;
+  decision: "verified" | "rejected" | "resubmission-required";
+  reason?: string;
+}) {
+  const firstName = escapeHtml(input.firstName);
+  const safeReason = input.reason ? escapeHtml(input.reason) : "";
+  const isVerified = input.decision === "verified";
+  const title = isVerified ? "Identity verification approved" : "Identity verification update";
+  const action = isVerified
+    ? `<p>Your identity verification has been approved. If your email is verified, you can now sign in and use Cascade Logistics.</p>
+       <p><a href="${getBaseUrl()}/member-login" style="background:#315694;color:#fff;text-decoration:none;padding:13px 22px;border-radius:7px;display:inline-block">Sign in</a></p>`
+    : `<p>We could not approve the submitted identity documents.</p>
+       ${safeReason ? `<p><strong>Reason:</strong> ${safeReason}</p>` : ""}
+       <p>Please contact support while the secure resubmission screen is being prepared.</p>`;
+
+  await getTransporter().sendMail({
+    from: `"Cascade Logistics" <${process.env.EMAIL_USER}>`,
+    to: input.email,
+    subject: title,
+    text: isVerified
+      ? `Hello ${input.firstName}, your identity verification has been approved.`
+      : `Hello ${input.firstName}, your identity verification needs attention.${input.reason ? ` Reason: ${input.reason}` : ""}`,
+    html: messageShell(`<p>Hello ${firstName},</p>${action}`),
+  });
+}

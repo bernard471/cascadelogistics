@@ -206,7 +206,7 @@ Table Row → Click Trash → Confirm → Delete → DB Updated → List Refresh
 ```
 http://localhost:3000/member-login
 Username: admin
-Password: admin123
+Password: the temporary value supplied through `ADMIN_INITIAL_PASSWORD`
 ```
 
 ### **2. Test User Management:**
@@ -384,4 +384,3 @@ http://localhost:3000/admin-dashboard/shipments
 ```
 
 **Click the Eye and Edit icons to see the modals in action!** 🎨
-

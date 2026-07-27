@@ -15,17 +15,17 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") || "all"; // all, read, unread
-    const admin = searchParams.get("admin"); // true for admin notifications
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") || "50") || 50)
+    );
 
     const client = await clientPromise;
     const db = client.db("guangzhou");
     const notificationsCollection = db.collection<Notification>("notifications");
 
     // Build query
-    const query: MongoQuery = { 
-      userId: admin === "true" ? "admin" : session.user.id 
-    };
+    const query: MongoQuery = { userId: session.user.id };
     if (filter === "read") {
       query.isRead = true;
     } else if (filter === "unread") {
@@ -62,44 +62,9 @@ export async function GET(request: Request) {
 
 // POST - Create a new notification
 export async function POST(request: Request) {
-  try {
-    const session = await auth();
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    
-    const client = await clientPromise;
-    const db = client.db("guangzhou");
-    const notificationsCollection = db.collection<Notification>("notifications");
-
-    const newNotification: Omit<Notification, '_id'> = {
-      userId: body.userId || session.user.id,
-      type: body.type,
-      title: body.title,
-      message: body.message,
-      isRead: false,
-      relatedShipmentId: body.relatedShipmentId,
-      createdAt: new Date()
-    };
-
-    const result = await notificationsCollection.insertOne(newNotification);
-
-    return NextResponse.json(
-      { 
-        message: "Notification created successfully",
-        notificationId: result.insertedId.toString()
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("POST notification error:", error);
-    return NextResponse.json(
-      { error: "Failed to create notification" },
-      { status: 500 }
-    );
-  }
+  void request;
+  return NextResponse.json(
+    { error: "Notifications can only be created by trusted server workflows" },
+    { status: 405, headers: { Allow: "GET" } }
+  );
 }
-

@@ -253,7 +253,7 @@ Fill Receiver & Package → Click Create
 
 # Login as admin:
 Username: admin
-Password: admin123
+Password: the temporary value supplied through `ADMIN_INITIAL_PASSWORD`
 
 # Test Create User:
 1. Users page → Click "Add New User"
@@ -270,4 +270,3 @@ Password: admin123
 ---
 
 **🎉 Your admin dashboard now has FULL CRUD via modals!**
-

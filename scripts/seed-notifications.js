@@ -9,7 +9,7 @@ async function seedNotifications() {
     await client.connect();
     console.log('Connected to MongoDB');
     
-    const db = client.db('logistics');
+    const db = client.db('guangzhou');
     const usersCollection = db.collection('users');
     const notificationsCollection = db.collection('notifications');
     

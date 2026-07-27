@@ -20,7 +20,17 @@ export async function GET() {
 
     const user = await usersCollection.findOne(
       { _id: new ObjectId(session.user.id) as unknown as string },
-      { projection: { password: 0 } } // Exclude password
+      {
+        projection: {
+          password: 0,
+          verificationToken: 0,
+          verificationTokenExpiry: 0,
+          resetToken: 0,
+          resetTokenExpiry: 0,
+          emailNormalized: 0,
+          usernameNormalized: 0,
+        },
+      }
     );
 
     if (!user) {
@@ -65,16 +75,18 @@ export async function PUT(request: Request) {
     const body = await request.json();
     
     // Define allowed fields that users can update
-    type AllowedProfileField = 'firstName' | 'lastName' | 'email' | 'phone' | 'address' | 'city' | 'country' | 'postalCode' | 'bio' | 'profileImage';
+    type AllowedProfileField = 'firstName' | 'lastName' | 'phone' | 'address' | 'addressLine2' | 'city' | 'stateRegion' | 'country' | 'postalCode' | 'digitalAddress' | 'bio' | 'profileImage';
     const allowedFields: AllowedProfileField[] = [
       'firstName',
       'lastName',
-      'email',
       'phone',
       'address',
+      'addressLine2',
       'city',
+      'stateRegion',
       'country',
       'postalCode',
+      'digitalAddress',
       'bio',
       'profileImage'
     ];
@@ -115,4 +127,3 @@ export async function PUT(request: Request) {
     );
   }
 }
-

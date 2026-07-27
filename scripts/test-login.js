@@ -1,7 +1,10 @@
 const { MongoClient } = require('mongodb');
 const bcrypt = require('bcryptjs');
 
-const uri = "mongodb+srv://nextauth:vDdOjXSh8Er5yz6L@cluster0.soo8n.mongodb.net/logistics?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGO;
+if (!uri) {
+  throw new Error("MONGO must be set before running this script.");
+}
 
 async function testLogin() {
   const client = new MongoClient(uri);
@@ -10,12 +13,18 @@ async function testLogin() {
     await client.connect();
     console.log("✅ Connected to MongoDB\n");
 
-    const db = client.db("logistics");
+    const db = client.db("guangzhou");
     const usersCollection = db.collection("users");
 
     // Test credentials
-    const testUsername = "bernardo471";
-    const testPassword = "your-actual-password-here"; // Replace with your actual password
+    const testUsername = process.env.TEST_LOGIN_USERNAME;
+    const testPassword = process.env.TEST_LOGIN_PASSWORD;
+
+    if (!testUsername || !testPassword) {
+      throw new Error(
+        "TEST_LOGIN_USERNAME and TEST_LOGIN_PASSWORD must be set before running this script."
+      );
+    }
 
     console.log(`Testing login for username: ${testUsername}\n`);
 
@@ -73,4 +82,3 @@ async function testLogin() {
 }
 
 testLogin();
-

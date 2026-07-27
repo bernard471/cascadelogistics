@@ -157,7 +157,7 @@ Only users with `role: "admin"` can access:
 ```
 http://localhost:3000/member-login
 Username: admin
-Password: admin123
+Password: the temporary value supplied through `ADMIN_INITIAL_PASSWORD`
 ```
 
 ### **2. Test Each Admin Page:**
@@ -349,8 +349,7 @@ To fully implement:
 **Test the admin dashboard now:**
 ```
 http://localhost:3000/member-login
-Login as: admin / admin123
+Login as `admin` with the temporary value supplied through `ADMIN_INITIAL_PASSWORD`
 ```
 
 **Everything works in real-time with your MongoDB database!** 🚀
-

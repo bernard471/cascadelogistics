@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MONGO: mongodb://127.0.0.1:27017/cascade-ci?serverSelectionTimeoutMS=100
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-only-secret-that-is-not-used-in-production
+      IDENTITY_HASH_SECRET: ci-only-identity-hash-secret
+      NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ci-placeholder
+      RECAPTCHA_SECRET_KEY: ci-placeholder
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Audit production dependencies
+        run: npm run audit:production
+
+      - name: Build
+        run: npm run build

@@ -15,7 +15,7 @@ async function seedSampleData() {
     await client.connect();
     console.log('✅ Connected to MongoDB');
 
-    const db = client.db('logistics');
+    const db = client.db('guangzhou');
 
     // Get the user ID (assumes you have a user already)
     const usersCollection = db.collection('users');
@@ -182,4 +182,3 @@ async function seedSampleData() {
 }
 
 seedSampleData();
-

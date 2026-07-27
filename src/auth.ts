@@ -1,8 +1,25 @@
 import NextAuth from "next-auth";
+import { CredentialsSignin } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import clientPromise from "@/lib/mongodb";
 import type { User } from "@/models/User";
+
+class AccountSuspendedError extends CredentialsSignin {
+  code = "account_suspended";
+}
+
+class EmailUnverifiedError extends CredentialsSignin {
+  code = "email_unverified";
+}
+
+class IdentityPendingError extends CredentialsSignin {
+  code = "identity_pending";
+}
+
+class IdentityRejectedError extends CredentialsSignin {
+  code = "identity_rejected";
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -26,6 +43,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // Find user by username or email
           const user = await usersCollection.findOne({
             $or: [
+              { usernameNormalized: (credentials.username as string).trim().toLowerCase() },
+              { emailNormalized: (credentials.username as string).trim().toLowerCase() },
               { username: credentials.username as string },
               { email: credentials.username as string }
             ]
@@ -35,16 +54,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return null;
           }
 
-          // Check if user is active
-          if (user.status !== "active") {
-            throw new Error("Account is suspended or pending activation");
-          }
-
-          // Check if email is verified (skip for staff role)
-          if (!user.emailVerified && user.role !== "staff") {
-            throw new Error("Please verify your email address before logging in. Check your inbox for the verification link.");
-          }
-
           // Verify password
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string,
@@ -52,11 +61,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           );
 
           if (!isPasswordValid) {
-            console.log("Password verification failed");
             return null;
           }
 
-          console.log("Login successful for user:", user.email);
+          if (user.status !== "active") {
+            throw new AccountSuspendedError();
+          }
+
+          if (!user.emailVerified && user.role !== "staff") {
+            throw new EmailUnverifiedError();
+          }
+
+          // Existing users without an identity status remain active during migration.
+          if (user.role === "user" && user.identityVerificationStatus) {
+            if (
+              user.identityVerificationStatus === "rejected" ||
+              user.identityVerificationStatus === "resubmission-required"
+            ) {
+              throw new IdentityRejectedError();
+            }
+            if (user.identityVerificationStatus !== "verified") {
+              throw new IdentityPendingError();
+            }
+          }
 
           // Return user object (without password)
           return {
@@ -68,6 +95,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             image: user.image
           };
         } catch (error) {
+          if (error instanceof CredentialsSignin) {
+            throw error;
+          }
           console.error("Authentication error:", error);
           return null;
         }
@@ -110,4 +140,3 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
-

@@ -255,13 +255,13 @@ npm run dev
 
 # 3. Test as User
 http://localhost:3000/member-login
-Username: bernardo471
+Username: your test user's username
 Password: <your-password>
 
 # 4. Test as Admin
 http://localhost:3000/member-login
 Username: admin
-Password: admin123
+Password: the temporary value supplied through `ADMIN_INITIAL_PASSWORD`
 ```
 
 ---
@@ -399,5 +399,4 @@ http://localhost:3000
 ```
 
 **Everything works with real MongoDB data!** 🚀
-
 

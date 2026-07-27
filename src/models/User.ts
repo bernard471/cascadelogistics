@@ -10,6 +10,9 @@ export interface User {
   city?: string;
   country?: string;
   postalCode?: string;
+  stateRegion?: string;
+  addressLine2?: string;
+  digitalAddress?: string;
   bio?: string;
   role: 'user' | 'admin' | 'staff';
   status: 'active' | 'suspended' | 'pending';
@@ -25,6 +28,11 @@ export interface User {
   deliveredShipments?: number; // Successfully delivered shipments
   resetToken?: string; // Password reset token
   resetTokenExpiry?: Date; // Password reset token expiry
+  emailNormalized?: string;
+  usernameNormalized?: string;
+  identityVerificationId?: string;
+  identityVerificationStatus?: 'pending' | 'under-review' | 'verified' | 'rejected' | 'resubmission-required';
+  identityVerifiedAt?: Date;
 }
 
 export interface UserSession {
@@ -33,4 +41,3 @@ export interface UserSession {
   name: string;
   role: 'user' | 'admin' | 'staff';
 }
-

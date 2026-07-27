@@ -20,7 +20,7 @@ export async function PATCH(
     const body = await request.json();
     
     const client = await clientPromise;
-    const db = client.db("logistics");
+    const db = client.db("guangzhou");
     const staffCollection = db.collection<Staff>("staff");
 
     const result = await staffCollection.updateOne(
@@ -80,4 +80,3 @@ export async function DELETE(
     );
   }
 }
-

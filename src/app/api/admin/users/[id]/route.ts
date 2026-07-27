@@ -3,6 +3,14 @@ import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type { User } from "@/models/User";
+import { z } from "zod";
+
+const adminUserUpdateSchema = z.object({
+  firstName: z.string().trim().min(1).max(80).optional(),
+  lastName: z.string().trim().min(1).max(80).optional(),
+  phone: z.string().trim().max(30).optional(),
+  status: z.enum(["active", "suspended", "pending"]).optional(),
+});
 
 // PATCH - Update user status/details (Admin only)
 export async function PATCH(
@@ -17,20 +25,26 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await request.json();
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+    const parsed = adminUserUpdateSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid user update" },
+        { status: 400 }
+      );
+    }
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
     const usersCollection = db.collection<User>("users");
 
-    // Don't allow updating password or role via this endpoint (use separate endpoints)
-    const {  ...updateData } = body;
-    
     const result = await usersCollection.updateOne(
       { _id: new ObjectId(id) as unknown as string },
       { 
         $set: { 
-          ...updateData, 
+          ...parsed.data,
           updatedAt: new Date() 
         } 
       }
@@ -63,6 +77,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
@@ -92,4 +109,3 @@ export async function DELETE(
     );
   }
 }
-

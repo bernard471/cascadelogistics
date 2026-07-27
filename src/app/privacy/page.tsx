@@ -64,6 +64,9 @@ export default function PrivacyPolicy() {
                     <li>Shipping and delivery addresses</li>
                     <li>Package contents and shipping preferences</li>
                     <li>Profile pictures and other uploaded content</li>
+                    <li>Government-issued identification documents, document type, and the final four characters of the document number</li>
+                    <li>A selfie used by authorized personnel to compare your appearance with your identification document</li>
+                    <li>GhanaPost GPS/digital addresses for customers whose residential address is in Ghana</li>
                     <li>Communication preferences and marketing consent</li>
                   </ul>
 
@@ -122,6 +125,7 @@ export default function PrivacyPolicy() {
                     <li>Conducting research and analytics</li>
                     <li>Developing new products and features</li>
                     <li>Preventing fraud and ensuring security</li>
+                    <li>Verifying customer identity before enabling shipment services</li>
                     <li>Complying with legal obligations</li>
                   </ul>
                 </section>
@@ -198,6 +202,9 @@ export default function PrivacyPolicy() {
                   </ul>
                   <p className="text-gray-700 leading-relaxed">
                     When we no longer need your personal information, we will securely delete or anonymize it.
+                  </p>
+                  <p className="text-gray-700 leading-relaxed mt-4">
+                    Identity-document images and selfies are currently scheduled for secure deletion 90 days after a final verification decision. This temporary period is configurable and may be changed where a legal or regulatory obligation requires a different period. Verification status, consent, and audit records may be retained separately for security and compliance purposes.
                   </p>
                 </section>
 

@@ -15,7 +15,7 @@ async function seedAdminData() {
     await client.connect();
     console.log('✅ Connected to MongoDB');
 
-    const db = client.db('logistics');
+    const db = client.db('guangzhou');
 
     // Seed Staff Members
     const staffCollection = db.collection('staff');
@@ -98,7 +98,7 @@ async function seedAdminData() {
     });
     
     console.log('\n📊 Admin Dashboard is ready to test!');
-    console.log('   Login as: admin / admin123');
+    console.log('   Login with your separately configured admin credentials');
     console.log('   URL: http://localhost:3000/admin-dashboard');
 
   } catch (error) {
@@ -110,4 +110,3 @@ async function seedAdminData() {
 }
 
 seedAdminData();
-

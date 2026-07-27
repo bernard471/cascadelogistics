@@ -20,7 +20,7 @@ export async function GET(
     const { id } = await params;
     
     const client = await clientPromise;
-    const db = client.db("logistics");
+    const db = client.db("guangzhou");
     const subscriptionsCollection = db.collection<NewsletterSubscription>("newsletter_subscriptions");
 
     const subscription = await subscriptionsCollection.findOne({ 

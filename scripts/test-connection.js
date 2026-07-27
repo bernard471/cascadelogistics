@@ -1,6 +1,9 @@
 const { MongoClient } = require('mongodb');
 
-const uri = "mongodb+srv://nextauth:vDdOjXSh8Er5yz6L@cluster0.soo8n.mongodb.net/logistics?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGO;
+if (!uri) {
+  throw new Error("MONGO must be set before running this script.");
+}
 
 async function testConnection() {
   const client = new MongoClient(uri);
@@ -10,7 +13,7 @@ async function testConnection() {
     await client.connect();
     console.log("✅ Successfully connected to MongoDB!");
 
-    const db = client.db("logistics");
+    const db = client.db("guangzhou");
     console.log("✅ Connected to database: logistics");
 
     // List collections
@@ -59,4 +62,3 @@ async function testConnection() {
 }
 
 testConnection();
-
