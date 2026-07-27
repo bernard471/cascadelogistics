@@ -37,44 +37,42 @@ export default function TeamSection() {
       id: 1,
       name: "Asoma Amankonah-Hinneh",
       position: "Chief Executive Officer",
-      image: "/cascade/team-01-1.png",
-      linkedin: "https://www.linkedin.com/in/kwaku-asoma-amankonah-hinneh-b727aa82/"
+      image: "/cascade/team01.jpeg",
+      linkedin: "https://www.linkedin.com/in/kwaku-asoma-amankonah-hinneh-b727aa82/",
+      description: "Highly skilled in providing effective logistics solutions and has a strong educational background in Business Administration and Accounting"
     },
     {
       id: 2,
       name: "Kwaku Amankonah-Hinneh",
       position: "Managing Director",
       image: "/cascade/team-02.png",
-      linkedin: "vhttps://www.linkedin.com/in/kwaku-amankonah-hinneh-a5b35986/"
+      linkedin: "vhttps://www.linkedin.com/in/kwaku-amankonah-hinneh-a5b35986/",
+      description: "With an MBA in Supply Chain, Kwaku has extensive experience in leading supply chain operations for multinational companies."
     },
     {
       id: 3,
       name: "Collins Adusei Brempong",
       position: "Chief Finance Officer",
       image: "/cascade/team-03.png",
-      linkedin: "https://www.linkedin.com/in/collins-adusei-brempong-329723368/"
+      linkedin: "https://www.linkedin.com/in/collins-adusei-brempong-329723368/",
+      description: "Chartered Accountant with banking experience and an excellent track record of driving growth across the operation value chain."
     },
     {
       id: 4,
       name: "Ewurama Amankonah-Hinneh",
       position: "Business Development Manager",
-      image: "/cascade/team-04-640x893.png",
-      linkedin: "https://cascadelogistics.co/about/about-me/#"
+      image: "/cascade/team04.jpeg",
+      linkedin: "https://cascadelogistics.co/about/about-me/#",
+      description: "MSc. in International Business responsible for driving business growth, developing mutually beneficial partnerships, and researching new market opportunities."
     },
     {
       id: 5,
-      name: "David Brown",
-      position: "Customs & Clearing Specialist",
-      image: "/cascade/team-05-640x893.png",
-      linkedin: "https://www.linkedin.com/in/davidbrown"
+      name: "Michael Morvey",
+      position: "New business & regulatory officer",
+      image: "/cascade/team05.jpeg",
+      linkedin: "https://www.linkedin.com/in/davidbrown",
+      description: "MBA. Total Quality Management At the helm of our strategic growth initiatives, Michael plays a pivotal role in navigating the intersection of innovation and compliance within our industry to drive sustainable growth and foster partnerships"
     },
-    {
-      id: 6,
-      name: "Emily Davis",
-      position: "Shipping Coordinator",
-      image: "/cascade/team-06-640x893.png",
-      linkedin: "https://www.linkedin.com/in/emilydavis"
-    }
   ];
 
   return (
@@ -155,15 +153,9 @@ export default function TeamSection() {
                 
                 {/* Contact Info */}
                 <div className="pt-4 border-t border-gray-100">
-                  <a
-                    href={member.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#315694] transition-colors duration-300 font-medium group/link"
-                  >
-                    <Linkedin className="w-4 h-4 group-hover/link:scale-110 transition-transform" />
-                    <span>Connect on LinkedIn</span>
-                  </a>
+                <p className="text-gray-600 text-base leading-relaxed mb-6">
+                  {member.description}
+                </p>
                 </div>
               </div>
             </div>
