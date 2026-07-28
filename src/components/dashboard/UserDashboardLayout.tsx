@@ -101,7 +101,7 @@ export default function UserDashboardLayout({ children, activePage = "dashboard"
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/user-dashboard" },
     { id: "profile", label: "My Profile", icon: User, href: "/user-dashboard/profile" },
-    { id: "submit-asset", label: "Submit an Asset", icon: Package, href: "/user-dashboard/submit-asset" },
+    { id: "submit-asset", label: "Create A Shipment", icon: Package, href: "/user-dashboard/submit-asset" },
     { id: "track-shipment", label: "Track Shipment", icon: MapPin, href: "/user-dashboard/track-shipment" },
     { id: "assets-list", label: "My Assets List", icon: List, href: "/user-dashboard/assets-list" },
     { id: "payment-proof", label: "Payment Proof", icon: CreditCard, href: "/user-dashboard/payment-proof" },

@@ -21,7 +21,7 @@ export default function TopBanner() {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                <span>Get in Touch: 24/7 Mon - Sat</span>
+                <span>Get in Touch: 24/7 Mon - Fri</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />

@@ -1,13 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { 
+import {
   // Ship, 
-  Package, Globe, CheckCircle2, 
+  Package, Globe, CheckCircle2,
   // ArrowRight, 
-  TrendingUp, Shield, 
+  TrendingUp, Shield,
   // Clock, Users, 
-  Plane } from "lucide-react";
+  Plane
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 // import Link from "next/link";
 
@@ -61,19 +62,19 @@ export default function AboutPageSectionTwo() {
     {
       icon: Plane,
       title: "Air Shipments",
-      description: "Fast air cargo from UK, China, USA, and Turkey to Ghana",
+      description: "Fast air cargo globally to Ghana",
       image: "/cascade/airshipping.jpg"
     },
     {
       icon: Package,
-      title: "Package Consolidation",
+      title: "Cargo Consolidation",
       description: "Combine multiple packages for cost-effective shipping",
       image: "/cascade/card_image_03.jpg"
     },
     {
       icon: TrendingUp,
-      title: "Twice Weekly USA Service",
-      description: "Shipments every Thursday & Sunday, pickups Tuesday & Friday",
+      title: "Sea Shipments",
+      description: "Regular sea shipments to Ghana with flexible options",
       image: "/cascade/image_single_service_01.jpg"
     },
     {
@@ -92,9 +93,8 @@ export default function AboutPageSectionTwo() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#315694]"></div>
             <span className="px-6 py-2 bg-[#315694]/10 border border-[#315694]/20 text-[#315694] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -113,9 +113,8 @@ export default function AboutPageSectionTwo() {
         {/* Main Content - Split Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-16">
           {/* Left Side - Image Gallery */}
-          <div className={`relative transition-all duration-1000 delay-200 ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
-          }`}>
+          <div className={`relative transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+            }`}>
             {/* Main Rotating Image */}
             <div className="relative h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl group">
               <Image
@@ -126,16 +125,15 @@ export default function AboutPageSectionTwo() {
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-              
+
               {/* Image Counter */}
               <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2">
                 <div className="flex gap-1">
                   {imageGallery.map((_, index) => (
                     <div
                       key={index}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        index === currentImageIndex ? 'bg-[#315694] w-6' : 'bg-gray-300'
-                      }`}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentImageIndex ? 'bg-[#315694] w-6' : 'bg-gray-300'
+                        }`}
                     />
                   ))}
                 </div>
@@ -151,11 +149,10 @@ export default function AboutPageSectionTwo() {
                 <div
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`relative h-32 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
-                    currentImageIndex === index 
-                      ? 'ring-4 ring-[#315694] scale-105' 
-                      : 'hover:scale-105 opacity-70 hover:opacity-100'
-                  }`}
+                  className={`relative h-32 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${currentImageIndex === index
+                    ? 'ring-4 ring-[#315694] scale-105'
+                    : 'hover:scale-105 opacity-70 hover:opacity-100'
+                    }`}
                 >
                   <Image
                     src={img}
@@ -169,44 +166,44 @@ export default function AboutPageSectionTwo() {
           </div>
 
           {/* Right Side - Content */}
-          <div className={`space-y-8 transition-all duration-1000 delay-400 ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
-          }`}>
+          <div className={`space-y-8 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
+            }`}>
             {/* Main Description */}
             <div className="space-y-6">
               <div className="inline-flex items-center gap-3 px-4 py-2 bg-[#315694]/10 rounded-full">
                 <Globe className="w-5 h-5 text-[#315694]" />
                 <span className="text-sm font-semibold text-[#315694]">Trusted Logistics Partner</span>
               </div>
-              
+
               <h3 className="text-3xl lg:text-4xl font-bold text-gray-900">
                 Excellence in Every Shipment
               </h3>
-              
+
               <p className="text-lg text-gray-700 leading-relaxed">
-                Cascade Logistics Limited stands as a premier shipping and logistics provider, connecting 
-                UK, China, USA, and Turkey with Ghana through reliable air cargo services. Our comprehensive 
-                services cover everything from clearing and customs processing to haulage and final delivery, 
+                Cascade Logistics Limited stands as a premier shipping and logistics provider, connecting
+                various parts of the world with Ghana through reliable air and sea services. Our services cover comprehensive
+                supply chain solutions from customs Brokerage, customs processing, clearing to haulage and finally delivery,
                 ensuring your goods reach their destination safely and on time.
               </p>
 
-              <p className="text-lg text-gray-700 leading-relaxed">
-                With our USA service shipping twice weekly (Thursday & Sunday shipments, Tuesday & Friday pickups), 
-                we offer faster delivery times than ever before. Our team of logistics experts works tirelessly 
+              {/* <p className="text-lg text-gray-700 leading-relaxed">
+                With our USA service shipping twice weekly (Thursday & Sunday shipments, Tuesday & Friday pickups),
+                we offer faster delivery times than ever before. Our team of logistics experts works tirelessly
                 to streamline your shipping process and provide peace of mind with transparent tracking and insurance options.
-              </p>
+              </p> */}
             </div>
 
             {/* Key Points */}
             <div className="space-y-4">
               {[
-                "4+ shipping routes (UK, China, USA, Turkey to Ghana)",
-                "Twice-weekly USA service for faster delivery",
+                "Global active network",
+                "End to end Supply chain integration",
+                "Experince and expertise",
                 "Comprehensive clearing and customs processing",
-                "Package consolidation and proxy-buy services",
+                "Cargo Consolidation and Door to Door services",
                 "Insurance coverage for valuable shipments"
               ].map((point, index) => (
-                <div 
+                <div
                   key={index}
                   className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
                 >
@@ -231,9 +228,8 @@ export default function AboutPageSectionTwo() {
         </div>
 
         {/* Advantages Grid */}
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-1000 delay-600 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           {advantages.map((advantage, index) => {
             const Icon = advantage.icon;
             return (
@@ -253,11 +249,11 @@ export default function AboutPageSectionTwo() {
 
                 {/* Content */}
                 <div className="relative p-6">
-                  <div className="w-14 h-14 bg-gradient-to-br from-[#315694] to-[#262262] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-14 mx-auto h-14 bg-gradient-to-br from-[#315694] to-[#262262] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">{advantage.title}</h4>
-                  <p className="text-gray-600 leading-relaxed">{advantage.description}</p>
+                  <h4 className="text-xl font-bold text-center text-gray-900 mb-2">{advantage.title}</h4>
+                  <p className="text-gray-600 text-center leading-relaxed">{advantage.description}</p>
                 </div>
               </div>
             );

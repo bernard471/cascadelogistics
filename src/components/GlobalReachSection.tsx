@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { MapPin, Plane, Ship, Globe, 
+import {
+  MapPin, Plane, Ship, Globe,
   // ArrowRight 
-  } from "lucide-react";
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 // import Link from "next/link";
 
@@ -79,7 +80,7 @@ export default function GlobalReachSection() {
     },
     {
       icon: Ship,
-      title: "Sea Cargo",
+      title: "Sea Shipment",
       description: "Cost-effective shipping solutions"
     },
     {
@@ -90,9 +91,9 @@ export default function GlobalReachSection() {
   ];
 
   return (
-    <section 
-      ref={sectionRef} 
-      className="relative py-16 lg:py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden"
+    <section
+      ref={sectionRef}
+      className="relative py-16 lg:py-24 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden"
     >
       {/* Background decorative elements */}
       <div className="absolute inset-0 opacity-10">
@@ -104,9 +105,8 @@ export default function GlobalReachSection() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#f7941d]"></div>
             <span className="px-6 py-2 bg-[#f7941d]/20 border border-[#f7941d]/40 text-[#f7941d] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -125,9 +125,8 @@ export default function GlobalReachSection() {
         {/* Main Content - Split Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-16">
           {/* Left Side - Map */}
-          <div className={`relative transition-all duration-1000 delay-200 ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
-          }`}>
+          <div className={`relative transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+            }`}>
             <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gray-800/50 backdrop-blur-sm border border-white/10">
               {/* Map Image */}
               <div className="relative w-full aspect-square lg:aspect-[4/3]">
@@ -162,33 +161,32 @@ export default function GlobalReachSection() {
           </div>
 
           {/* Right Side - Routes & Info */}
-          <div className={`space-y-8 transition-all duration-1000 delay-400 ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
-          }`}>
+          <div className={`space-y-8 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
+            }`}>
             {/* Main Description */}
             <div className="space-y-6">
               <div className="inline-flex items-center gap-3 px-4 py-2 bg-[#315694]/20 rounded-full border border-[#315694]/40">
                 <Globe className="w-5 h-5 text-[#f7941d]" />
                 <span className="text-sm font-semibold text-[#f7941d]">Global Shipping Network</span>
               </div>
-              
+
               <h3 className="text-3xl lg:text-4xl font-bold text-white">
                 Worldwide Shipping Solutions
               </h3>
-              
+
               <p className="text-lg text-gray-300 leading-relaxed">
-                Cascade Logistics Limited connects you to Ghana from key global locations. Our extensive 
-                network spans across UK, China, USA, and Turkey, ensuring your shipments reach their 
+                Cascade Logistics Limited connects you to Ghana from key global locations. Our extensive
+                network spans across multiple countries ensuring your shipments reach their
                 destination safely and on time.
               </p>
 
-              <p className="text-lg text-gray-300 leading-relaxed">
-                With our USA service shipping twice weekly (Thursday & Sunday shipments, Tuesday & Friday pickups), 
+              {/* <p className="text-lg text-gray-300 leading-relaxed">
+                With our USA service shipping twice weekly (Thursday & Sunday shipments, Tuesday & Friday pickups),
                 we offer faster delivery times and greater flexibility for your shipping needs.
-              </p>
+              </p> */}
             </div>
 
-           
+
 
             {/* Services Quick View */}
             <div className="grid grid-cols-3 gap-4 pt-4">

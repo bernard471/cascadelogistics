@@ -1,8 +1,10 @@
 "use client";
 
-import { CheckCircle2, TrendingUp, Shield, Clock, 
+import {
+  CheckCircle2, TrendingUp, Shield, Clock,
   // DollarSign, 
-  Globe, ArrowRight } from "lucide-react";
+  Globe, ArrowRight
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
@@ -17,7 +19,7 @@ export default function WhyChooseUsSection() {
       id: 1,
       icon: Globe,
       title: "Multiple Routes",
-      description: "We ship from UK, China, USA, and Turkey to Ghana. Choose the route that works best for your needs with reliable service.",
+      description: "We ship globally to Ghana. Choose the route that works best for your needs with reliable service.",
       color: "from-green-500 to-emerald-600",
       bgColor: "bg-green-50",
       borderColor: "border-green-200"
@@ -26,7 +28,7 @@ export default function WhyChooseUsSection() {
       id: 2,
       icon: Clock,
       title: "Fast & Reliable",
-      description: "Air cargo in 7-10 days, sea cargo in 35-45 days. USA shipping twice weekly with guaranteed 1-week pickup in Ghana.",
+      description: "Air cargo in 7-10 days, Sea Shipment with reliable service. USA shipping twice weekly with guaranteed 1-week pickup in Ghana.",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200"
@@ -53,7 +55,7 @@ export default function WhyChooseUsSection() {
       id: 5,
       icon: TrendingUp,
       title: "Additional Services",
-      description: "Package consolidation, proxy-buy service, and insurance options available. We offer comprehensive solutions for all your shipping needs.",
+      description: "Cargo Consolidation, Door to Door service, and insurance options available. We offer comprehensive solutions for all your shipping needs.",
       color: "from-cyan-500 to-cyan-600",
       bgColor: "bg-cyan-50",
       borderColor: "border-cyan-200"
@@ -113,9 +115,8 @@ export default function WhyChooseUsSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#f7941d]"></div>
             <span className="px-6 py-2 bg-[#315694]/10 border border-[#315694]/20 text-[#315694] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -159,17 +160,15 @@ export default function WhyChooseUsSection() {
             return (
               <div
                 key={reason.id}
-                className={`group relative bg-white rounded-2xl p-8 border-2 ${reason.borderColor} hover:border-[#315694] transition-all duration-500 hover:shadow-2xl ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+                className={`group relative bg-white rounded-2xl p-8 border-2 ${reason.borderColor} hover:border-[#315694] transition-all duration-500 hover:shadow-2xl ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
                 onMouseEnter={() => setHoveredCard(reason.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
                 {/* Icon */}
-                <div className={`w-16 h-16 bg-gradient-to-br ${reason.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg transition-transform duration-300 ${
-                  hoveredCard === reason.id ? 'scale-110 rotate-6' : 'scale-100'
-                }`}>
+                <div className={`w-16 h-16 bg-gradient-to-br ${reason.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg transition-transform duration-300 ${hoveredCard === reason.id ? 'scale-110 rotate-6' : 'scale-100'
+                  }`}>
                   <Icon className="w-8 h-8 text-white" />
                 </div>
 
@@ -185,15 +184,14 @@ export default function WhyChooseUsSection() {
         </div>
 
         {/* CTA Section */}
-        <div className={`mt-16 text-center transition-all duration-1000 delay-700 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`mt-16 text-center transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-block bg-gradient-to-r from-[#315694] to-[#262262] p-8 shadow-xl">
             <h3 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h3>
             <p className="text-white/90 mb-6 text-lg">Join satisfied clients who trust us with their shipping needs from around the world to Ghana.</p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/get-quote">
-                <Button 
+                <Button
                   size="lg"
                   className="bg-white text-[#315694] hover:bg-gray-100 px-8 py-6 text-lg font-semibold rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
                 >
@@ -202,7 +200,7 @@ export default function WhyChooseUsSection() {
                 </Button>
               </Link>
               <Link href="/logistics-services">
-                <Button 
+                <Button
                   size="lg"
                   variant="outline"
                   className="border-2 border-white text-white bg-transparent hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-300"

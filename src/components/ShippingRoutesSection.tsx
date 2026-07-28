@@ -28,9 +28,9 @@ export default function ShippingRoutesSection() {
     },
     {
       id: 2,
-      origin: "Turkey",
+      origin: "Canada",
       destination: "Ghana",
-      type: "Sea Cargo",
+      type: "Sea Shipment",
       deliveryTime: "35-45 Days",
       icon: Ship,
       image: "/logisticssection/seashipping.jpeg",
@@ -50,10 +50,10 @@ export default function ShippingRoutesSection() {
       icon: Plane,
       image: "/logisticssection/expressair.jpg",
       features: [
-        "Shipments every Thursday & Sunday",
-        "Pickups in Ghana every Tuesday & Friday",
+        // "Shipments every Thursday & Sunday",
+        // "Pickups in Ghana every Tuesday & Friday",
         "Guaranteed pickup within 1 week",
-        "Package consolidation available"
+        "Cargo Consolidation available"
       ],
       gradient: "from-[#315694] to-[#262262]",
       special: true
@@ -120,7 +120,7 @@ export default function ShippingRoutesSection() {
       <div className="absolute inset-0 bg-gradient-to-br from-[#315694]/5 via-[#262262]/5 to-[#f7941d]/5"></div>
       <div className="absolute top-20 right-0 w-96 h-96 bg-[#315694]/30 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-0 w-96 h-96 bg-[#315694]/30 rounded-full blur-3xl"></div>
-      
+
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
@@ -131,9 +131,8 @@ export default function ShippingRoutesSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header Section */}
-        <div className={`mb-20 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`mb-20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
             <div className="flex-1">
               <div className="inline-flex items-center gap-2 mb-4">
@@ -143,17 +142,17 @@ export default function ShippingRoutesSection() {
                 </span>
               </div>
               <h2 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-4 leading-tight">
-                Global Shipping
-                <span className="block text-[#315694]">Routes to Ghana</span>
+                Door To Door
+                <span className="block text-[#315694]">Services to Ghana</span>
               </h2>
               <div className="w-20 h-1 bg-[#f7941d] mb-6"></div>
               <p className="text-xl text-gray-600 max-w-2xl leading-relaxed">
-                We connect UK, China, USA, and Turkey to Ghana with reliable air and sea cargo services. All packages include freight and custom clearance.
+                We connect Globally to Ghana with reliable air and Sea Shipment services. All packages include freight and custom clearance.
               </p>
             </div>
-            
+
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-col">
+            {/* <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-col">
               <div className="bg-gradient-to-br from-[#315694] to-[#262262] rounded-2xl p-6 text-white shadow-xl">
                 <div className="text-3xl font-bold mb-1">4+</div>
                 <div className="text-sm opacity-90">Countries</div>
@@ -162,7 +161,7 @@ export default function ShippingRoutesSection() {
                 <div className="text-3xl font-bold mb-1">7-45</div>
                 <div className="text-sm opacity-90">Days</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -174,12 +173,11 @@ export default function ShippingRoutesSection() {
             return (
               <div
                 key={route.id}
-                className={`group relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-1000 ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+                className={`group relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <div className="relative h-[500px] lg:h-[600px]">
+                <div className="relative h-[450px] lg:h-[550px]">
                   <Image
                     src={route.image}
                     alt={`${route.origin} to ${route.destination}`}
@@ -187,7 +185,7 @@ export default function ShippingRoutesSection() {
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#262262]/95 via-[#315694]/90 to-[#262262]/80"></div>
-                  
+
                   <div className="absolute inset-0 flex flex-col lg:flex-row items-center">
                     {/* Left Side - Content */}
                     <div className="flex-1 p-8 lg:p-12 text-white z-10">
@@ -201,12 +199,12 @@ export default function ShippingRoutesSection() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <h3 className="text-4xl lg:text-6xl font-bold mb-4">
                         {route.origin} → {route.destination}
                       </h3>
                       <p className="text-xl text-white/90 mb-6">{route.type}</p>
-                      
+
                       <div className="flex items-center gap-6 mb-8">
                         <div className="flex items-center gap-3">
                           <Clock className="w-6 h-6 text-[#f7941d]" />
@@ -235,7 +233,7 @@ export default function ShippingRoutesSection() {
                       </div>
 
                       <Link href="/get-quote">
-                        <Button 
+                        <Button
                           size="lg"
                           className="bg-[#f7941d] hover:bg-[#f7941d]/90 text-white px-8 py-6 text-lg font-semibold rounded-lg shadow-xl transition-all duration-300 hover:scale-105"
                         >
@@ -257,12 +255,11 @@ export default function ShippingRoutesSection() {
               return (
                 <div
                   key={route.id}
-                  className={`group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 ${
-                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                  }`}
+                  className={`group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                    }`}
                   style={{ transitionDelay: `${(index + 1) * 100}ms` }}
                 >
-                  <div className="relative h-[400px]">
+                  <div className="relative h-[350px]">
                     <Image
                       src={route.image}
                       alt={`${route.origin} to ${route.destination}`}
@@ -270,7 +267,7 @@ export default function ShippingRoutesSection() {
                       className="object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                     <div className={`absolute inset-0 bg-gradient-to-t ${route.gradient} opacity-90`}></div>
-                    
+
                     <div className="absolute inset-0 p-8 flex flex-col justify-between text-white z-10">
                       {/* Top Section */}
                       <div>
@@ -282,20 +279,20 @@ export default function ShippingRoutesSection() {
                             <h3 className="text-3xl font-bold mb-1">
                               {route.origin} → {route.destination}
                             </h3>
-                            <p className="text-white/80">{route.type}</p>
+                            {/* <p className="text-white/80">{route.type}</p> */}
                           </div>
                         </div>
                       </div>
 
                       {/* Middle Section */}
                       <div className="space-y-4">
-                        <div className="flex items-center gap-3">
+                        {/* <div className="flex items-center gap-3">
                           <Clock className="w-5 h-5 text-white/80" />
                           <span className="text-xl font-semibold">{route.deliveryTime}</span>
-                        </div>
-                        
+                        </div> */}
+
                         <div className="space-y-2">
-                          {route.features.slice(0, 2).map((feature, idx) => (
+                          {route.features.slice(0, 3).map((feature, idx) => (
                             <div key={idx} className="flex items-start gap-2 text-sm text-white/90">
                               <CheckCircle2 className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
                               <span>{feature}</span>
@@ -306,7 +303,7 @@ export default function ShippingRoutesSection() {
 
                       {/* Bottom Section */}
                       <Link href="/get-quote">
-                        <Button 
+                        <Button
                           variant="ghost"
                           className="w-full group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white transition-all duration-300"
                         >
@@ -323,9 +320,8 @@ export default function ShippingRoutesSection() {
         </div>
 
         {/* CTA Section */}
-        <div className={`relative overflow-hidden  transition-all duration-1000 delay-700 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`relative overflow-hidden  transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="absolute inset-0 bg-gradient-to-r from-[#315694] via-[#262262] to-[#315694]"></div>
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0" style={{
@@ -333,7 +329,7 @@ export default function ShippingRoutesSection() {
               backgroundSize: '40px 40px'
             }}></div>
           </div>
-          
+
           <div className="relative p-8 lg:p-12 text-center">
             <div className="inline-flex items-center gap-2 mb-4">
               <MapPin className="w-5 h-5 text-[#f7941d]" />
@@ -347,7 +343,7 @@ export default function ShippingRoutesSection() {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/get-quote">
-                <Button 
+                <Button
                   size="lg"
                   className="bg-[#f7941d] hover:bg-[#f7941d]/90 text-white px-8 py-6 text-lg font-semibold rounded-lg shadow-xl transition-all duration-300 hover:scale-105"
                 >
@@ -356,7 +352,7 @@ export default function ShippingRoutesSection() {
                 </Button>
               </Link>
               <Link href="/contact-us">
-                <Button 
+                <Button
                   size="lg"
                   variant="outline"
                   className="border-2 border-white text-white bg-transparent hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-300"

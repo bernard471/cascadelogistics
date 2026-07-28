@@ -1,12 +1,12 @@
 "use client";
 
-import { Plane, Ship, Clock, CheckCircle2, ArrowRight } from "lucide-react";
+import { Plane, Ship, Clock, CheckCircle2, ArrowRight, Globe, Package, Warehouse } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 
 export default function LogisticsSection() {
-  const [activeTab, setActiveTab] = useState<'air' | 'sea' | 'usa'>('air');
+  const [activeTab, setActiveTab] = useState<'air' | 'sea' | 'usa' | 'export' | 'courier' | 'warehousing'>('air');
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
@@ -30,7 +30,7 @@ export default function LogisticsSection() {
   };
 
   const seaShipping = {
-    title: "Sea Cargo",
+    title: "Sea Shipment",
     subtitle: "Cost-Effective Sea Freight",
     deliveryTime: "35-45 Days",
     icon: Ship,
@@ -58,7 +58,59 @@ export default function LogisticsSection() {
       "Twice Weekly Shipments",
       "Guaranteed 1 Week Pickup",
       "Transparent Process",
-      "Package Consolidation Available"
+      "Cargo Consolidation Available"
+    ]
+  };
+
+  const exportShipping = {
+    title: "Export Services",
+    subtitle: "Global Exports from Ghana",
+    deliveryTime: "Varies by Route",
+    icon: Globe,
+    routes: [
+      { origin: "Ghana", destination: "Worldwide", note: "Full export documentation & GRA customs clearance" },
+      { origin: "Ghana", destination: "Europe / UK", note: "Air & Sea export freight forwarding" },
+      { origin: "Ghana", destination: "USA & Canada", note: "Scheduled commercial & agricultural export" }
+    ],
+    features: [
+      "Global Destinations",
+      "Export Documentation",
+      "Freight Forwarding",
+      "Regulatory Compliance"
+    ]
+  };
+
+  const courierShipping = {
+    title: "Courier Services",
+    subtitle: "Express Parcel & Document Delivery",
+    deliveryTime: "1-3 Days Express",
+    icon: Package,
+    routes: [
+      { origin: "Local / Intl", destination: "Door-to-Door", note: "Express document and parcel delivery" },
+      { origin: "Major Hubs", destination: "Ghana Cities", note: "Scheduled door-to-door courier service" }
+    ],
+    features: [
+      "Express Delivery",
+      "Door-to-Door Pickup",
+      "Real-Time Tracking",
+      "Proof of Delivery"
+    ]
+  };
+
+  const warehousingShipping = {
+    title: "Warehousing",
+    subtitle: "Secure Storage & Distribution",
+    deliveryTime: "24/7 Security",
+    icon: Warehouse,
+    routes: [
+      { origin: "Cascade Warehouses", destination: "Ghana Hubs", note: "Short-term & long-term secure cargo storage" },
+      { origin: "Ports / Airports", destination: "Distribution Centers", note: "Cross-docking & order fulfillment" }
+    ],
+    features: [
+      "Secure Storage Facilities",
+      "Inventory Management",
+      "Order Fulfillment",
+      "Cross-Docking Services"
     ]
   };
 
@@ -86,7 +138,12 @@ export default function LogisticsSection() {
     };
   }, []);
 
-  const currentShipping = activeTab === 'air' ? airShipping : activeTab === 'sea' ? seaShipping : usaShipping;
+  const currentShipping = 
+    activeTab === 'air' ? airShipping : 
+    activeTab === 'sea' ? seaShipping : 
+    activeTab === 'usa' ? usaShipping : 
+    activeTab === 'export' ? exportShipping : 
+    activeTab === 'courier' ? courierShipping : warehousingShipping;
   const CurrentIcon = currentShipping.icon;
 
   return (
@@ -97,9 +154,8 @@ export default function LogisticsSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#f7941d]"></div>
             <span className="px-6 py-2 bg-[#315694]/10 border border-[#315694]/20 text-[#315694] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -111,89 +167,142 @@ export default function LogisticsSection() {
             Global Shipping <span className="text-[#315694]">to Ghana</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Reliable air and sea cargo services from UK, China, USA, and Turkey to Ghana. All packages include freight and custom clearance.
+            Reliable air and Sea Shipment services globally to Ghana. All packages include freight and custom clearance.
           </p>
         </div>
 
         {/* Tab Selector */}
-        <div className={`flex justify-center mb-12 transition-all duration-1000 delay-200 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
-          <div className="w-full max-w-4xl">
+        <div className={`flex justify-center mb-12 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
+          <div className="w-full max-w-5xl">
             {/* Mobile: Horizontal Scroll */}
             <div className="md:hidden overflow-x-auto scrollbar-hide -mx-4 px-4">
-              <div className="inline-flex bg-white rounded-2xl p-1.5 shadow-xl border border-gray-200 min-w-max">
+              <div className="inline-flex bg-white rounded-2xl p-1.5 shadow-xl border border-gray-200 min-w-max gap-1">
                 <button
                   onClick={() => setActiveTab('air')}
-                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${
-                    activeTab === 'air'
-                      ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
-                      : 'text-gray-600 hover:text-[#315694]'
-                  }`}
+                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${activeTab === 'air'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
                 >
                   <Plane className="w-4 h-4 flex-shrink-0" />
                   <span>Air Cargo</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('sea')}
-                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${
-                    activeTab === 'sea'
-                      ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
-                      : 'text-gray-600 hover:text-[#315694]'
-                  }`}
+                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${activeTab === 'sea'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
                 >
                   <Ship className="w-4 h-4 flex-shrink-0" />
-                  <span>Sea Cargo</span>
+                  <span>Sea Shipment</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('usa')}
-                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${
-                    activeTab === 'usa'
-                      ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
-                      : 'text-gray-600 hover:text-[#315694]'
-                  }`}
+                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${activeTab === 'usa'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
                 >
                   <Plane className="w-4 h-4 flex-shrink-0" />
                   <span>USA Service</span>
                 </button>
+                <button
+                  onClick={() => setActiveTab('export')}
+                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${activeTab === 'export'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
+                >
+                  <Globe className="w-4 h-4 flex-shrink-0" />
+                  <span>Export</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('courier')}
+                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${activeTab === 'courier'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
+                >
+                  <Package className="w-4 h-4 flex-shrink-0" />
+                  <span>Courier</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('warehousing')}
+                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap text-sm ${activeTab === 'warehousing'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
+                >
+                  <Warehouse className="w-4 h-4 flex-shrink-0" />
+                  <span>Warehousing</span>
+                </button>
               </div>
             </div>
-            
+
             {/* Desktop: Normal Layout */}
             <div className="hidden md:flex justify-center">
-              <div className="inline-flex bg-white rounded-2xl p-2 shadow-xl border border-gray-200">
+              <div className="inline-flex bg-white rounded-2xl p-2 shadow-xl border border-gray-200 flex-wrap justify-center gap-1">
                 <button
                   onClick={() => setActiveTab('air')}
-                  className={`px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 text-sm md:text-base ${
-                    activeTab === 'air'
-                      ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
-                      : 'text-gray-600 hover:text-[#315694]'
-                  }`}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm lg:text-base ${activeTab === 'air'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
                 >
                   <Plane className="w-5 h-5" />
                   Air Cargo
                 </button>
                 <button
                   onClick={() => setActiveTab('sea')}
-                  className={`px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 text-sm md:text-base ${
-                    activeTab === 'sea'
-                      ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
-                      : 'text-gray-600 hover:text-[#315694]'
-                  }`}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm lg:text-base ${activeTab === 'sea'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
                 >
                   <Ship className="w-5 h-5" />
-                  Sea Cargo
+                  Sea Shipment
                 </button>
                 <button
                   onClick={() => setActiveTab('usa')}
-                  className={`px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 text-sm md:text-base ${
-                    activeTab === 'usa'
-                      ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
-                      : 'text-gray-600 hover:text-[#315694]'
-                  }`}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm lg:text-base ${activeTab === 'usa'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
                 >
                   <Plane className="w-5 h-5" />
                   USA Shipping
+                </button>
+                <button
+                  onClick={() => setActiveTab('export')}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm lg:text-base ${activeTab === 'export'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
+                >
+                  <Globe className="w-5 h-5" />
+                  Export
+                </button>
+                <button
+                  onClick={() => setActiveTab('courier')}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm lg:text-base ${activeTab === 'courier'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
+                >
+                  <Package className="w-5 h-5" />
+                  Courier
+                </button>
+                <button
+                  onClick={() => setActiveTab('warehousing')}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm lg:text-base ${activeTab === 'warehousing'
+                    ? 'bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-lg'
+                    : 'text-gray-600 hover:text-[#315694]'
+                    }`}
+                >
+                  <Warehouse className="w-5 h-5" />
+                  Warehousing
                 </button>
               </div>
             </div>
@@ -202,9 +311,8 @@ export default function LogisticsSection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Info Card */}
-          <div className={`lg:col-span-1 transition-all duration-1000 delay-300 ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
-          }`}>
+          <div className={`lg:col-span-1 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+            }`}>
             <div className="bg-gradient-to-br from-[#315694] to-[#262262] rounded-2xl p-8 text-white shadow-2xl h-full">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
@@ -241,9 +349,8 @@ export default function LogisticsSection() {
           </div>
 
           {/* Right Column - Pricing Table */}
-          <div className={`lg:col-span-2 transition-all duration-1000 delay-400 ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
-          }`}>
+          <div className={`lg:col-span-2 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
+            }`}>
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
               <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-200">
                 <h3 className="text-2xl font-bold text-gray-900">Shipping Routes</h3>
@@ -253,7 +360,7 @@ export default function LogisticsSection() {
               <div className="p-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {currentShipping.routes.map((route, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="border-2 border-gray-200 rounded-xl p-6 hover:border-[#315694] hover:shadow-lg transition-all duration-300"
                     >

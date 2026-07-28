@@ -39,7 +39,7 @@ export default function AboutPageSectionThree() {
       type: "mission",
       icon: Target,
       title: "Our Mission",
-      description: "To provide comprehensive logistics solutions that connect possibilities and deliver excellence. We strive to make international shipping from UK, China, USA, and Turkey to Ghana accessible, affordable, and reliable for everyone, while maintaining the highest standards of service quality, transparency, and customer care.",
+      description: "To provide comprehensive logistics solutions that connect possibilities and deliver excellence. We strive to make international shipping globally to Ghana accessible, affordable, and reliable for everyone, while maintaining the highest standards of service quality, transparency, and customer care.",
       image: "/cascade/background_single_service_01.jpg",
       gradient: "from-[#315694] to-[#262262]"
     },
@@ -81,8 +81,8 @@ export default function AboutPageSectionThree() {
   ];
 
   return (
-    <section 
-      ref={sectionRef} 
+    <section
+      ref={sectionRef}
       className="relative py-16 lg:py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden"
     >
       {/* Background decorative elements */}
@@ -95,9 +95,8 @@ export default function AboutPageSectionThree() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#f7941d]"></div>
             <span className="px-6 py-2 bg-[#315694]/20 border border-[#315694]/40 text-[#f7941d] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -120,9 +119,8 @@ export default function AboutPageSectionThree() {
             return (
               <div
                 key={item.type}
-                className={`group relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+                className={`group relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  }`}
                 style={{ transitionDelay: `${index * 200}ms` }}
               >
                 {/* Background Image */}
@@ -150,9 +148,8 @@ export default function AboutPageSectionThree() {
         </div>
 
         {/* Core Values Section */}
-        <div className={`mb-16 transition-all duration-1000 delay-400 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`mb-16 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-8 lg:p-12 border border-white/10">
             <div className="text-center mb-10">
               <div className="inline-flex items-center gap-3 mb-4">
@@ -184,14 +181,13 @@ export default function AboutPageSectionThree() {
         </div>
 
         {/* Image Gallery Grid */}
-        <div className={`mb-16 transition-all duration-1000 delay-600 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`mb-16 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="text-center mb-8">
             <h3 className="text-3xl font-bold text-white mb-2">Our Operations</h3>
             <p className="text-gray-300">See our logistics operations in action</p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {imageGrid.map((img, index) => (
               <div
@@ -214,9 +210,8 @@ export default function AboutPageSectionThree() {
         </div>
 
         {/* Bottom CTA Section */}
-        <div className={`text-center transition-all duration-1000 delay-800 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="bg-gradient-to-r from-[#315694] to-[#262262] rounded-3xl p-8 lg:p-12 shadow-2xl relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -225,7 +220,7 @@ export default function AboutPageSectionThree() {
                 backgroundSize: '30px 30px'
               }}></div>
             </div>
-            
+
             <div className="relative z-10">
               <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">Ready to Ship with Us?</h3>
               <p className="text-white/90 mb-8 text-lg max-w-2xl mx-auto">
@@ -233,7 +228,7 @@ export default function AboutPageSectionThree() {
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link href="/contact-us">
-                  <Button 
+                  <Button
                     size="lg"
                     className="bg-white text-[#315694] hover:bg-gray-100 px-8 py-6 text-lg font-semibold rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
                   >
@@ -242,7 +237,7 @@ export default function AboutPageSectionThree() {
                   </Button>
                 </Link>
                 <Link href="/logistics-services">
-                  <Button 
+                  <Button
                     size="lg"
                     variant="outline"
                     className="border-2 border-white text-white bg-transparent hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-300"

@@ -65,10 +65,12 @@ export default function Navigation() {
     ],
     logistics: [
       { label: "Air Shipments", href: "/logistics-services/air-shipments" },
-      { label: "Sea Cargo", href: "/logistics-services/sea-cargo" },
-      { label: "Clearing & Customs", href: "/logistics-services/clearing-customs" },
-      { label: "Haulage Services", href: "/logistics-services/haulage" }
-      // { label: "Warehouse and Distribution", href: "/logistics-services/warehouse-and-distribution" }
+      { label: "Sea Shipment", href: "/logistics-services/sea-cargo" },
+      { label: "Customs Brokerage & Clearance", href: "/logistics-services/clearing-customs" },
+      { label: "Haulage Services", href: "/logistics-services/haulage" },
+      { label: "Export Services", href: "/logistics-services/export-services" },
+      { label: "Courier Services", href: "/logistics-services/courier-services" },
+      { label: "Warehousing", href: "/logistics-services/warehousing" }
     ],
     userAccount: [
       { label: "Sign In", href: "/member-login" },
@@ -82,15 +84,15 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
-        <div className="flex items-center gap-3">
-        <Image
-            src="/logo/casecade-logo.png"
-            alt="Guangzhou Swift Logistics"
-            width={180}
-            height={60}
-            className="h-12 lg:h-18 object-cover"
-          />
-        </div>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo/casecade-logo.png"
+              alt="Guangzhou Swift Logistics"
+              width={180}
+              height={60}
+              className="h-12 lg:h-18 object-cover"
+            />
+          </div>
           {/* <span className="text-blue-800 text-lg font-medium">Guangzhou Swift Logistics</span> */}
 
         </Link>
@@ -111,23 +113,22 @@ export default function Navigation() {
           >
             Home
           </Link> */}
-          
-          <div 
+
+          <div
             className="relative group"
             onMouseEnter={() => handleMouseEnter('about')}
             onMouseLeave={handleMouseLeave}
           >
-            <Link 
-              href="/about-us-cascade" 
-              className={`flex items-center gap-1 transition-colors font-medium ${
-                activeDropdown === 'about' ? 'text-gray-800' : 'text-gray-800 hover:text-[#219ebc]'
-              }`}
+            <Link
+              href="/about-us-cascade"
+              className={`flex items-center gap-1 transition-colors font-medium ${activeDropdown === 'about' ? 'text-gray-800' : 'text-gray-800 hover:text-[#219ebc]'
+                }`}
             >
               About
               <ChevronDown className="w-4 h-4" />
             </Link>
             {activeDropdown === 'about' && (
-              <div 
+              <div
                 className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
                 onMouseEnter={() => handleMouseEnter('about')}
                 onMouseLeave={handleMouseLeave}
@@ -178,22 +179,21 @@ export default function Navigation() {
             )}
           </div> */}
 
-          <div 
+          <div
             className="relative group"
             onMouseEnter={() => handleMouseEnter('logistics')}
             onMouseLeave={handleMouseLeave}
           >
-            <Link 
-              href="/logistics-services" 
-              className={`flex items-center gap-1 transition-colors font-medium ${
-                activeDropdown === 'logistics' ? 'text-[#219ebc]' : 'text-gray-800 hover:text-[#219ebc]'
-              }`}
+            <Link
+              href="/logistics-services"
+              className={`flex items-center gap-1 transition-colors font-medium ${activeDropdown === 'logistics' ? 'text-[#219ebc]' : 'text-gray-800 hover:text-[#219ebc]'
+                }`}
             >
               Logistics Services
               <ChevronDown className="w-4 h-4" />
             </Link>
             {activeDropdown === 'logistics' && (
-              <div 
+              <div
                 className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
                 onMouseEnter={() => handleMouseEnter('logistics')}
                 onMouseLeave={handleMouseLeave}
@@ -218,36 +218,35 @@ export default function Navigation() {
             Money Transfer
           </Link> */}
 
-          <Link 
-            href="/get-quote" 
+          <Link
+            href="/get-quote"
             className="text-gray-800 hover:text-[#219ebc] transition-colors font-medium"
           >
             Get Quote
           </Link>
 
-          <Link 
-            href="/contact-us" 
+          <Link
+            href="/contact-us"
             className="text-gray-800 hover:text-[#219ebc] transition-colors font-medium"
           >
             Contact
           </Link>
 
-          <div 
+          <div
             className="relative group"
             onMouseEnter={() => handleMouseEnter('userAccount')}
             onMouseLeave={handleMouseLeave}
           >
-            <Link 
-              href="/member-login" 
-              className={`flex items-center gap-1 transition-colors font-medium ${
-                activeDropdown === 'userAccount' ? 'text-[#219ebc]' : 'text-gray-800 hover:text-[#219ebc]'
-              }`}
+            <Link
+              href="/member-login"
+              className={`flex items-center gap-1 transition-colors font-medium ${activeDropdown === 'userAccount' ? 'text-[#219ebc]' : 'text-gray-800 hover:text-[#219ebc]'
+                }`}
             >
               User Account
               <ChevronDown className="w-4 h-4" />
             </Link>
             {activeDropdown === 'userAccount' && (
-              <div 
+              <div
                 className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
                 onMouseEnter={() => handleMouseEnter('userAccount')}
                 onMouseLeave={handleMouseLeave}
@@ -269,21 +268,21 @@ export default function Navigation() {
         {/* Desktop Action Buttons */}
         <div className="hidden lg:flex items-center gap-4">
           <Link href="/#public-tracking">
-          <Button 
-            className="bg-[#f7941d] hover:bg-white hover:text-[#315694] hover:border-[#315694] text-[#262262] px-6 py-2 border border-[#262262] font-medium shadow-lg shadow-[#219ebc]/20 transition-all duration-300"
-            style={{
-              borderRadius: '10px 0px 10px 0px',
-              transition: 'all 0.6s ease-in-out',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderRadius = '0px 10px 0px 10px';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderRadius = '10px 0px 10px 0px';
-            }}
-          >
-            Track Shipment
-          </Button>
+            <Button
+              className="bg-[#f7941d] hover:bg-white hover:text-[#315694] hover:border-[#315694] text-[#262262] px-6 py-2 border border-[#262262] font-medium shadow-lg shadow-[#219ebc]/20 transition-all duration-300"
+              style={{
+                borderRadius: '10px 0px 10px 0px',
+                transition: 'all 0.6s ease-in-out',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderRadius = '0px 10px 0px 10px';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderRadius = '10px 0px 10px 0px';
+              }}
+            >
+              Track Shipment
+            </Button>
           </Link>
           {/* <div 
             onClick={handleGridClick}
@@ -295,77 +294,76 @@ export default function Navigation() {
       </div>
 
       {/* Mobile Sidebar Menu */}
-      <div className={`fixed inset-0 z-50 lg:hidden bg-white transform transition-transform duration-300 ease-in-out ${
-        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-          {/* Close Button */}
-          <div className="flex justify-end p-4 border-b border-gray-200">
-            <button
-              onClick={handleMobileMenuToggle}
-              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded transition-colors"
-            >
-              <X className="w-6 h-6 text-gray-800" />
+      <div className={`fixed inset-0 z-50 lg:hidden bg-white transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+        {/* Close Button */}
+        <div className="flex justify-end p-4 border-b border-gray-200">
+          <button
+            onClick={handleMobileMenuToggle}
+            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded transition-colors"
+          >
+            <X className="w-6 h-6 text-gray-800" />
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#219ebc] focus:border-transparent"
+              />
+            </div>
+            <button className="px-4 py-3 bg-[#315694] text-white rounded-lg hover:bg-[#023e8a] transition-colors flex items-center justify-center">
+              <Search className="w-4 h-4" />
             </button>
           </div>
+        </div>
 
-          {/* Search Bar */}
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#219ebc] focus:border-transparent"
-                />
+        {/* Navigation Links */}
+        <div className="px-4 py-6 space-y-0">
+          <Link
+            href="/"
+            className="block text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
+            onClick={handleMobileMenuToggle}
+          >
+            Home
+          </Link>
+
+          <div>
+            <button
+              onClick={() => handleMobileDropdownToggle('about')}
+              className="flex items-center justify-between w-full text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
+            >
+              About
+              <div className="w-6 h-6 border border-gray-300 rounded flex items-center justify-center">
+                {mobileActiveDropdown === 'about' ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
               </div>
-              <button className="px-4 py-3 bg-[#315694] text-white rounded-lg hover:bg-[#023e8a] transition-colors flex items-center justify-center">
-                <Search className="w-4 h-4" />
-              </button>
-            </div>
+            </button>
+            {mobileActiveDropdown === 'about' && (
+              <div className="bg-gray-50">
+                {dropdownMenus.about.map((item, index) => (
+                  <Link
+                    key={index}
+                    href={item.href}
+                    className="block text-[#315694] hover:text-[#219ebc] transition-colors py-3 pl-6 border-b border-gray-200 last:border-b-0"
+                    onClick={handleMobileMenuToggle}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Navigation Links */}
-          <div className="px-4 py-6 space-y-0">
-            <Link 
-              href="/" 
-              className="block text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
-              onClick={handleMobileMenuToggle}
-            >
-              Home
-            </Link>
-
-            <div>
-              <button
-                onClick={() => handleMobileDropdownToggle('about')}
-                className="flex items-center justify-between w-full text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
-              >
-                About
-                <div className="w-6 h-6 border border-gray-300 rounded flex items-center justify-center">
-                  {mobileActiveDropdown === 'about' ? (
-                    <ChevronUp className="w-3 h-3" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3" />
-                  )}
-                </div>
-              </button>
-              {mobileActiveDropdown === 'about' && (
-                <div className="bg-gray-50">
-                  {dropdownMenus.about.map((item, index) => (
-                    <Link
-                      key={index}
-                      href={item.href}
-                      className="block text-[#315694] hover:text-[#219ebc] transition-colors py-3 pl-6 border-b border-gray-200 last:border-b-0"
-                      onClick={handleMobileMenuToggle}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* <div>
+          {/* <div>
               <button
                 onClick={() => handleMobileDropdownToggle('security')}
                 className="flex items-center justify-between w-full text-[#219ebc] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
@@ -395,37 +393,37 @@ export default function Navigation() {
               )}
             </div> */}
 
-            <div>
-              <button
-                onClick={() => handleMobileDropdownToggle('logistics')}
-                className="flex items-center justify-between w-full text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
-              >
-                Logistics Services
-                <div className="w-6 h-6 border border-gray-300 rounded flex items-center justify-center">
-                  {mobileActiveDropdown === 'logistics' ? (
-                    <ChevronUp className="w-3 h-3" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3" />
-                  )}
-                </div>
-              </button>
-              {mobileActiveDropdown === 'logistics' && (
-                <div className="bg-gray-50">
-                  {dropdownMenus.logistics.map((item, index) => (
-                    <Link
-                      key={index}
-                      href={item.href}
-                      className="block text-[#315694] hover:text-[#219ebc] transition-colors py-3 pl-6 border-b border-gray-200 last:border-b-0"
-                      onClick={handleMobileMenuToggle}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div>
+            <button
+              onClick={() => handleMobileDropdownToggle('logistics')}
+              className="flex items-center justify-between w-full text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
+            >
+              Logistics Services
+              <div className="w-6 h-6 border border-gray-300 rounded flex items-center justify-center">
+                {mobileActiveDropdown === 'logistics' ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+              </div>
+            </button>
+            {mobileActiveDropdown === 'logistics' && (
+              <div className="bg-gray-50">
+                {dropdownMenus.logistics.map((item, index) => (
+                  <Link
+                    key={index}
+                    href={item.href}
+                    className="block text-[#315694] hover:text-[#219ebc] transition-colors py-3 pl-6 border-b border-gray-200 last:border-b-0"
+                    onClick={handleMobileMenuToggle}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
 
-            {/* <a 
+          {/* <a 
               href="/logistics-services/money-transfer" 
               className="block text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
               onClick={handleMobileMenuToggle}
@@ -433,53 +431,53 @@ export default function Navigation() {
               Money Transfer
             </a> */}
 
-            <a 
-              href="/get-quote" 
-              className="block text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
-              onClick={handleMobileMenuToggle}
-            >
-              Get Quote
-            </a>
+          <a
+            href="/get-quote"
+            className="block text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
+            onClick={handleMobileMenuToggle}
+          >
+            Get Quote
+          </a>
 
-            <a 
-              href="/contact-us" 
-              className="block text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
-              onClick={handleMobileMenuToggle}
-            >
-              Contact
-            </a>
+          <a
+            href="/contact-us"
+            className="block text-[#315694] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
+            onClick={handleMobileMenuToggle}
+          >
+            Contact
+          </a>
 
-            <div>
-              <button
-                onClick={() => handleMobileDropdownToggle('userAccount')}
-                className="flex items-center justify-between w-full text-[#219ebc] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
-              >
-                User Account
-                <div className="w-6 h-6 border border-gray-300 rounded flex items-center justify-center">
-                  {mobileActiveDropdown === 'userAccount' ? (
-                    <ChevronUp className="w-3 h-3" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3" />
-                  )}
-                </div>
-              </button>
-              {mobileActiveDropdown === 'userAccount' && (
-                <div className="bg-gray-50">
-                  {dropdownMenus.userAccount.map((item, index) => (
-                    <Link
-                      key={index}
-                      href={item.href}
-                      className="block text-[#315694] hover:text-[#219ebc] transition-colors py-3 pl-6 border-b border-gray-200 last:border-b-0"
-                      onClick={handleMobileMenuToggle}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div>
+            <button
+              onClick={() => handleMobileDropdownToggle('userAccount')}
+              className="flex items-center justify-between w-full text-[#219ebc] hover:text-[#219ebc] transition-colors font-medium py-4 border-b border-gray-200"
+            >
+              User Account
+              <div className="w-6 h-6 border border-gray-300 rounded flex items-center justify-center">
+                {mobileActiveDropdown === 'userAccount' ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+              </div>
+            </button>
+            {mobileActiveDropdown === 'userAccount' && (
+              <div className="bg-gray-50">
+                {dropdownMenus.userAccount.map((item, index) => (
+                  <Link
+                    key={index}
+                    href={item.href}
+                    className="block text-[#315694] hover:text-[#219ebc] transition-colors py-3 pl-6 border-b border-gray-200 last:border-b-0"
+                    onClick={handleMobileMenuToggle}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+      </div>
 
       {/* Contact Modal */}
       {isModalOpen && <ContactModal isOpen={isModalOpen} onClose={handleCloseModal} />}

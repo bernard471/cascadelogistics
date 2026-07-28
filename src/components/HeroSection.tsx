@@ -17,7 +17,7 @@ export default function HeroSection() {
       badge: "Your Trusted Partner",
       title: "Global Shipping to Ghana",
       subtitle: "Seamless Shipping Solutions",
-      description: "Experience reliable logistics services from UK, China, USA, and Turkey to Ghana. Fast delivery, complete transparency, and full service including clearing and customs.",
+      description: "Experience reliable logistics services globally to Ghana. Fast delivery, complete transparency, and full service including clearing and customs.",
       stats: [
         { label: "Routes", value: "4+", icon: Ship },
         { label: "Delivery Days", value: "7-45", icon: Plane },
@@ -37,19 +37,19 @@ export default function HeroSection() {
         { label: "On-Time Rate", value: "100%", icon: Shield }
       ]
     },
-    {
-      id: 3,
-      background: "/hero/hero3.jpg",
-      badge: "USA Shipping",
-      title: "Twice Weekly Service",
-      subtitle: "Shipments Every Thu & Sun",
-      description: "Now shipping twice a week from USA to Ghana! Shipments every Thursday & Sunday, pickups in Ghana every Tuesday & Friday. Guaranteed pickup within 1 week.",
-      stats: [
-        { label: "USA Routes", value: "2x", icon: Ship },
-        { label: "Pickup Time", value: "1 Week", icon: Shield },
-        { label: "Transparent", value: "100%", icon: TrendingUp }
-      ]
-    }
+    // {
+    //   id: 3,
+    //   background: "/hero/hero3.jpg",
+    //   badge: "USA Shipping",
+    //   title: "Twice Weekly Service",
+    //   subtitle: "Shipments Every Thu & Sun",
+    //   description: "Now shipping twice a week from USA to Ghana! Shipments every Thursday & Sunday, pickups in Ghana every Tuesday & Friday. Guaranteed pickup within 1 week.",
+    //   stats: [
+    //     { label: "USA Routes", value: "2x", icon: Ship },
+    //     { label: "Pickup Time", value: "1 Week", icon: Shield },
+    //     { label: "Transparent", value: "100%", icon: TrendingUp }
+    //   ]
+    // }
   ];
 
   const nextSlide = () => {
@@ -122,9 +122,9 @@ export default function HeroSection() {
 
               {/* Subtitle */}
               <div className="space-y-2">
-                <p className="text-[#f7941d] text-lg lg:text-xl font-medium tracking-wide">
+                {/* <p className="text-[#f7941d] text-lg lg:text-xl font-medium tracking-wide">
                   {slides[currentSlide].subtitle}
-                </p>
+                </p> */}
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight">
                   {slides[currentSlide].title}
                 </h1>
@@ -158,7 +158,7 @@ export default function HeroSection() {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-6 pt-8">
+              {/* <div className="grid grid-cols-3 gap-6 pt-8">
                 {slides[currentSlide].stats.map((stat, index) => {
                   const Icon = stat.icon;
                   return (
@@ -172,7 +172,7 @@ export default function HeroSection() {
                     </div>
                   );
                 })}
-              </div>
+              </div> */}
             </div>
 
             {/* Right Column - Visual Element */}
@@ -181,7 +181,7 @@ export default function HeroSection() {
             }`}>
               <div className="relative">
                 {/* Floating Cards */}
-                <div className="absolute -top-10 -left-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl animate-float">
+                {/* <div className="absolute -top-10 -left-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl animate-float">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-[#315694] rounded-lg flex items-center justify-center">
                       <Ship className="w-6 h-6 text-white" />
@@ -191,9 +191,9 @@ export default function HeroSection() {
                       <div className="text-sm text-[#f7941d]/70">Shipping Routes</div>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
-                <div className="absolute -bottom-10 -right-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl animate-float-delayed">
+                {/* <div className="absolute -bottom-10 -right-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl animate-float-delayed">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-[#f7941d] rounded-lg flex items-center justify-center">
                       <Plane className="w-6 h-6 text-white" />
@@ -203,7 +203,7 @@ export default function HeroSection() {
                       <div className="text-sm text-white/70">Days (Air)</div>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Main Visual Circle */}
                 <div className="relative w-full aspect-square max-w-md mx-auto">
@@ -214,7 +214,7 @@ export default function HeroSection() {
                         <Ship className="w-12 h-12 text-white" />
                       </div>
                       <div className="text-[#f7941d] font-bold text-xl">Global → Ghana</div>
-                      <div className="text-[#f7941d]/70 text-sm">UK, China, USA, Turkey</div>
+                      <div className="text-[#f7941d]/70 text-sm">UK, China, USA, Turkey, Etc.</div>
                     </div>
                   </div>
                 </div>

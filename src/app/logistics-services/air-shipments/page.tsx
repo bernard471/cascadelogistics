@@ -8,7 +8,7 @@ export default function AirShipmentsPage() {
   const service = {
     id: 1,
     title: "Air Shipments",
-    description: `Cascade Logistics provides fast and reliable air cargo services from UK, China, USA, and Turkey to Ghana. Our air shipment solutions are designed for businesses and individuals who need faster delivery times for their shipments.
+    description: `Cascade Logistics provides fast and reliable air cargo services globally to Ghana. Our air shipment solutions are designed for businesses and individuals who need faster delivery times for their shipments.
 
 We offer comprehensive air freight services with multiple routes connecting major global markets to Ghana. All our air shipments include freight and custom clearance, ensuring a seamless shipping experience. Our experienced team ensures your goods are handled with care and delivered to your location in Ghana within 7-10 days. We work with trusted airline partners to provide reliable service for all your air shipping needs.`,
     image: "/logisticssection/airshipping.jpg",
@@ -16,7 +16,7 @@ We offer comprehensive air freight services with multiple routes connecting majo
       {
         icon: "speed",
         title: "Fast Delivery",
-        description: "Air shipments provide fast delivery times, with packages arriving in Ghana within 7-10 days from UK, China, USA, and Turkey, perfect for urgent cargo and time-sensitive goods."
+        description: "Air shipments provide fast delivery times, with packages arriving in Ghana within 7-10 days globally, perfect for urgent cargo and time-sensitive goods."
       },
       {
         icon: "reliability",
@@ -32,7 +32,7 @@ We offer comprehensive air freight services with multiple routes connecting majo
     information: [
       {
         title: "Delivery Time",
-        description: "Air shipments typically take 7-10 days for arrival in Ghana from UK, China, USA, and Turkey, making it ideal for urgent shipments and time-sensitive cargo."
+        description: "Air shipments typically take 7-10 days for arrival in Ghana globally, making it ideal for urgent shipments and time-sensitive cargo."
       },
       {
         title: "Service Coverage",
@@ -46,11 +46,11 @@ We offer comprehensive air freight services with multiple routes connecting majo
     serviceBenefits: [
       {
         title: "Fast Transit Times",
-        description: "With delivery times of 7-10 days, air shipments are the fastest option for getting your goods from UK, China, USA, and Turkey to Ghana, perfect for urgent business needs."
+        description: "With delivery times of 7-10 days, air shipments are the fastest option for getting your goods globally to Ghana, perfect for urgent business needs."
       },
       {
         title: "Multiple Origin Points",
-        description: "We offer air cargo services from UK, China, USA, and Turkey, giving you flexibility to ship from the location most convenient for your business."
+        description: "We offer air cargo services globally, giving you flexibility to ship from the location most convenient for your business."
       },
       {
         title: "Complete Service Package",

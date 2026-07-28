@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Ship, Plane, ShoppingCart, 
-  // DollarSign, 
-  CheckCircle, ArrowRight } from "lucide-react";
+import {
+  Ship, Plane, ShoppingCart, CheckCircle, ArrowRight, Globe, Package, Warehouse
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,8 @@ export default function ServicesSection() {
       image: "/logisticssection/airshipping.jpg",
       icon: Plane,
       title: "Air Shipments",
-      description: "Fast and reliable air cargo services from UK, China, USA, and Turkey to Ghana. Receive your packages in 7-10 days with full freight and custom clearance included.",
-      features: ["Multiple Routes", "7-10 Days Delivery", "Full Service", "Custom Clearance"],
+      description: "Fast and reliable air cargo services globally to Ghana. Receive your packages in 7-10 days with full freight and custom clearance included.",
+      features: ["Multiple Routes", "Full Service", "Custom Clearance"],
       color: "from-blue-500 to-blue-600",
       link: "/logistics-services/air-shipments"
     },
@@ -28,9 +28,9 @@ export default function ServicesSection() {
       id: 2,
       image: "/logisticssection/seashipping.jpeg",
       icon: Ship,
-      title: "Sea Cargo",
-      description: "Cost-effective sea freight from Turkey to Ghana. Receive your packages in 35-45 days with freight and custom clearance included.",
-      features: ["Turkey to Ghana", "35-45 Days", "Full Service", "Custom Clearance"],
+      title: "Sea Shippment",
+      description: "Cost-effective sea freight from Turkey to Ghana. Receive your packages  with freight and custom clearance included.",
+      features: ["Globally to Ghana", "Full Service", "Custom Clearance"],
       color: "from-purple-500 to-purple-600",
       link: "/logistics-services/sea-cargo"
     },
@@ -38,7 +38,7 @@ export default function ServicesSection() {
       id: 3,
       image: "/logisticssection/expressair.jpg",
       icon: CheckCircle,
-      title: "Clearing & Customs",
+      title: "Customs Brokerage & Clearance",
       description: "Comprehensive clearing and customs processing services. We handle all documentation and ensure smooth clearance for your shipments.",
       features: ["Custom Clearance", "Documentation", "Compliance", "Expert Handling"],
       color: "from-cyan-500 to-cyan-600",
@@ -58,7 +58,7 @@ export default function ServicesSection() {
       id: 5,
       image: "/logisticssection/consolidation.jpg",
       icon: CheckCircle,
-      title: "Package Consolidation",
+      title: "Cargo Consolidation",
       description: "Consolidate multiple packages into one shipment to save on costs. We handle consolidation and repackaging efficiently.",
       features: ["Cost Savings", "Efficient Packing", "Multiple Packages", "Repackaging"],
       color: "from-orange-500 to-orange-600",
@@ -68,11 +68,41 @@ export default function ServicesSection() {
       id: 6,
       image: "/logisticssection/logistics-middle.jpg",
       icon: ShoppingCart,
-      title: "Proxy-Buy Service",
+      title: "Door to Door Service",
       description: "Buy from USA stores and we ship directly to you in Ghana. Let us handle your purchases and shipping needs.",
       features: ["USA Shopping", "Direct Shipping", "Purchase Handling", "Convenient"],
       color: "from-indigo-500 to-indigo-600",
-      link: "/logistics-services/proxy-buy"
+      link: "/logistics-services/Door to Door"
+    },
+    {
+      id: 7,
+      image: "/servicesection/service-img1.jpg",
+      icon: Globe,
+      title: "Export Services",
+      description: "Professional export solutions shipping goods from Ghana to global markets worldwide with full compliance and freight forwarding.",
+      features: ["Global Destinations", "Export Compliance", "Custom Clearance", "Freight Forwarding"],
+      color: "from-emerald-500 to-emerald-600",
+      link: "/logistics-services/export-services"
+    },
+    {
+      id: 8,
+      image: "/logisticssection/expressair.jpg",
+      icon: Package,
+      title: "Courier Services",
+      description: "Fast, reliable express courier service for urgent documents and parcels with door-to-door pickup and real-time tracking.",
+      features: ["Express Shipping", "Door-to-Door", "Live Tracking", "Proof of Delivery"],
+      color: "from-amber-500 to-amber-600",
+      link: "/logistics-services/courier-services"
+    },
+    {
+      id: 9,
+      image: "/servicesection/service-img5.jpg",
+      icon: Warehouse,
+      title: "Warehousing",
+      description: "Modern, secure warehousing and distribution in Ghana with inventory management, cross-docking, and order fulfillment.",
+      features: ["Secure Storage", "Inventory Tracking", "Cross-Docking", "Order Fulfillment"],
+      color: "from-teal-500 to-teal-600",
+      link: "/logistics-services/warehousing"
     }
   ];
 
@@ -112,9 +142,8 @@ export default function ServicesSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#f7941d]"></div>
             <span className="px-6 py-2 bg-[#315694]/10 border border-[#315694]/20 text-[#315694] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -126,7 +155,7 @@ export default function ServicesSection() {
             Comprehensive <span className="text-[#315694]">Logistics Solutions</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            From air shipments and sea cargo to clearing, customs processing, and haulage - we provide complete shipping solutions from UK, China, USA, and Turkey to Ghana.
+            From air shipments and Sea Shipment to clearing, customs processing, and haulage - we provide complete shipping solutions globally to Ghana.
           </p>
         </div>
 
@@ -137,9 +166,8 @@ export default function ServicesSection() {
             return (
               <div
                 key={service.id}
-                className={`group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
+                className={`group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
                 onMouseEnter={() => setHoveredService(service.id)}
                 onMouseLeave={() => setHoveredService(null)}
@@ -150,18 +178,15 @@ export default function ServicesSection() {
                     src={service.image}
                     alt={service.title}
                     fill
-                    className={`object-cover transition-transform duration-700 ${
-                      hoveredService === service.id ? 'scale-110' : 'scale-100'
-                    }`}
+                    className={`object-cover transition-transform duration-700 ${hoveredService === service.id ? 'scale-110' : 'scale-100'
+                      }`}
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-500 ${
-                    hoveredService === service.id ? 'opacity-100' : 'opacity-80'
-                  }`}></div>
-                  
+                  <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-500 ${hoveredService === service.id ? 'opacity-100' : 'opacity-80'
+                    }`}></div>
+
                   {/* Icon Badge */}
-                  <div className={`absolute top-6 left-6 w-16 h-16 bg-gradient-to-br ${service.color} rounded-xl flex items-center justify-center shadow-xl transition-transform duration-300 ${
-                    hoveredService === service.id ? 'scale-110 rotate-6' : 'scale-100'
-                  }`}>
+                  <div className={`absolute top-6 left-6 w-16 h-16 bg-gradient-to-br ${service.color} rounded-xl flex items-center justify-center shadow-xl transition-transform duration-300 ${hoveredService === service.id ? 'scale-110 rotate-6' : 'scale-100'
+                    }`}>
                     <Icon className="w-8 h-8 text-white" />
                   </div>
 
@@ -189,7 +214,7 @@ export default function ServicesSection() {
 
                   {/* CTA Button */}
                   <Link href={service.link}>
-                    <Button 
+                    <Button
                       variant="ghost"
                       className="w-full group mt-4 text-[#315694] hover:text-white bg-[#315694]/10 hover:bg-[#315694] transition-all duration-300"
                     >
@@ -199,10 +224,9 @@ export default function ServicesSection() {
                   </Link>
                 </div>
 
-                  {/* Hover Effect Border */}
-                <div className={`absolute inset-0 border-2 border-[#315694] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${
-                  hoveredService === service.id ? 'opacity-100' : ''
-                }`}></div>
+                {/* Hover Effect Border */}
+                <div className={`absolute inset-0 border-2 border-[#315694] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${hoveredService === service.id ? 'opacity-100' : ''
+                  }`}></div>
               </div>
             );
           })}

@@ -75,8 +75,8 @@ export default function Footer() {
 
   const services = [
     { label: "Air Shipments", href: "/logistics-services/air-shipments" },
-    { label: "Sea Cargo", href: "/logistics-services/sea-cargo" },
-    { label: "Clearing & Customs", href: "/logistics-services/clearing-customs" },
+    { label: "Sea Shipment", href: "/logistics-services/sea-cargo" },
+    { label: "Customs Brokerage & Clearance", href: "/logistics-services/clearing-customs" },
     { label: "Haulage Services", href: "/logistics-services/haulage" }
   ];
 
@@ -145,7 +145,7 @@ export default function Footer() {
                 required
                 disabled={isSubmitting}
               />
-              <Button 
+              <Button
                 type="submit"
                 disabled={isSubmitting}
                 className="h-14 bg-white text-[#315694] hover:bg-gray-100 px-8 font-semibold rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50"
@@ -167,7 +167,7 @@ export default function Footer() {
               <div>
                 <h3 className="text-2xl font-bold text-white mb-4">Cascade Logistics Limited</h3>
                 <p className="text-gray-400 leading-relaxed">
-                  Connecting Possibilities, Delivering Excellence. Your trusted partner for seamless global shipping to Ghana from UK, China, USA, and Turkey.
+                  Connecting Possibilities, Delivering Excellence. Your trusted partner for seamless global shipping to Ghana globally.
                 </p>
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function Footer() {
               <ul className="space-y-3">
                 {quickLinks.map((link, index) => (
                   <li key={index}>
-                    <Link 
+                    <Link
                       href={link.href}
                       className="text-gray-400 hover:text-[#f7941d] transition-colors flex items-center gap-2 group"
                     >
@@ -196,7 +196,7 @@ export default function Footer() {
               <ul className="space-y-3">
                 {services.map((service, index) => (
                   <li key={index}>
-                    <Link 
+                    <Link
                       href={service.href}
                       className="text-gray-400 hover:text-[#f7941d] transition-colors flex items-center gap-2 group"
                     >

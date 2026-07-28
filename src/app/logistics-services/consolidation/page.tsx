@@ -7,16 +7,16 @@ import Footer from "@/components/Footer";
 export default function ConsolidationPage() {
   const service = {
     id: 5,
-    title: "Package Consolidation",
-    description: `Cascade Logistics provides efficient package consolidation services to help you save on shipping costs. Our consolidation service combines multiple packages into one shipment, reducing overall shipping expenses.
+    title: "Cargo Consolidation",
+    description: `Cascade Logistics provides efficient Cargo Consolidation services to help you save on shipping costs. Our consolidation service combines multiple packages into one shipment, reducing overall shipping expenses.
 
-We offer comprehensive package consolidation with efficient packing, repackaging when needed, and careful handling of all items. Our experienced team ensures all your packages are properly consolidated, securely packed, and ready for shipment. This service is perfect for individuals and businesses shipping multiple items, allowing you to maximize cost savings while maintaining quality service.`,
+We offer comprehensive Cargo Consolidation with efficient packing, repackaging when needed, and careful handling of all items. Our experienced team ensures all your packages are properly consolidated, securely packed, and ready for shipment. This service is perfect for individuals and businesses shipping multiple items, allowing you to maximize cost savings while maintaining quality service.`,
     image: "/logisticssection/consolidation.jpg",
     benefits: [
       {
         icon: "savings",
         title: "Cost Savings",
-        description: "Package consolidation helps you save significantly on shipping costs by combining multiple packages into one shipment, reducing overall shipping expenses."
+        description: "Cargo Consolidation helps you save significantly on shipping costs by combining multiple packages into one shipment, reducing overall shipping expenses."
       },
       {
         icon: "efficiency",
@@ -46,7 +46,7 @@ We offer comprehensive package consolidation with efficient packing, repackaging
     serviceBenefits: [
       {
         title: "Significant Cost Savings",
-        description: "Package consolidation helps you save significantly on shipping costs by combining multiple packages into one shipment, reducing overall shipping expenses while maintaining quality service."
+        description: "Cargo Consolidation helps you save significantly on shipping costs by combining multiple packages into one shipment, reducing overall shipping expenses while maintaining quality service."
       },
       {
         title: "Efficient Space Utilization",
@@ -66,7 +66,7 @@ We offer comprehensive package consolidation with efficient packing, repackaging
   const breadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Logistics Services", href: "/logistics-services" },
-    { label: "Package Consolidation" }
+    { label: "Cargo Consolidation" }
   ];
 
   return (
@@ -74,7 +74,7 @@ We offer comprehensive package consolidation with efficient packing, repackaging
       <TopBanner />
       <Navigation />
       <BreadcrumbHero
-        title="Package Consolidation"
+        title="Cargo Consolidation"
         crumbs={breadcrumbs}
       />
       <LogisticsServicesDetailedSection service={service} />

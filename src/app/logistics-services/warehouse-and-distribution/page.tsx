@@ -8,7 +8,7 @@ export default function WarehouseAndDistributionPage() {
   const service = {
     id: 5,
     title: "Warehouse and Distribution",
-    description: `We provide warehouse and distribution services to our clients. We will help you assess your warehouse and distribution needs and work with you to develop a comprehensive logistics plan to meet your storage and fulfillment objectives. At Nivamore Courier Services, we understand the critical role of efficient warehousing in modern supply chains.
+    description: `We provide warehouse and distribution services to our clients. We will help you assess your warehouse and distribution needs and work with you to develop a comprehensive logistics plan to meet your storage and fulfillment objectives. At Cascade Logistics, we understand the critical role of efficient warehousing in modern supply chains.
 
 Our warehouse and distribution services include storage, inventory management, order fulfillment, cross-docking, and value-added services. We work with customers to identify logistics needs, meet objectives, and create services to answer them. We also help ensure our clients meet their legal obligations for warehouse operations and safety regulations.`,
     image: "/servicesection/service-img5.jpg",

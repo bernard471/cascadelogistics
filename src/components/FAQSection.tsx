@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronDown, HelpCircle, Plane, 
+import {
+  ChevronDown, HelpCircle, Plane,
   // Package, 
-  Shield, Clock, Phone, Mail, MessageCircle, FileCheck, Truck, 
+  Shield, Clock, Phone, Mail, MessageCircle, FileCheck, Truck,
   // Globe 
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -32,18 +33,18 @@ export default function FAQSection() {
         },
         {
           id: 2,
-          question: "Do you offer package consolidation?",
-          answer: "Yes, we offer package consolidation services. You can combine multiple packages from different suppliers into one shipment, which helps reduce shipping costs and simplifies the shipping process."
+          question: "Do you offer Cargo Consolidation?",
+          answer: "Yes, we offer Cargo Consolidation services. You can combine multiple packages from different suppliers into one shipment, which helps reduce shipping costs and simplifies the shipping process."
         },
         {
           id: 3,
-          question: "What is your proxy-buy service?",
-          answer: "Our proxy-buy service allows you to purchase items from USA stores, and we ship them directly to you in Ghana. This service is perfect for items that don't ship internationally or when you need assistance with purchasing."
+          question: "What is your Door to Door service?",
+          answer: "Our Door to Door service allows you to purchase items from USA stores, and we ship them directly to you in Ghana. This service is perfect for items that don't ship internationally or when you need assistance with purchasing."
         }
       ]
     },
     {
-      category: "Clearing & Customs",
+      category: "Customs Brokerage & Clearance",
       icon: FileCheck,
       color: "from-[#f7941d] to-[#e6851a]",
       faqs: [
@@ -161,9 +162,8 @@ export default function FAQSection() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#315694]"></div>
             <span className="px-6 py-2 bg-[#315694]/10 border border-[#315694]/20 text-[#315694] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -188,9 +188,8 @@ export default function FAQSection() {
               return (
                 <div
                   key={category.category}
-                  className={`bg-white rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-500 ${
-                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                  }`}
+                  className={`bg-white rounded-2xl p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                    }`}
                   style={{ transitionDelay: `${categoryIndex * 100}ms` }}
                 >
                   {/* Category Header */}
@@ -214,15 +213,13 @@ export default function FAQSection() {
                         >
                           <span className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</span>
                           <ChevronDown
-                            className={`w-5 h-5 text-[#315694] flex-shrink-0 transition-transform duration-300 ${
-                              openItem === faq.id ? 'rotate-180' : 'rotate-0'
-                            }`}
+                            className={`w-5 h-5 text-[#315694] flex-shrink-0 transition-transform duration-300 ${openItem === faq.id ? 'rotate-180' : 'rotate-0'
+                              }`}
                           />
                         </button>
-                        
-                        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                          openItem === faq.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                        }`}>
+
+                        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openItem === faq.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                          }`}>
                           <div className="px-4 lg:px-5 pb-4 lg:pb-5">
                             <div className="pl-4 border-l-4 border-[#315694]">
                               <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
@@ -238,9 +235,8 @@ export default function FAQSection() {
           </div>
 
           {/* Right Side - Image Gallery & Quick Help */}
-          <div className={`space-y-6 transition-all duration-1000 delay-400 ${
-            isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
-          }`}>
+          <div className={`space-y-6 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
+            }`}>
             {/* Image Gallery */}
             <div className="space-y-4">
               <div className="relative h-64 rounded-2xl overflow-hidden shadow-xl group">
@@ -325,8 +321,8 @@ export default function FAQSection() {
               </div>
             </div>
 
-            
-            
+
+
             {/* Additional Image */}
             <div className="relative h-48 rounded-2xl overflow-hidden shadow-xl group">
               <Image

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronDown, CheckCircle2, ArrowRight, Clock, Shield, TrendingUp, Package, Globe } from "lucide-react";
+import { ChevronDown, CheckCircle2, ArrowRight, Shield, TrendingUp, Package, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -82,10 +82,10 @@ export default function LogisticsServiceDetailsSection({ service }: LogisticsSer
   }, [isVisible, galleryImages.length]);
 
   const stats = [
-    { icon: Clock, label: "Delivery Time", value: "7-10 Days", color: "from-[#315694] to-[#262262]" },
+    // { icon: Clock, label: "Delivery Time", value: "7-10 Days", color: "from-[#315694] to-[#262262]" },
     { icon: Shield, label: "Full Service", value: "100%", color: "from-[#f7941d] to-[#f7941d]/80" },
     { icon: TrendingUp, label: "Reliable", value: "100%", color: "from-[#315694] to-[#262262]" },
-    { icon: Package, label: "Routes", value: "4+", color: "from-[#f7941d] to-[#f7941d]/80" }
+    // { icon: Package, label: "Routes", value: "4+", color: "from-[#f7941d] to-[#f7941d]/80" }
   ];
 
   return (

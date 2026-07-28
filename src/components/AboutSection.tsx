@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowRight, Globe, Users, Award, TrendingUp, MapPin, Clock, Shield } from "lucide-react";
+import { ArrowRight, Globe, Users, Award, TrendingUp, MapPin, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
@@ -11,8 +11,8 @@ export default function AboutSection() {
   const sectionRef = useRef<HTMLElement>(null);
 
   const stats = [
-    { icon: Globe, value: "4+", label: "Shipping Routes", color: "from-[#315694] to-[#262262]" },
-    { icon: Clock, value: "7-45", label: "Days Delivery", color: "from-[#f7941d] to-[#f7941d]/80" },
+    // { icon: Globe, value: "4+", label: "Shipping Routes", color: "from-[#315694] to-[#262262]" },
+    // { icon: Clock, value: "7-45", label: "Days Delivery", color: "from-[#f7941d] to-[#f7941d]/80" },
     { icon: Shield, value: "100%", label: "Full Service", color: "from-[#315694] to-[#262262]" },
     { icon: Award, value: "24/7", label: "Support", color: "from-[#f7941d] to-[#f7941d]/80" }
   ];
@@ -120,11 +120,11 @@ export default function AboutSection() {
             {/* Description */}
             <div className="space-y-4 text-lg text-white/90 leading-relaxed">
               <p>
-                Cascade Logistics Limited is a leading shipping and logistics provider specializing in air cargo services from UK, China, USA, and Turkey to Ghana. With a commitment to excellence, we offer comprehensive solutions including clearing, customs processing, and haulage services.
-              </p>
+                Cascade Logistics Limited is your one-stop shop for all your shipping and logistics needs. With our unparalleled experience, exceptional service, and cutting-edge technology, we are uniquely positioned to provide the most reliable, efficient, and cost-effective logistics services in Ghana.              </p>
               <p>
-                From package consolidation and proxy-buy services to transparent tracking and on-time delivery - we handle it all with efficiency, reliability, and care. Our USA shipping service operates twice weekly, ensuring your packages reach Ghana faster than ever.
+                We&apos;re committed to quality, integrity, and customer satisfaction. From air and sea freight to door-to-door services, we have the expertise to handle your logistics requirements with professionalism.              
               </p>
+             
             </div>
 
             {/* CTA Button */}
@@ -162,8 +162,12 @@ export default function AboutSection() {
                   </div>
                 </div>
               );
-            })}
+            })} 
+             <p className="text-white/80 leading-relaxed mt-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                Cascade Logistics is a leading logistics company in Ghana known for its excellent services. It has been recognized with several awards, including Ghana&apos;s Most Respected CEO in the Freight Forwarding category and the Best Logistics Management Company of the Year. You can trust us to deliver your goods safely and on time, every time.
+              </p>
           </div>
+           
         </div>
 
         {/* Features Grid - Below Main Content */}

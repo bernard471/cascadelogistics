@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, Package, MapPin, Weight, Ruler, Calendar, 
+import {
+  Calculator, Package, MapPin, Weight, Ruler, Calendar,
   // DollarSign, 
   Plane, Ship, Info, CheckCircle,
   //  ArrowRight, Mail, Phone, 
-   Send } from "lucide-react";
+  Send
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,7 +59,7 @@ export default function QuoteCalculator() {
       currency: "GH",
       unit: "CBM",
       days: "35-45",
-      label: "Sea Cargo"
+      label: "Sea Shipment"
     }
   };
 
@@ -94,13 +96,13 @@ export default function QuoteCalculator() {
       const length = parseFloat(formData.length) || 0;
       const width = parseFloat(formData.width) || 0;
       const height = parseFloat(formData.height) || 0;
-      
+
       // Calculate CBM (convert cm to meters)
       const lengthM = length / 100;
       const widthM = width / 100;
       const heightM = height / 100;
       const volumeCBM = lengthM * widthM * heightM * quantity;
-      
+
       const totalCost = volumeCBM * turkeyPricing.sea.rate;
       const formattedCost = new Intl.NumberFormat('en-GH', {
         style: 'currency',
@@ -159,7 +161,7 @@ export default function QuoteCalculator() {
     setIsSubmitting(true);
 
     try {
-      const dimensions = formData.serviceType === "sea" 
+      const dimensions = formData.serviceType === "sea"
         ? `${formData.length}cm x ${formData.width}cm x ${formData.height}cm`
         : null;
 
@@ -196,7 +198,7 @@ export default function QuoteCalculator() {
 
       setIsSubmitted(true);
       setQuoteResult(null);
-      
+
       // Reset form after 3 seconds
       setTimeout(() => {
         setIsSubmitted(false);
@@ -263,11 +265,10 @@ export default function QuoteCalculator() {
                 setQuoteResult(null);
                 setFormData(prev => ({ ...prev, origin: "Turkey" }));
               }}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                activeTab === "turkey"
+              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${activeTab === "turkey"
                   ? "bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-md"
                   : "text-gray-600 hover:text-[#315694]"
-              }`}
+                }`}
             >
               Turkey → Ghana (Pricing Available)
             </button>
@@ -277,11 +278,10 @@ export default function QuoteCalculator() {
                 setQuoteResult(null);
                 setFormData(prev => ({ ...prev, origin: "" }));
               }}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                activeTab === "other"
+              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${activeTab === "other"
                   ? "bg-gradient-to-r from-[#315694] to-[#262262] text-white shadow-md"
                   : "text-gray-600 hover:text-[#315694]"
-              }`}
+                }`}
             >
               Other Routes (Request Quote)
             </button>
@@ -427,15 +427,13 @@ export default function QuoteCalculator() {
                           key={service.value}
                           type="button"
                           onClick={() => handleInputChange("serviceType", service.value)}
-                          className={`p-4 rounded-xl border-2 transition-all duration-300 ${
-                            formData.serviceType === service.value
+                          className={`p-4 rounded-xl border-2 transition-all duration-300 ${formData.serviceType === service.value
                               ? "border-[#315694] bg-[#315694]/10"
                               : "border-gray-200 hover:border-[#315694]"
-                          }`}
+                            }`}
                         >
-                          <Icon className={`w-6 h-6 mb-2 ${
-                            formData.serviceType === service.value ? "text-[#315694]" : "text-gray-400"
-                          }`} />
+                          <Icon className={`w-6 h-6 mb-2 ${formData.serviceType === service.value ? "text-[#315694]" : "text-gray-400"
+                            }`} />
                           <div className="font-semibold text-gray-900">{service.label}</div>
                           <div className="text-xs text-gray-500 mt-1">{service.desc}</div>
                         </button>
@@ -710,7 +708,7 @@ export default function QuoteCalculator() {
                       </div>
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[#315694] mt-0.5 flex-shrink-0" />
-                        <p><strong>Sea Cargo:</strong> GH: 3,660 per CBM (35-45 days)</p>
+                        <p><strong>Sea Shipment:</strong> GH: 3,660 per CBM (35-45 days)</p>
                       </div>
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[#315694] mt-0.5 flex-shrink-0" />

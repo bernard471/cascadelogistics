@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 export default function ClearingCustomsPage() {
   const service = {
     id: 3,
-    title: "Clearing & Customs",
+    title: "Customs Brokerage & Clearance",
     description: `Cascade Logistics provides comprehensive clearing and customs processing services for all your shipments. Our expert team handles all documentation and ensures smooth clearance for your shipments entering Ghana.
 
 We specialize in navigating the complexities of customs procedures, ensuring your goods clear customs efficiently and without delays. Our experienced customs team understands the requirements and regulations, providing expert handling for all types of cargo. We handle all necessary documentation, compliance checks, and coordination with customs authorities to ensure a seamless clearance process.`,
@@ -66,7 +66,7 @@ We specialize in navigating the complexities of customs procedures, ensuring you
   const breadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Logistics Services", href: "/logistics-services" },
-    { label: "Clearing & Customs" }
+    { label: "Customs Brokerage & Clearance" }
   ];
 
   return (
@@ -74,7 +74,7 @@ We specialize in navigating the complexities of customs procedures, ensuring you
       <TopBanner />
       <Navigation />
       <BreadcrumbHero
-        title="Clearing & Customs"
+        title="Customs Brokerage & Clearance"
         crumbs={breadcrumbs}
       />
       <LogisticsServicesDetailedSection service={service} />

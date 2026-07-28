@@ -7,10 +7,10 @@ import Footer from "@/components/Footer";
 export default function ProxyBuyPage() {
   const service = {
     id: 6,
-    title: "Proxy-Buy Service",
-    description: `Cascade Logistics provides convenient proxy-buy services, allowing you to shop from USA stores and have items shipped directly to you in Ghana. Our proxy-buy service handles all aspects of your purchase and shipping needs.
+    title: "Door to Door Service",
+    description: `Cascade Logistics provides convenient Door to Door services, allowing you to shop from USA stores and have items shipped directly to you in Ghana. Our Door to Door service handles all aspects of your purchase and shipping needs.
 
-We offer comprehensive proxy-buy services where you can shop from any USA store, and we'll handle the purchase, receive the items at our USA warehouse, and ship them directly to you in Ghana. This service is perfect for accessing products not available in Ghana or taking advantage of USA store sales and promotions. Our team ensures secure handling of your purchases and provides transparent tracking throughout the process.`,
+We offer comprehensive Door to Door services where you can shop from any USA store, and we'll handle the purchase, receive the items at our USA warehouse, and ship them directly to you in Ghana. This service is perfect for accessing products not available in Ghana or taking advantage of USA store sales and promotions. Our team ensures secure handling of your purchases and provides transparent tracking throughout the process.`,
     image: "/logisticssection/logistics-middle.jpg",
     benefits: [
       {
@@ -66,7 +66,7 @@ We offer comprehensive proxy-buy services where you can shop from any USA store,
   const breadcrumbs = [
     { label: "Home", href: "/" },
     { label: "Logistics Services", href: "/logistics-services" },
-    { label: "Proxy-Buy Service" }
+    { label: "Door to Door Service" }
   ];
 
   return (
@@ -74,7 +74,7 @@ We offer comprehensive proxy-buy services where you can shop from any USA store,
       <TopBanner />
       <Navigation />
       <BreadcrumbHero
-        title="Proxy-Buy Service"
+        title="Door to Dooroor Service"
         crumbs={breadcrumbs}
       />
       <LogisticsServicesDetailedSection service={service} />

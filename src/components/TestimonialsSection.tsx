@@ -47,7 +47,7 @@ export default function TestimonialsSection() {
       company: "Fashion Forward",
       image: "/popup/popup1.jpg",
       rating: 5,
-      text: "I love their package consolidation service! It saves me so much money by combining multiple orders. The proxy-buy service is also fantastic - I can shop from USA stores and they ship directly to me in Ghana.",
+      text: "I love their Cargo Consolidation service! It saves me so much money by combining multiple orders. The Door to Door service is also fantastic - I can shop from USA stores and they ship directly to me in Ghana.",
       location: "Kumasi, Ghana"
     },
     {
@@ -125,9 +125,8 @@ export default function TestimonialsSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-16 bg-[#f7941d]"></div>
             <span className="px-6 py-2 bg-[#315694]/10 border border-[#315694]/20 text-[#315694] text-sm font-bold uppercase tracking-wider rounded-full">
@@ -144,9 +143,8 @@ export default function TestimonialsSection() {
         </div>
 
         {/* Testimonials Carousel */}
-        <div className={`relative transition-all duration-1000 delay-200 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`relative transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-12 max-w-5xl mx-auto">
             {/* Quote Icon */}
             <div className="flex justify-center mb-6">
@@ -199,11 +197,10 @@ export default function TestimonialsSection() {
                 <button
                   key={index}
                   onClick={() => goToTestimonial(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    index === currentTestimonial
-                      ? 'w-8 bg-[#315694]'
-                      : 'w-2 bg-gray-300 hover:bg-gray-400'
-                  }`}
+                  className={`h-2 rounded-full transition-all duration-300 ${index === currentTestimonial
+                    ? 'w-8 bg-[#315694]'
+                    : 'w-2 bg-gray-300 hover:bg-gray-400'
+                    }`}
                 />
               ))}
             </div>
@@ -228,9 +225,8 @@ export default function TestimonialsSection() {
         </div>
 
         {/* Stats */}
-        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-6 mt-16 transition-all duration-1000 delay-400 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
+        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-6 mt-16 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
           <div className="text-center">
             <div className="text-4xl font-bold text-[#315694] mb-2">Reliable</div>
             <div className="text-gray-600">Service</div>
