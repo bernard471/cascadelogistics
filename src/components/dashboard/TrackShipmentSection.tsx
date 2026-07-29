@@ -23,6 +23,7 @@ interface MappedTimelineEvent {
 // Mapped tracking data type for internal component use
 interface MappedTrackingData {
   trackingId: string;
+  wholesaleTrackingNumbers: string[];
   status: string;
   statusColor: string;
   origin: string;
@@ -49,8 +50,8 @@ export default function TrackShipmentSection() {
 
   const handleTrack = useCallback(async (idToTrack?: string) => {
     const trackId = idToTrack || trackingId;
-    if (!trackId) {
-      setError("Please enter a tracking ID");
+    if (!trackId.trim()) {
+      setError("Please enter a Cascade or wholesale tracking number");
       return;
     }
     
@@ -58,10 +59,12 @@ export default function TrackShipmentSection() {
     setIsTracking(true);
     
     try {
-      const response = await fetch(`/api/shipments/track/${trackId}`);
+      const response = await fetch(
+        `/api/shipments/track/${encodeURIComponent(trackId.trim())}`
+      );
       
       if (!response.ok) {
-        setError("Shipment not found. Please check your tracking ID.");
+        setError("Shipment not found. Please check the tracking number.");
         setTrackingData(null);
         setIsTracking(false);
         return;
@@ -132,10 +135,13 @@ export default function TrackShipmentSection() {
       
       const mappedTrackingData: MappedTrackingData = {
         trackingId: data.trackingId,
+        wholesaleTrackingNumbers: Array.isArray(data.wholesaleTrackingNumbers)
+          ? data.wholesaleTrackingNumbers
+          : [],
         status: statusInfo.display,
         statusColor: statusInfo.color,
-        origin: 'USA Warehouse, USA',
-        destination: 'Ghana Warehouse, Ghana',
+        origin: 'From client/sender',
+        destination: 'Warehouse(Ghana)',
         estimatedDelivery: data.estimatedDelivery ? 
           new Date(data.estimatedDelivery).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 
           'TBD',
@@ -189,7 +195,7 @@ export default function TrackShipmentSection() {
       {/* Header */}
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Track Shipment</h1>
-        <p className="text-gray-600 mt-1">Enter your tracking ID to get real-time updates on your shipment</p>
+        <p className="text-gray-600 mt-1">Enter your Cascade tracking ID or a wholesale tracking number to get real-time updates</p>
       </div>
 
       {/* Search Section */}
@@ -203,7 +209,7 @@ export default function TrackShipmentSection() {
                 setTrackingId(e.target.value);
                 setError("");
               }}
-              placeholder="Enter tracking ID (e.g., NSC001234)"
+              placeholder="Cascade ID or wholesale tracking number"
               className="h-12 text-lg"
             />
           </div>
@@ -258,6 +264,24 @@ export default function TrackShipmentSection() {
                   <span className="text-sm text-gray-600">DELTA Number:</span>
                 </div>
                 <div className="text-lg font-bold text-[#055b8e]">{trackingData.deltaNumber}</div>
+              </div>
+            )}
+            {trackingData.wholesaleTrackingNumbers.length > 0 && (
+              <div className="mt-4 border-t border-gray-200 pt-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <Package className="h-5 w-5 text-[#055b8e]" />
+                  <span className="text-sm text-gray-600">Wholesale tracking numbers</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {trackingData.wholesaleTrackingNumbers.map((number) => (
+                    <span
+                      key={number}
+                      className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-[#055b8e]"
+                    >
+                      {number}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -606,6 +630,14 @@ export default function TrackShipmentSection() {
                   <Package className="w-5 h-5 text-gray-400" />
                   <div className="text-left">
                     <div className="font-medium text-gray-800">{shipment.trackingId}</div>
+                    {shipment.wholesalePurchases?.some((purchase) => purchase.trackingNumber?.trim()) && (
+                      <div className="mt-1 text-xs text-[#055b8e]">
+                        Wholesale: {shipment.wholesalePurchases
+                          .map((purchase) => purchase.trackingNumber?.trim())
+                          .filter(Boolean)
+                          .join(", ")}
+                      </div>
+                    )}
                     <div className="text-xs text-gray-500">
                       USA Warehouse, USA → Ghana Warehouse, Ghana
                     </div>
@@ -665,4 +697,3 @@ export default function TrackShipmentSection() {
     </div>
   );
 }
-

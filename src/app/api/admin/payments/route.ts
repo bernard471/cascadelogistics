@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 import type { PaymentProof } from "@/models/PaymentProof";
 import type { User } from "@/models/User";
 
-// GET - Fetch all payment proofs (admin only)
+// GET - Fetch all payment proofs (admin/staff)
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -14,8 +14,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin
-    if (session.user.role !== "admin") {
+    if (session.user.role !== "admin" && session.user.role !== "staff") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -96,4 +95,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

@@ -5,7 +5,10 @@ import { NextResponse } from "next/server";
 import type { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 import { ensureSecurityIndexes } from "@/lib/database-security";
-import { sendVerificationEmail } from "@/lib/email";
+import {
+  sendAdminRegistrationNotification,
+  sendVerificationEmail,
+} from "@/lib/email";
 import {
   getPrivateBlobToken,
   getRequestIp,
@@ -29,6 +32,32 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_DOCUMENT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const ALLOWED_SELFIE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+class RegistrationError extends Error {
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message);
+  }
+}
+
+async function headUploadedFile(pathname: string, token?: string) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      return await head(pathname, { token });
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 250 * 2 ** attempt)
+        );
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function verifyUploadedFile(input: {
   pathname: string;
   attemptId: string;
@@ -41,7 +70,7 @@ async function verifyUploadedFile(input: {
     throw new Error("One or more uploaded files are not authorized for this registration");
   }
 
-  const blob = await head(input.pathname, { token: input.token });
+  const blob = await headUploadedFile(input.pathname, input.token);
   const allowedTypes = input.kind === "selfie" ? ALLOWED_SELFIE_TYPES : ALLOWED_DOCUMENT_TYPES;
   if (!allowedTypes.includes(blob.contentType) || blob.size > MAX_FILE_SIZE) {
     throw new Error("An uploaded file has an unsupported type or size");
@@ -119,6 +148,11 @@ export async function POST(request: Request) {
 
     const blobToken = getPrivateBlobToken();
     const attemptId = attempt._id.toString();
+    uploadedPathnames.push(
+      data.documentFront.pathname,
+      data.selfie.pathname,
+      ...(data.documentBack ? [data.documentBack.pathname] : [])
+    );
     const [documentFront, documentBack, selfie] = await Promise.all([
       verifyUploadedFile({
         pathname: data.documentFront.pathname,
@@ -143,21 +177,15 @@ export async function POST(request: Request) {
       }),
     ]);
 
-    uploadedPathnames.push(
-      documentFront.pathname,
-      selfie.pathname,
-      ...(documentBack ? [documentBack.pathname] : [])
-    );
-
     const documentNumberNormalized = data.documentNumber.replace(/[\s-]/g, "").toUpperCase();
     const documentNumberHash = hashIdentityNumber(data.documentType, documentNumberNormalized);
     const duplicateIdentity = await db.collection<IdentityVerification>("identity_verifications").findOne({
       documentNumberHash,
     });
     if (duplicateIdentity) {
-      return NextResponse.json(
-        { error: "This identity document is already associated with an account" },
-        { status: 409 }
+      throw new RegistrationError(
+        "This identity document is already associated with an account",
+        409
       );
     }
 
@@ -229,10 +257,6 @@ export async function POST(request: Request) {
       { _id: userResult.insertedId as never },
       { $set: { identityVerificationId: insertedVerificationId } }
     );
-    await db.collection<RegistrationAttempt>("registration_attempts").updateOne(
-      { _id: attempt._id },
-      { $set: { usedAt: now } }
-    );
     await db.collection("audit_logs").insertOne({
       action: "identity.submitted",
       entityType: "identity_verification",
@@ -241,17 +265,38 @@ export async function POST(request: Request) {
       createdAt: now,
       metadata: { documentType: data.documentType, selfieCaptureMethod: data.selfieCaptureMethod },
     });
+    await db.collection<RegistrationAttempt>("registration_attempts").updateOne(
+      { _id: attempt._id, usedAt: { $exists: false } },
+      { $set: { usedAt: now } }
+    );
 
-    let emailSent = true;
-    try {
-      await sendVerificationEmail({
-        firstName: data.firstName,
-        email: emailNormalized,
-        verificationToken,
-      });
-    } catch (emailError) {
-      emailSent = false;
-      console.error("Verification email delivery failed:", emailError);
+    const [verificationEmailResult, adminEmailResult] =
+      await Promise.allSettled([
+        sendVerificationEmail({
+          firstName: data.firstName,
+          email: emailNormalized,
+          verificationToken,
+        }),
+        sendAdminRegistrationNotification({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: emailNormalized,
+          country: data.country,
+          documentType: data.documentType,
+        }),
+      ]);
+    const emailSent = verificationEmailResult.status === "fulfilled";
+    if (verificationEmailResult.status === "rejected") {
+      console.error(
+        "Verification email delivery failed:",
+        verificationEmailResult.reason
+      );
+    }
+    if (adminEmailResult.status === "rejected") {
+      console.error(
+        "Admin registration notification failed:",
+        adminEmailResult.reason
+      );
     }
 
     return NextResponse.json(
@@ -294,7 +339,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Registration failed" },
-      { status: 500 }
+      { status: error instanceof RegistrationError ? error.status : 500 }
     );
   }
 }

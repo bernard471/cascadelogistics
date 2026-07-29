@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import { put } from "@vercel/blob";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { MongoQuery } from "@/types";
+import { sendShipmentUpdateEmail } from "@/lib/email";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -269,6 +270,19 @@ export async function POST(request: Request) {
     };
     await notificationsCollection.insertOne(userNotification);
 
+    try {
+      await sendShipmentUpdateEmail({
+        firstName: user.firstName,
+        email: user.email,
+        trackingId,
+        status: newShipment.status,
+        currentLocation: newShipment.currentLocation || "USA Warehouse, USA",
+        estimatedDelivery: newShipment.estimatedDelivery,
+      });
+    } catch (emailError) {
+      console.error("Shipment creation email failed:", emailError);
+    }
+
     return NextResponse.json(
       { 
         message: "Shipment created successfully",
@@ -285,4 +299,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

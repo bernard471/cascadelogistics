@@ -113,12 +113,13 @@ export default function AdminDashboardLayout({ children, activePage = "dashboard
   ];
 
   // Filter navigation items based on role
-  // Staff can see: Dashboard, Shipments, Support Tickets, Contact Submissions, Analytics & Reports
+  // Staff can manage daily operations while administrator-only security and
+  // account-management areas remain hidden.
   const navigationItems = isLoading
     ? [] // Empty array while loading to prevent flash
     : userRole === "staff" 
       ? allNavigationItems.filter(item => 
-          ["dashboard", "shipments", "support-tickets", "contact-submissions", "analytics"].includes(item.id)
+          ["dashboard", "shipments", "payments", "support-tickets", "contact-submissions", "analytics"].includes(item.id)
         )
       : allNavigationItems;
 

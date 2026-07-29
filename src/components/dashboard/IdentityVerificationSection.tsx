@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
+  Trash2,
   X,
   XCircle,
 } from "lucide-react";
@@ -120,6 +121,7 @@ export default function IdentityVerificationSection() {
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -204,6 +206,38 @@ export default function IdentityVerificationSection() {
       );
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const deleteRegistration = async (record: VerificationSummary) => {
+    const confirmed = window.confirm(
+      `Permanently delete the registration for ${record.user.name || record.user.email}? This also deletes the associated user account and all private ID/selfie files.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(record.id);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch(
+        `/api/admin/identity-verifications/${record.id}`,
+        { method: "DELETE" }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Unable to delete registration");
+      }
+      setSelected(null);
+      setMessage(result.message);
+      await fetchRecords();
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Unable to delete registration"
+      );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -308,9 +342,26 @@ export default function IdentityVerificationSection() {
                       <StatusBadge status={record.status} />
                     </td>
                     <td className="px-5 py-4">
-                      <Button type="button" size="sm" variant="outline" onClick={() => openVerification(record.id)}>
-                        <Eye className="mr-2 h-4 w-4" />Review
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button type="button" size="sm" variant="outline" onClick={() => openVerification(record.id)}>
+                          <Eye className="mr-2 h-4 w-4" />Review
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={deletingId === record.id}
+                          onClick={() => deleteRegistration(record)}
+                          className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                        >
+                          {deletingId === record.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="mr-2 h-4 w-4" />
+                          )}
+                          Delete
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -517,4 +568,3 @@ function PrivateFile({
     </figure>
   );
 }
-

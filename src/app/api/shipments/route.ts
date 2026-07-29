@@ -4,6 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { MongoQuery } from "@/types";
+import { sendAdminShipmentCreatedNotification } from "@/lib/email";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -210,6 +211,19 @@ export async function POST(request: Request) {
     };
     await notificationsCollection.insertOne(adminNotification);
 
+    try {
+      await sendAdminShipmentCreatedNotification({
+        customerName: `${user.firstName} ${user.lastName}`,
+        customerEmail: user.email,
+        trackingId,
+        wholesaleTrackingNumbers: (newShipment.wholesalePurchases || [])
+          .map((purchase) => purchase.trackingNumber?.trim())
+          .filter((number): number is string => Boolean(number)),
+      });
+    } catch (emailError) {
+      console.error("Admin shipment notification email failed:", emailError);
+    }
+
     return NextResponse.json(
       { 
         message: "Shipment created successfully",
@@ -226,4 +240,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

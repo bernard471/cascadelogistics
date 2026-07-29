@@ -20,6 +20,7 @@ interface MappedTimelineEvent {
 
 interface MappedTrackingData {
   trackingId: string;
+  wholesaleTrackingNumbers: string[];
   status: string;
   statusColor: string;
   origin: string;
@@ -43,7 +44,7 @@ export default function PublicTrackShipment() {
 
   const handleTrack = async () => {
     if (!trackingId.trim()) {
-      setError("Please enter a tracking ID");
+      setError("Please enter a Cascade or wholesale tracking number");
       return;
     }
     
@@ -52,10 +53,12 @@ export default function PublicTrackShipment() {
     setShowResults(false);
     
     try {
-      const response = await fetch(`/api/shipments/track/${trackingId.trim()}`);
+      const response = await fetch(
+        `/api/shipments/track/${encodeURIComponent(trackingId.trim())}`
+      );
       
       if (!response.ok) {
-        setError("Shipment not found. Please check your tracking ID.");
+        setError("Shipment not found. Please check the tracking number.");
         setTrackingData(null);
         setIsTracking(false);
         return;
@@ -126,6 +129,9 @@ export default function PublicTrackShipment() {
       
       const mappedTrackingData: MappedTrackingData = {
         trackingId: data.trackingId,
+        wholesaleTrackingNumbers: Array.isArray(data.wholesaleTrackingNumbers)
+          ? data.wholesaleTrackingNumbers
+          : [],
         status: statusInfo.display,
         statusColor: statusInfo.color,
         origin: data.origin,
@@ -169,7 +175,7 @@ export default function PublicTrackShipment() {
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 lg:p-8 mb-6">
         <div className="text-center mb-6">
           <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Track Your Shipment</h2>
-          <p className="text-gray-600">Enter your tracking ID to get real-time updates</p>
+          <p className="text-gray-600">Enter your Cascade tracking ID or a wholesale tracking number</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4">
@@ -186,7 +192,7 @@ export default function PublicTrackShipment() {
                   handleTrack();
                 }
               }}
-              placeholder="Enter tracking ID (e.g., NSC001234)"
+              placeholder="Cascade ID or wholesale tracking number"
               className="h-14 text-lg border-2 border-gray-200 focus:border-[#219ebc]"
             />
           </div>
@@ -243,6 +249,25 @@ export default function PublicTrackShipment() {
                 <h3 className="font-bold text-gray-800">DELTA Number</h3>
               </div>
               <div className="text-lg font-bold text-[#055b8e]">{trackingData.deltaNumber}</div>
+            </div>
+          )}
+
+          {trackingData.wholesaleTrackingNumbers.length > 0 && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <Package className="h-5 w-5 text-[#055b8e]" />
+                <h3 className="font-bold text-gray-800">Wholesale tracking numbers</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {trackingData.wholesaleTrackingNumbers.map((number) => (
+                  <span
+                    key={number}
+                    className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#055b8e]"
+                  >
+                    {number}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
@@ -429,4 +454,3 @@ export default function PublicTrackShipment() {
     </div>
   );
 }
-

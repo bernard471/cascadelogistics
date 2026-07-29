@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
+import { del } from "@vercel/blob";
 import { z } from "zod";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ensureSecurityIndexes } from "@/lib/database-security";
 import { sendIdentityDecisionEmail } from "@/lib/email";
-import { getIdentityRetentionDays } from "@/lib/identity-security";
+import {
+  getIdentityRetentionDays,
+  getPrivateBlobToken,
+} from "@/lib/identity-security";
 import type {
   IdentityVerification,
   IdentityVerificationStatus,
@@ -338,6 +342,151 @@ export async function PATCH(
     console.error("Review identity verification error:", error);
     return NextResponse.json(
       { error: "Failed to save verification decision" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authSession = await auth();
+    if (!authSession?.user || authSession.user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: "Invalid verification ID" },
+        { status: 400 }
+      );
+    }
+
+    const client = await clientPromise;
+    const db = client.db("guangzhou");
+    const identityId = new ObjectId(id);
+    const verification = await db
+      .collection<IdentityVerification>("identity_verifications")
+      .findOne({ _id: identityId });
+    if (!verification) {
+      return NextResponse.json(
+        { error: "Verification not found" },
+        { status: 404 }
+      );
+    }
+
+    const [shipmentCount, paymentCount, ticketCount] = await Promise.all([
+      db.collection("shipments").countDocuments({ userId: verification.userId }),
+      db.collection("payment_proofs").countDocuments({ userId: verification.userId }),
+      db.collection("support_tickets").countDocuments({ userId: verification.userId }),
+    ]);
+    if (shipmentCount + paymentCount + ticketCount > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "This customer already has operational records. Delete or retain the account through user management instead.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const blobPathnames = [
+      verification.documentFront?.pathname,
+      verification.documentBack?.pathname,
+      verification.selfie?.pathname,
+    ].filter((pathname): pathname is string => Boolean(pathname));
+
+    if (blobPathnames.length > 0) {
+      try {
+        await del(blobPathnames, { token: getPrivateBlobToken() });
+      } catch (blobError) {
+        console.error("Identity Blob deletion failed:", blobError);
+        return NextResponse.json(
+          {
+            error:
+              "The private identity files could not be deleted. No registration records were removed; please try again.",
+          },
+          { status: 502 }
+        );
+      }
+    }
+
+    const userObjectId = ObjectId.isValid(verification.userId)
+      ? new ObjectId(verification.userId)
+      : undefined;
+    const user = userObjectId
+      ? await db.collection<User>("users").findOne({
+          _id: userObjectId as never,
+        })
+      : null;
+    const now = new Date();
+    const mongoSession = client.startSession();
+
+    try {
+      await mongoSession.withTransaction(async () => {
+        await db
+          .collection<IdentityVerification>("identity_verifications")
+          .deleteOne({ _id: identityId }, { session: mongoSession });
+        if (userObjectId && user?.role === "user") {
+          await db
+            .collection<User>("users")
+            .deleteOne(
+              { _id: userObjectId as never },
+              { session: mongoSession }
+            );
+        }
+        await db
+          .collection("notifications")
+          .deleteMany(
+            { userId: verification.userId },
+            { session: mongoSession }
+          );
+        if (user) {
+          await db.collection("registration_attempts").deleteMany(
+            {
+              $or: [
+                { emailNormalized: user.emailNormalized || user.email.toLowerCase() },
+                {
+                  usernameNormalized:
+                    user.usernameNormalized || user.username.toLowerCase(),
+                },
+              ],
+            },
+            { session: mongoSession }
+          );
+        }
+        await db.collection("audit_logs").insertOne(
+          {
+            action: "identity.registration-deleted",
+            entityType: "identity_verification",
+            entityId: id,
+            actorId: authSession.user.id,
+            userId: verification.userId,
+            createdAt: now,
+            metadata: {
+              blobsDeleted: blobPathnames.length,
+              userDeleted: Boolean(userObjectId && user?.role === "user"),
+            },
+          },
+          { session: mongoSession }
+        );
+      });
+    } finally {
+      await mongoSession.endSession();
+    }
+
+    return NextResponse.json({
+      message:
+        "Registration, associated user account, and private identity files were deleted.",
+      blobsDeleted: blobPathnames.length,
+    });
+  } catch (error) {
+    console.error("Delete identity registration error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete identity registration" },
       { status: 500 }
     );
   }

@@ -6,17 +6,32 @@ import type { TimelineEvent } from "@/types";
 
 // GET - Track shipment by tracking ID (public or authenticated)
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ trackingId: string }> }
 ) {
   try {
     const { trackingId } = await params;
+    const lookupValue = trackingId.trim();
+
+    if (!lookupValue) {
+      return NextResponse.json(
+        { error: "A Cascade or wholesale tracking number is required" },
+        { status: 400 }
+      );
+    }
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
     const shipmentsCollection = db.collection<Shipment>("shipments");
 
-    const shipment = await shipmentsCollection.findOne({ trackingId });
+    const escapedLookup = lookupValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const exactLookup = new RegExp(`^${escapedLookup}$`, "i");
+    const shipment = await shipmentsCollection.findOne({
+      $or: [
+        { trackingId: exactLookup },
+        { "wholesalePurchases.trackingNumber": exactLookup },
+      ],
+    });
 
     if (!shipment) {
       return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
@@ -75,7 +90,7 @@ export async function GET(
     // Update the shipment in database if we added timeline events
     if (timeline.length > (shipment.timeline?.length || 0)) {
       await shipmentsCollection.updateOne(
-        { trackingId },
+        { _id: shipment._id },
         { 
           $set: { 
             timeline: timeline as { status: string; location: string; date: Date; time: string; completed: boolean; imageUrl?: string; imageName?: string }[],
@@ -99,6 +114,9 @@ export async function GET(
     // Return limited info for public tracking (don't expose sensitive data)
     const publicData = {
       trackingId: shipment.trackingId,
+      wholesaleTrackingNumbers: (shipment.wholesalePurchases || [])
+        .map((purchase) => purchase.trackingNumber?.trim())
+        .filter((number): number is string => Boolean(number)),
       status: shipment.status,
       currentLocation: shipment.currentLocation,
       estimatedDelivery: shipment.estimatedDelivery instanceof Date 
@@ -125,4 +143,3 @@ export async function GET(
     );
   }
 }
-

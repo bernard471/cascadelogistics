@@ -4,6 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type { Shipment } from "@/models/Shipment";
 import type { TimelineEvent } from "@/types";
+import { sendShipmentUpdateEmail } from "@/lib/email";
 
 // POST - Bulk update shipments (Admin/Staff only)
 export async function POST(request: Request) {
@@ -199,6 +200,23 @@ export async function POST(request: Request) {
             await notificationsCollection.insertOne(notification);
           }
         }
+      }
+
+      try {
+        await sendShipmentUpdateEmail({
+          firstName: shipment.senderName.split(/\s+/)[0] || "Customer",
+          email: shipment.senderEmail,
+          trackingId: shipment.trackingId,
+          status: status || shipment.status,
+          currentLocation: shipment.currentLocation,
+          estimatedDelivery:
+            estimatedDelivery || shipment.estimatedDelivery,
+        });
+      } catch (emailError) {
+        console.error(
+          `Shipment update email failed for ${shipment.trackingId}:`,
+          emailError
+        );
       }
     });
 

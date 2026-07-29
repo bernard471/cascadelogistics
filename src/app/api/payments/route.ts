@@ -4,6 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import { put } from "@vercel/blob";
 import type { PaymentProof } from "@/models/PaymentProof";
 import type { Shipment } from "@/models/Shipment";
+import { sendAdminPaymentNotification } from "@/lib/email";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -138,6 +139,19 @@ export async function POST(request: Request) {
 
     const result = await paymentsCollection.insertOne(newPaymentProof);
 
+    try {
+      await sendAdminPaymentNotification({
+        customerName: shipment.senderName,
+        customerEmail: shipment.senderEmail,
+        paymentId,
+        trackingId: shipment.trackingId,
+        amount: amountNum,
+        paymentMethod,
+      });
+    } catch (emailError) {
+      console.error("Admin payment notification email failed:", emailError);
+    }
+
     return NextResponse.json(
       {
         message: "Payment proof submitted successfully",
@@ -201,4 +215,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

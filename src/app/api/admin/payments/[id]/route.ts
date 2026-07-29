@@ -16,8 +16,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin
-    if (session.user.role !== "admin") {
+    if (session.user.role !== "admin" && session.user.role !== "staff") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -62,8 +61,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin
-    if (session.user.role !== "admin") {
+    if (session.user.role !== "admin" && session.user.role !== "staff") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -159,4 +157,3 @@ export async function PATCH(
     );
   }
 }
-

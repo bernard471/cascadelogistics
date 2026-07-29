@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import { put } from "@vercel/blob";
 import type { Shipment } from "@/models/Shipment";
 import type { TimelineEvent } from "@/types";
+import { sendShipmentUpdateEmail } from "@/lib/email";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -345,6 +346,20 @@ export async function PATCH(
 
     await notificationsCollection.insertOne(notification);
 
+    try {
+      await sendShipmentUpdateEmail({
+        firstName: shipment.senderName.split(/\s+/)[0] || "Customer",
+        email: shipment.senderEmail,
+        trackingId: shipment.trackingId,
+        status: newStatus,
+        currentLocation,
+        estimatedDelivery:
+          updateData.estimatedDelivery || shipment.estimatedDelivery,
+      });
+    } catch (emailError) {
+      console.error("Shipment update email failed:", emailError);
+    }
+
     return NextResponse.json({ message: "Shipment updated successfully" });
   } catch (error) {
     console.error("PATCH admin shipment error:", error);
@@ -388,4 +403,3 @@ export async function DELETE(
     );
   }
 }
-
