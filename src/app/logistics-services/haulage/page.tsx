@@ -41,6 +41,10 @@ We offer comprehensive haulage services with professional drivers, well-maintain
       {
         title: "Cargo Handling",
         description: "We handle all types of cargo with appropriate vehicles and equipment, ensuring your goods are transported safely and arrive in perfect condition."
+      },
+      {
+        title: "Transit Cover",
+        description: "Cover is a safeguard for our customer's cargo against any accidental loss or damages whiles in transit. Goods In Transit cover to the tune of USD 200,000.00."
       }
     ],
     serviceBenefits: [
@@ -59,6 +63,10 @@ We offer comprehensive haulage services with professional drivers, well-maintain
       {
         title: "Complete Coverage",
         description: "We provide haulage services throughout Ghana, transporting goods from ports and airports to your warehouse, business location, or home with comprehensive coverage."
+      },
+      {
+        title: "Goods in Transit Cover",
+        description: "Cover is a safeguard for our customer's cargo against any accidental loss or damages whiles in transit. We provide Goods In Transit cover to the tune of USD 200,000.00."
       }
     ]
   };
