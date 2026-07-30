@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { MessageCircle, Phone, Mail, HelpCircle, Send, Clock, Copy, Check, Plane,
    // Ship, 
-   Eye, X } from "lucide-react";
+   Eye, X, 
+   Ship} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -256,19 +257,19 @@ export default function SupportSection() {
       type: "Air Shipping",
       icon: Plane,
       iconColor: "text-blue-500 bg-blue-50",
-      english: "No. 255 Tangge North Road, Baiyun Lake Street, Baiyun District, New York City, Guangdong Province 888/GSL000",
-      chinese: "广东省广州市白云区白云湖街道唐阁北路255号888/GSL000",
-      phoneNumber: "+132 605 43058 (China)"
+      english: "3572 Lawson Blvd Oceanside NY 11572",
+      chinese: "3572 Lawson Blvd Oceanside NY 11572",
+      phoneNumber: "+233 24 189 3393"
     },
-    // {
-    //   id: "sea",
-    //   type: "Sea Shipping",
-    //   icon: Ship,
-    //   iconColor: "text-green-500 bg-green-50",
-    //   english: "Room 4015, 4th Floor, No. 66 Guangyuan West Road, Yuexiu District, Guangzhou City, Guangdong Province (GSL000)",
-    //   chinese: "广东省广州市越秀区广园西路66号四楼4015室GSL000",
-    //   phoneNumber: "+18620065346 (China)"
-    // }
+    {
+      id: "sea",
+      type: "Sea Shipping",
+      icon: Ship,
+      iconColor: "text-blue-500 bg-blue-50",
+      english: "3572 Lawson Blvd Oceanside NY 11572",
+      chinese: "3572 Lawson Blvd Oceanside NY 11572",
+      phoneNumber: "+233 24 189 3393"
+    }
   ];
 
   return (

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Mail, Bell, Shield, Globe, DollarSign, Truck } from "lucide-react";
+import { Save, 
+  // Mail, Bell, Shield, 
+  Globe, 
+  // DollarSign, Truck
+ } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,11 +15,11 @@ export default function AdminSettingsSection() {
 
   const tabs = [
     { id: "general", label: "General", icon: Globe },
-    { id: "email", label: "Email", icon: Mail },
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "security", label: "Security", icon: Shield },
-    { id: "pricing", label: "Pricing", icon: DollarSign },
-    { id: "shipping", label: "Shipping", icon: Truck },
+    // { id: "email", label: "Email", icon: Mail },
+    // { id: "notifications", label: "Notifications", icon: Bell },
+    // { id: "security", label: "Security", icon: Shield },
+    // { id: "pricing", label: "Pricing", icon: DollarSign },
+    // { id: "shipping", label: "Shipping", icon: Truck },
   ];
 
   return (
@@ -62,7 +66,7 @@ export default function AdminSettingsSection() {
                   </label>
                   <Input
                     type="text"
-                    defaultValue="Guangzhou Swift Logistics"
+                    defaultValue="Cascade Logistics Limited"
                     className="h-12"
                   />
                 </div>
@@ -73,7 +77,7 @@ export default function AdminSettingsSection() {
                   </label>
                   <Input
                     type="email"
-                    defaultValue="info@guangzhouswiftlogistics.com"
+                    defaultValue="info@cascadelogistics.co"
                     className="h-12"
                   />
                 </div>
@@ -84,7 +88,7 @@ export default function AdminSettingsSection() {
                   </label>
                   <Input
                     type="tel"
-                    defaultValue="+86 132 605 43058"
+                    defaultValue="+233 24 189 3393"
                     className="h-12"
                   />
                 </div>
@@ -94,7 +98,7 @@ export default function AdminSettingsSection() {
                     Timezone
                   </label>
                   <select className="w-full h-12 px-4 border border-gray-300 rounded-md">
-                    <option>GMT+8 (Guangzhou)</option>
+                    <option>GMT</option>
                     {/* <option>GMT+0 (London)</option>
                     <option>GMT-5 (New York)</option> */}
                   </select>
@@ -105,7 +109,7 @@ export default function AdminSettingsSection() {
                     Company Address
                   </label>
                   <Textarea
-                    defaultValue="123 Guangzhou, China"
+                    defaultValue="No. 25 Sir Arku Korsah Road"
                     className="min-h-[100px]"
                   />
                 </div>
@@ -124,7 +128,7 @@ export default function AdminSettingsSection() {
           )}
 
           {/* Email Settings */}
-          {activeTab === "email" && (
+          {/* {activeTab === "email" && (
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-gray-800">Email Configuration</h3>
               
@@ -184,10 +188,10 @@ export default function AdminSettingsSection() {
                 </Button>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Notifications Settings */}
-          {activeTab === "notifications" && (
+          {/* {activeTab === "notifications" && (
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-gray-800">Notification Preferences</h3>
               
@@ -247,10 +251,10 @@ export default function AdminSettingsSection() {
                 </Button>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Security Settings */}
-          {activeTab === "security" && (
+          {/* {activeTab === "security" && (
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-gray-800">Security Settings</h3>
               
@@ -312,10 +316,10 @@ export default function AdminSettingsSection() {
                 </Button>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Pricing Settings */}
-          {activeTab === "pricing" && (
+          {/* {activeTab === "pricing" && (
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-gray-800">Service Pricing</h3>
               
@@ -353,10 +357,10 @@ export default function AdminSettingsSection() {
                 </Button>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Shipping Settings */}
-          {activeTab === "shipping" && (
+          {/* {activeTab === "shipping" && (
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-gray-800">Shipping Configuration</h3>
               
@@ -416,7 +420,7 @@ export default function AdminSettingsSection() {
                 </Button>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

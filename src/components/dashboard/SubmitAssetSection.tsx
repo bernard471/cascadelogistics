@@ -298,7 +298,8 @@ export default function SubmitAssetSection() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dimensions (L x W x H cm) {formData.serviceType === 'overnight' && <span className="text-red-500">*</span>}
+                Dimensions (L x W x H cm) 
+                {/* {formData.serviceType === 'overnight' && <span className="text-red-500">*</span>} */}
               </label>
               <Input
                 type="text"
@@ -307,13 +308,13 @@ export default function SubmitAssetSection() {
                 onChange={handleInputChange}
                 placeholder="e.g., 30 x 20 x 15"
                 className="h-12"
-                required={formData.serviceType === 'overnight'}
+                // required={formData.serviceType === 'overnight'}
               />
-              {formData.serviceType === 'overnight' && (
+              {/* {formData.serviceType === 'overnight' && (
                 <p className="text-xs text-gray-500 mt-1">
                   Required for sea shipping. Each CBM has a max weight of 500kg.
                 </p>
-              )}
+              )} */}
             </div>
 
             <div>
@@ -382,14 +383,14 @@ export default function SubmitAssetSection() {
                 className="w-full h-12 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
                 required
               >
-                <option value="standard">Air Shipping (7-10 days)</option>
-                <option value="overnight">Sea Shipping (35-45 days)</option>
+                <option value="standard">Air Shipping</option>
+                <option value="overnight">Sea Shipping</option>
               </select>
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Pickup Date *
+                Preferred Pickup Date
               </label>
               <Input
                 type="date"
@@ -397,9 +398,8 @@ export default function SubmitAssetSection() {
                 value={formData.pickupDate}
                 onChange={handleInputChange}
                 className="h-12"
-                required
               />
-            </div>
+            </div> */}
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">

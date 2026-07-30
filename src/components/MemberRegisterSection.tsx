@@ -593,10 +593,12 @@ export default function MemberRegisterSection() {
                   ) : (
                     <div className="flex flex-wrap items-center gap-4">
                       <Button type="button" onClick={startCamera}><Camera className="mr-2 h-4 w-4" />Open camera</Button>
+                      {/*
                       <label className="inline-flex cursor-pointer items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-50">
                         <Upload className="mr-2 h-4 w-4" />Upload instead
                         <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setFile("selfie", e.target.files?.[0])} />
                       </label>
+                      */}
                       {files.selfie && <SelfiePreview file={files.selfie} />}
                     </div>
                   )}
