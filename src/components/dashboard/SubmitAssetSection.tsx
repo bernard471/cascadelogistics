@@ -524,9 +524,9 @@ export default function SubmitAssetSection() {
               <div className="font-semibold text-gray-800">
                 {getServiceDisplay().label}
               </div>
-              <div className="text-xs text-gray-500">
+              {/* <div className="text-xs text-gray-500">
                 {getServiceDisplay().description}
-              </div>
+              </div> */}
             </div>
             
             <div className="bg-white rounded-lg p-4 border border-gray-200">

@@ -476,7 +476,7 @@ export default function MemberRegisterSection() {
                   <input type="checkbox" className="mt-1 h-4 w-4" checked={form.termsAccepted} onChange={(e) => setField("termsAccepted", e.target.checked)} />
                   <span>
                     I agree to the <Link className="font-semibold text-[#315694] underline" href="/terms">Terms</Link> and{" "}
-                    <Link className="font-semibold text-[#315694] underline" href="/privacy">Privacy Policy</Link>.
+                    <Link className="font-semibold text-[#315694] underline" href="/terms">Conditions</Link>.
                   </span>
                 </label>
                 {fieldError("termsAccepted")}

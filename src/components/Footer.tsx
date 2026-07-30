@@ -167,7 +167,7 @@ export default function Footer() {
               <div>
                 <h3 className="text-2xl font-bold text-white mb-4">Cascade Logistics Limited</h3>
                 <p className="text-gray-400 leading-relaxed">
-                  Connecting Possibilities, Delivering Excellence. Your trusted partner for seamless global shipping to Ghana globally.
+                  GLOBALLY CONNECTING YOU. Your trusted partner for seamless global shipping to Ghana globally.
                 </p>
               </div>
             </div>
@@ -247,7 +247,7 @@ export default function Footer() {
               © 2025 Cascade Logistics Limited. All Rights Reserved.
             </p>
             <p className="text-gray-400 text-sm">
-              <span className="text-[#f7941d]">Connecting Possibilities, Delivering Excellence</span>
+              <span className="text-[#f7941d]">GLOBALLY CONNECTING YOU</span>
             </p>
           </div>
         </div>

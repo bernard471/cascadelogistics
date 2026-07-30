@@ -37,19 +37,19 @@ export default function HeroSection() {
         { label: "On-Time Rate", value: "100%", icon: Shield }
       ]
     },
-    // {
-    //   id: 3,
-    //   background: "/hero/hero3.jpg",
-    //   badge: "USA Shipping",
-    //   title: "Twice Weekly Service",
-    //   subtitle: "Shipments Every Thu & Sun",
-    //   description: "Now shipping twice a week from USA to Ghana! Shipments every Thursday & Sunday, pickups in Ghana every Tuesday & Friday. Guaranteed pickup within 1 week.",
-    //   stats: [
-    //     { label: "USA Routes", value: "2x", icon: Ship },
-    //     { label: "Pickup Time", value: "1 Week", icon: Shield },
-    //     { label: "Transparent", value: "100%", icon: TrendingUp }
-    //   ]
-    // }
+    {
+      id: 3,
+      background: "/hero/hero3.jpg",
+      badge: "USA Shipping Service",
+      title: "Ship from USA to Ghana in 3 days",
+      subtitle: "Shipments from USA weekly",
+      description: "Buy from USA stores and we ship directly to you in Ghana. Let us handle your purchases and shipping needs.",
+      stats: [
+        { label: "USA Routes", value: "2x", icon: Ship },
+        { label: "Pickup Time", value: "1 Week", icon: Shield },
+        { label: "Transparent", value: "100%", icon: TrendingUp }
+      ]
+    }
   ];
 
   const nextSlide = () => {

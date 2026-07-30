@@ -181,7 +181,7 @@ export default function AboutPageSectionOne() {
                     : 'transform translate-y-2 opacity-0'
                   }`}
               >
-                <div className="text-[#315694] font-bold">Connecting Possibilities, Delivering Excellence</div>
+                <div className="text-[#315694] font-bold">GLOBALLY CONNECTING YOU</div>
                 <div className="text-sm text-gray-600">Your trusted shipping partner</div>
               </div>
             </div>
@@ -361,7 +361,7 @@ export default function AboutPageSectionOne() {
                     }`}
                 >
                   <h6 className="text-lg font-semibold leading-snug">
-                    Connecting Possibilities, Delivering Excellence
+                    GLOBALLY CONNECTING YOU
                   </h6>
                   <p className="text-sm opacity-80 mt-1">/  Cascade Logistics Limited</p>
                 </div>
@@ -398,7 +398,7 @@ export default function AboutPageSectionOne() {
                   }`}
               >
                 <h6 className="text-base font-semibold leading-snug">
-                  Connecting Possibilities, Delivering Excellence
+                  GLOBALLY CONNECTING YOU
                 </h6>
                 <p className="text-xs opacity-80 mt-1">/  Cascade Logistics Limited</p>
               </div>

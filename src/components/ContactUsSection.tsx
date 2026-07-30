@@ -207,15 +207,15 @@ export default function ContactUsSection() {
               </div>
               <div className="space-y-2 text-white/90">
                 <div className="flex justify-between">
-                  <span>Monday - Saturday</span>
-                  <span className="font-semibold">8:00 AM - 6:00 PM</span>
+                  <span>Monday - Friday</span>
+                  <span className="font-semibold">8:00 AM - 5:00 PM</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Sunday</span>
+                  <span>Saturday - Sunday</span>
                   <span className="font-semibold">Closed</span>
                 </div>
                 <div className="pt-3 mt-3 border-t border-white/20">
-                  <p className="text-sm">Get in Touch: 24/7 Mon - Sat</p>
+                  <p className="text-sm">Get in Touch: 24/7 Mon - Fri</p>
                 </div>
               </div>
             </div>
@@ -368,7 +368,7 @@ export default function ContactUsSection() {
             {/* Additional Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
               {[
-                { icon: Clock, title: "Response Time", value: "Within 2 Hours", color: "from-[#315694] to-[#262262]" },
+                { icon: Clock, title: "Quick Response", value: "Always", color: "from-[#315694] to-[#262262]" },
                 { icon: CheckCircle2, title: "Support", value: "24/7 Available", color: "from-[#f7941d] to-[#e6851a]" },
                 { icon: MapPin, title: "Location", value: "Accra, Ghana", color: "from-[#315694] to-[#262262]" }
               ].map((info, index) => {

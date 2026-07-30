@@ -135,15 +135,15 @@ export default function FAQContactSection() {
               </div>
               <div className="space-y-2 text-gray-300">
                 <div className="flex justify-between">
-                  <span>Monday - Saturday</span>
-                  <span className="text-white font-semibold">8:00 AM - 6:00 PM</span>
+                  <span>Monday - Friday</span>
+                  <span className="text-white font-semibold">8:00 AM - 5:00 PM</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Sunday</span>
+                  <span>Saturday - Sunday</span>
                   <span className="text-white font-semibold">Closed</span>
                 </div>
                 <div className="pt-2 mt-2 border-t border-white/10">
-                  <p className="text-sm text-gray-400">Get in Touch: 24/7 Mon - Sat</p>
+                  <p className="text-sm text-gray-400">Get in Touch: 24/7 Mon - Fri</p>
                 </div>
               </div>
             </div>
@@ -192,9 +192,9 @@ export default function FAQContactSection() {
             {/* Trust Indicators */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { number: "4+", label: "Routes" },
+                { number: "Global", label: "Shipping" },
                 { number: "24/7", label: "Support" },
-                { number: "2hr", label: "Response" }
+                { number: "Quick", label: "Response" }
               ].map((stat, index) => (
                 <div
                   key={index}

@@ -76,7 +76,7 @@ export default function LogisticsServicesSection() {
       description: "Buy from USA stores and we ship directly to you in Ghana. Let us handle your purchases and shipping needs.",
       features: ["USA Shopping", "Direct Shipping", "Purchase Handling", "Convenient"],
       color: "from-indigo-500 to-indigo-600",
-      link: "/logistics-services/Door to Door",
+      link: "/logistics-services/proxy-buy",
       stats: { time: "Twice Weekly", price: "USA Routes" }
     },
     {
