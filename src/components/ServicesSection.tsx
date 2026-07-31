@@ -29,7 +29,7 @@ export default function ServicesSection() {
       image: "/logisticssection/seashipping.jpeg",
       icon: Ship,
       title: "Sea Shippment",
-      description: "Cost-effective sea freight from Turkey to Ghana. Receive your packages  with freight and custom clearance included.",
+      description: "Cost-effective sea freight globally to Ghana. Receive your packages  with freight and custom clearance included.",
       features: ["Globally to Ghana", "Full Service", "Custom Clearance"],
       color: "from-purple-500 to-purple-600",
       link: "/logistics-services/sea-cargo"

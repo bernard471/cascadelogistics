@@ -304,13 +304,13 @@ export default function SupportSection() {
 
                 <div className="space-y-3 mb-4">
                   <div>
-                    <p className="text-xs font-medium text-gray-500 mb-1">English Address:</p>
+                    <p className="text-xs font-medium text-gray-500 mb-1">USA Address:</p>
                     <p className="text-sm text-gray-800 leading-relaxed">{warehouse.english}</p>
                   </div>
-                  <div>
+                  {/* <div>
                     <p className="text-xs font-medium text-gray-500 mb-1">Chinese Address (中文地址):</p>
                     <p className="text-sm text-gray-800 leading-relaxed">{warehouse.chinese}</p>
-                  </div>
+                  </div> */}
                   <div>
                     <p className="text-xs font-medium text-gray-500 mb-1">Phone Number:</p>
                     <p className="text-sm text-gray-800 leading-relaxed">{warehouse.phoneNumber}</p>

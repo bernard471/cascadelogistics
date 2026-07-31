@@ -74,7 +74,7 @@ We offer comprehensive Door to Door services where you can shop from any USA sto
       <TopBanner />
       <Navigation />
       <BreadcrumbHero
-        title="Door to Dooroor Service"
+        title="Door to Door Service"
         crumbs={breadcrumbs}
       />
       <LogisticsServicesDetailedSection service={service} />
