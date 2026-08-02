@@ -255,6 +255,7 @@ export default function SupportSection() {
     {
       id: "air",
       type: "Air Shipping",
+      name: "Client Name(Cascade)",
       icon: Plane,
       iconColor: "text-blue-500 bg-blue-50",
       english: "3572 Lawson Blvd Oceanside NY 11572",
@@ -264,6 +265,7 @@ export default function SupportSection() {
     {
       id: "sea",
       type: "Sea Shipping",
+      name: "Client Name(Cascade)",
       icon: Ship,
       iconColor: "text-blue-500 bg-blue-50",
       english: "3572 Lawson Blvd Oceanside NY 11572",
@@ -304,6 +306,9 @@ export default function SupportSection() {
 
                 <div className="space-y-3 mb-4">
                   <div>
+                    <p className="text-xs font-medium text-gray-500 mb-1">{warehouse.name}</p>
+                  </div>
+                  <div>
                     <p className="text-xs font-medium text-gray-500 mb-1">USA Address:</p>
                     <p className="text-sm text-gray-800 leading-relaxed">{warehouse.english}</p>
                   </div>
@@ -311,10 +316,10 @@ export default function SupportSection() {
                     <p className="text-xs font-medium text-gray-500 mb-1">Chinese Address (中文地址):</p>
                     <p className="text-sm text-gray-800 leading-relaxed">{warehouse.chinese}</p>
                   </div> */}
-                  <div>
+                  {/* <div>
                     <p className="text-xs font-medium text-gray-500 mb-1">Phone Number:</p>
                     <p className="text-sm text-gray-800 leading-relaxed">{warehouse.phoneNumber}</p>
-                  </div>
+                  </div> */}
                 </div>
 
                 <Button
