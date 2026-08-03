@@ -25,9 +25,10 @@ export async function GET(request: Request) {
     const db = client.db("guangzhou");
     const usersCollection = db.collection<User>("users");
     const shipmentsCollection = db.collection("shipments");
+    const visibleUserRoles: User["role"][] = ["user", "admin", "staff"];
 
     // Build query
-    const query: MongoQuery = {};
+    const query: MongoQuery = { role: { $in: visibleUserRoles } };
     if (status && status !== "all") {
       query.status = status;
     }
@@ -64,20 +65,24 @@ export async function GET(request: Request) {
     );
 
     // Get total counts for stats
-    const total = await usersCollection.countDocuments({});
-    const active = await usersCollection.countDocuments({ status: 'active' });
-    const suspended = await usersCollection.countDocuments({ status: 'suspended' });
-    const pending = await usersCollection.countDocuments({ status: 'pending' });
+    const visibleUserFilter = { role: { $in: visibleUserRoles } };
+    const total = await usersCollection.countDocuments(visibleUserFilter);
+    const active = await usersCollection.countDocuments({ ...visibleUserFilter, status: 'active' });
+    const suspended = await usersCollection.countDocuments({ ...visibleUserFilter, status: 'suspended' });
+    const pending = await usersCollection.countDocuments({ ...visibleUserFilter, status: 'pending' });
 
-    return NextResponse.json({
-      users: usersWithShipments,
-      stats: {
-        total,
-        active,
-        suspended,
-        pending
-      }
-    });
+    return NextResponse.json(
+      {
+        users: usersWithShipments,
+        stats: {
+          total,
+          active,
+          suspended,
+          pending
+        }
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch (error) {
     console.error("GET users error:", error);
     return NextResponse.json(
@@ -98,6 +103,10 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { firstName, lastName, email, username, password, role, status, emailVerified, phone } = body;
+
+    if (role && !["user", "admin", "staff"].includes(role)) {
+      return NextResponse.json({ error: "Invalid user role" }, { status: 400 });
+    }
 
     const client = await clientPromise;
     const db = client.db("guangzhou");
@@ -265,4 +274,3 @@ Cascade Logistics Team
     );
   }
 }
-

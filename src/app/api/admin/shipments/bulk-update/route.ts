@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import type { Shipment } from "@/models/Shipment";
 import type { TimelineEvent } from "@/types";
 import { sendShipmentUpdateEmail } from "@/lib/email";
+import { getShipmentOperationBlock } from "@/lib/shipment-operations";
 
 // POST - Bulk update shipments (Admin/Staff only)
 export async function POST(request: Request) {
@@ -13,6 +14,18 @@ export async function POST(request: Request) {
     
     if (!session?.user || (session.user.role !== "admin" && session.user.role !== "staff")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const operationBlock = await getShipmentOperationBlock("update", session.user.role);
+    if (operationBlock) {
+      return NextResponse.json(
+        {
+          error: operationBlock.reason || "Shipment updates are temporarily paused",
+          code: "SHIPMENT_OPERATION_PAUSED",
+          ...operationBlock,
+        },
+        { status: 423 }
+      );
     }
 
     const body = await request.json();

@@ -41,7 +41,10 @@ export async function PATCH(
     const usersCollection = db.collection<User>("users");
 
     const result = await usersCollection.updateOne(
-      { _id: new ObjectId(id) as unknown as string },
+      {
+        _id: new ObjectId(id) as unknown as string,
+        role: { $ne: "super_admin" },
+      },
       { 
         $set: { 
           ...parsed.data,
@@ -86,15 +89,24 @@ export async function DELETE(
     const usersCollection = db.collection<User>("users");
 
     // Don't allow deleting admin users
-    const user = await usersCollection.findOne({ _id: new ObjectId(id) as unknown as string });
-    if (user?.role === 'admin') {
+    const user = await usersCollection.findOne({
+      _id: new ObjectId(id) as unknown as string,
+      role: { $ne: "super_admin" },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    if (user.role === 'admin') {
       return NextResponse.json(
         { error: "Cannot delete admin users" },
         { status: 403 }
       );
     }
 
-    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) as unknown as string });
+    const result = await usersCollection.deleteOne({
+      _id: new ObjectId(id) as unknown as string,
+      role: { $ne: "super_admin" },
+    });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

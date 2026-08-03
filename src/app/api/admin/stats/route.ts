@@ -16,6 +16,7 @@ export async function GET() {
     const db = client.db("guangzhou");
     const shipmentsCollection = db.collection("shipments");
     const usersCollection = db.collection("users");
+    const visibleUserRoles = ["user", "admin", "staff"];
 
     // Get shipment stats
     const totalShipments = await shipmentsCollection.countDocuments({});
@@ -24,7 +25,9 @@ export async function GET() {
     });
 
     // Get user stats
-    const totalUsers = await usersCollection.countDocuments({});
+    const totalUsers = await usersCollection.countDocuments({
+      role: { $in: visibleUserRoles },
+    });
 
     // Calculate total revenue (sum of all completed/delivered shipments)
     const revenueData = await shipmentsCollection.aggregate([
@@ -128,7 +131,7 @@ export async function GET() {
       .toArray();
 
     const recentUsers = await usersCollection
-      .find({})
+      .find({ role: { $in: visibleUserRoles } })
       .sort({ createdAt: -1 })
       .limit(2)
       .toArray();
@@ -161,6 +164,7 @@ export async function GET() {
         action: `New user registered: ${user.firstName} ${user.lastName}`,
         time: timeAgo,
         type: 'user',
+        subjectRole: user.role,
         createdAt: user.createdAt
       });
     });
@@ -170,18 +174,21 @@ export async function GET() {
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    return NextResponse.json({
-      stats: {
-        totalRevenue,
-        totalUsers,
-        totalShipments,
-        activeShipments
+    return NextResponse.json(
+      {
+        stats: {
+          totalRevenue,
+          totalUsers,
+          totalShipments,
+          activeShipments
+        },
+        monthlyRevenue,
+        shipmentStatusData,
+        topRoutes,
+        recentActivities: recentActivities.slice(0, 4)
       },
-      monthlyRevenue,
-      shipmentStatusData,
-      topRoutes,
-      recentActivities: recentActivities.slice(0, 4)
-    });
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch (error) {
     console.error("GET admin stats error:", error);
     return NextResponse.json(
@@ -190,4 +197,3 @@ export async function GET() {
     );
   }
 }
-

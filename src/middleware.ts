@@ -8,8 +8,9 @@ export function middleware(request: NextRequest) {
   // Check if accessing protected routes
   const isUserDashboard = pathname.startsWith("/user-dashboard");
   const isAdminDashboard = pathname.startsWith("/admin-dashboard");
+  const isBackupDashboard = pathname.startsWith("/backup-dashboard");
   
-  if (isUserDashboard || isAdminDashboard) {
+  if (isUserDashboard || isAdminDashboard || isBackupDashboard) {
     // Check if user has session token
     const sessionToken = request.cookies.get("authjs.session-token") || 
                          request.cookies.get("__Secure-authjs.session-token");
@@ -26,6 +27,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/user-dashboard/:path*", "/admin-dashboard/:path*"],
+  matcher: ["/user-dashboard/:path*", "/admin-dashboard/:path*", "/backup-dashboard/:path*"],
 };
-

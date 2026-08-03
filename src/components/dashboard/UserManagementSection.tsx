@@ -42,12 +42,16 @@ export default function UserManagementSection() {
         search: searchQuery
       });
       
-      const response = await fetch(`/api/admin/users?${params}`);
+      const response = await fetch(`/api/admin/users?${params}`, { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
+        const visibleUsers = (data.users as UserType[]).filter(
+          (user): user is UserType & { _id: string } =>
+            user.role !== "super_admin" && Boolean(user._id)
+        );
         
         // Map users to component format
-        const mappedUsers: MappedUser[] = data.users.map((user: UserType) => ({
+        const mappedUsers: MappedUser[] = visibleUsers.map((user) => ({
           id: user._id,
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
@@ -405,5 +409,3 @@ export default function UserManagementSection() {
     </div>
   );
 }
-
-

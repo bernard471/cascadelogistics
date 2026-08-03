@@ -72,7 +72,9 @@ export default function MemberLoginSection() {
         
         // Redirect based on role
         const callbackUrl = searchParams.get("callbackUrl");
-        if (callbackUrl?.startsWith("/")) {
+        if (session?.user?.role === "super_admin") {
+          router.push("/backup-dashboard");
+        } else if (callbackUrl?.startsWith("/")) {
           router.push(callbackUrl);
         } else if (session?.user?.role === "admin" || session?.user?.role === "staff") {
           router.push("/admin-dashboard");

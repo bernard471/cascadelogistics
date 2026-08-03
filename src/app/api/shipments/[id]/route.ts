@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import { z } from "zod";
 import type { Shipment } from "@/models/Shipment";
 import { calculateShippingPrice } from "@/lib/pricing";
+import { getShipmentOperationBlock } from "@/lib/shipment-operations";
 
 const customerShipmentUpdateSchema = z.object({
   receiverName: z.string().trim().min(2).max(120),
@@ -73,6 +74,18 @@ export async function PUT(
     
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const operationBlock = await getShipmentOperationBlock("update", session.user.role);
+    if (operationBlock) {
+      return NextResponse.json(
+        {
+          error: operationBlock.reason || "Shipment updates are temporarily paused",
+          code: "SHIPMENT_OPERATION_PAUSED",
+          ...operationBlock,
+        },
+        { status: 423 }
+      );
     }
 
     const { id } = await params;

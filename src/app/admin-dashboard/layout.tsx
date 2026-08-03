@@ -10,10 +10,13 @@ export default async function ProtectedAdminLayout({
     redirect("/member-login?callbackUrl=/admin-dashboard");
   }
 
+  if (session.user.role === "super_admin") {
+    redirect("/backup-dashboard");
+  }
+
   if (!["admin", "staff"].includes(session.user.role)) {
     redirect("/forbidden");
   }
 
   return children;
 }
-

@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { MongoQuery } from "@/types";
 import { sendAdminShipmentCreatedNotification } from "@/lib/email";
+import { getShipmentOperationBlock } from "@/lib/shipment-operations";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -79,6 +80,18 @@ export async function POST(request: Request) {
     
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const operationBlock = await getShipmentOperationBlock("submit", session.user.role);
+    if (operationBlock) {
+      return NextResponse.json(
+        {
+          error: operationBlock.reason || "Shipment submissions are temporarily paused",
+          code: "SHIPMENT_OPERATION_PAUSED",
+          ...operationBlock,
+        },
+        { status: 423 }
+      );
     }
 
     const contentType = request.headers.get("content-type") || "";

@@ -10,10 +10,13 @@ export default async function ProtectedUserLayout({
     redirect("/member-login?callbackUrl=/user-dashboard");
   }
 
+  if (session.user.role === "super_admin") {
+    redirect("/backup-dashboard");
+  }
+
   if (session.user.role !== "user") {
     redirect("/admin-dashboard");
   }
 
   return children;
 }
-

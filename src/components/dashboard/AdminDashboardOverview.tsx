@@ -23,10 +23,15 @@ export default function AdminDashboardOverview() {
     async function fetchAdminStats() {
       setIsLoading(true);
       try {
-        const response = await fetch("/api/admin/stats");
+        const response = await fetch("/api/admin/stats", { cache: "no-store" });
         if (response.ok) {
           const data = await response.json();
-          setDashboardData(data);
+          setDashboardData({
+            ...data,
+            recentActivities: (data.recentActivities || []).filter(
+              (activity: Activity) => activity.subjectRole !== "super_admin"
+            ),
+          });
         }
       } catch (error) {
         console.error("Failed to fetch admin stats:", error);
@@ -333,4 +338,3 @@ export default function AdminDashboardOverview() {
     </div>
   );
 }
-

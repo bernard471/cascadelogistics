@@ -14,7 +14,7 @@ export interface User {
   addressLine2?: string;
   digitalAddress?: string;
   bio?: string;
-  role: 'user' | 'admin' | 'staff';
+  role: 'user' | 'admin' | 'staff' | 'super_admin';
   status: 'active' | 'suspended' | 'pending';
   createdAt: Date;
   updatedAt: Date;
@@ -39,5 +39,5 @@ export interface UserSession {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'admin' | 'staff';
+  role: 'user' | 'admin' | 'staff' | 'super_admin';
 }

@@ -22,8 +22,8 @@ export async function GET(request: Request) {
 
     // Get total counts
     const totalShipments = await shipmentsCollection.countDocuments({});
-    const totalUsers = await usersCollection.countDocuments({});
-    const activeUsers = await usersCollection.countDocuments({ status: 'active' });
+    const totalUsers = await usersCollection.countDocuments({ role: { $ne: "super_admin" } });
+    const activeUsers = await usersCollection.countDocuments({ status: 'active', role: { $ne: "super_admin" } });
 
     // Calculate revenue trends (last N months)
     const monthlyData = [];
@@ -70,6 +70,7 @@ export async function GET(request: Request) {
       const nextMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i + 1, 1);
       
       const newCustomers = await usersCollection.countDocuments({
+        role: { $ne: "super_admin" },
         createdAt: {
           $gte: monthDate,
           $lt: nextMonthDate
@@ -77,6 +78,7 @@ export async function GET(request: Request) {
       });
       
       const activeCustomers = await usersCollection.countDocuments({
+        role: { $ne: "super_admin" },
         createdAt: { $lte: nextMonthDate },
         status: 'active'
       });
@@ -157,4 +159,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

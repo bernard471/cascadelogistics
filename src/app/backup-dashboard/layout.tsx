@@ -1,0 +1,25 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+
+export const metadata: Metadata = {
+  title: "Backup Dashboard",
+  robots: { index: false, follow: false },
+};
+
+export default async function BackupDashboardLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/member-login?callbackUrl=/backup-dashboard");
+  }
+
+  if (session.user.role !== "super_admin") {
+    redirect("/forbidden");
+  }
+
+  return children;
+}
+

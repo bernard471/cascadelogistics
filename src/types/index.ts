@@ -20,7 +20,7 @@ export interface User {
   country?: string;
   postalCode?: string;
   bio?: string;
-  role: 'user' | 'admin' | 'staff';
+  role: 'user' | 'admin' | 'staff' | 'super_admin';
   status: 'active' | 'suspended' | 'pending';
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -350,6 +350,7 @@ export interface Activity {
   action: string;
   time: string;
   type: string;
+  subjectRole?: 'user' | 'admin' | 'staff' | 'super_admin';
   createdAt: Date | string;
 }
 
