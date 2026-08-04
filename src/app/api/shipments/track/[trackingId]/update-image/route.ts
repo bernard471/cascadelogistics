@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
 import { get } from "@vercel/blob";
+import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import type { Shipment } from "@/models/Shipment";
 
-// Streams a private tracking-update image after confirming it belongs to the
-// shipment identified by the public tracking ID.
+// Streams a private tracking-update image only to operational staff or the
+// user who owns the shipment.
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ trackingId: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { trackingId } = await params;
     const indexValue = new URL(request.url).searchParams.get("index");
     const imageIndex = Number(indexValue);
@@ -23,6 +29,20 @@ export async function GET(
       .db("guangzhou")
       .collection<Shipment>("shipments")
       .findOne({ trackingId: trackingId.trim() });
+
+    if (!shipment) {
+      return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
+    }
+
+    const canViewAnyShipment = ["admin", "staff", "super_admin"].includes(
+      session.user.role
+    );
+    const ownsShipment = shipment.userId === session.user.id;
+
+    if (!canViewAnyShipment && !ownsShipment) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const timeline = Array.isArray(shipment?.timeline) ? shipment.timeline : [];
     const imageUrl = timeline[imageIndex]?.imageUrl;
 
@@ -51,4 +71,3 @@ export async function GET(
     );
   }
 }
-

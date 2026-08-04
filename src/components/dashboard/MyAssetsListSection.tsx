@@ -460,7 +460,8 @@ export default function MyAssetsListSection() {
             servicePrice: selectedAsset.servicePrice,
             documents: selectedAsset.documents,
             wholesalePurchases: selectedAsset.wholesalePurchases,
-            deltaNumber: selectedAsset.deltaNumber
+            deltaNumber: selectedAsset.deltaNumber,
+            timeline: selectedAsset.timeline
           }}
           onClose={() => {
             setShowViewModal(false);
@@ -500,4 +501,3 @@ export default function MyAssetsListSection() {
     </div>
   );
 }
-

@@ -35,6 +35,7 @@ interface MappedShipment {
     trackingNumber: string;
   }>;
   deltaNumber?: string;
+  timeline?: Shipment["timeline"];
 }
 
 export default function ShipmentManagementSection() {
@@ -106,7 +107,8 @@ export default function ShipmentManagementSection() {
           servicePrice: shipment.servicePrice,
           documents: shipment.documents,
           wholesalePurchases: shipment.wholesalePurchases,
-          deltaNumber: shipment.deltaNumber
+          deltaNumber: shipment.deltaNumber,
+          timeline: shipment.timeline
           };
         });
         
@@ -542,5 +544,3 @@ export default function ShipmentManagementSection() {
     </div>
   );
 }
-
-

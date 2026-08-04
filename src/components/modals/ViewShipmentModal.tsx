@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Package, MapPin, User, Truck, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Package, MapPin, User, Truck, Upload, Image as ImageIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ShipmentDocument } from "@/types";
+import { ShipmentDocument, TimelineEvent } from "@/types";
 
 // Mapped shipment type for modal use
 interface MappedShipment {
@@ -27,6 +27,7 @@ interface MappedShipment {
     trackingNumber: string;
   }>;
   deltaNumber?: string;
+  timeline?: TimelineEvent[];
 }
 
 interface ViewShipmentModalProps {
@@ -41,6 +42,22 @@ function isImageDocument(doc: ShipmentDocument | string): boolean {
   }
   const mimeType = doc.type || "";
   return mimeType.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(doc.name);
+}
+
+function getTimelineImageUrl(
+  trackingId: string,
+  event: TimelineEvent,
+  index: number
+): string | null {
+  if (!event.imageUrl) return null;
+
+  // Private Blob URLs cannot be loaded directly by the browser. The proxy
+  // retrieves them server-side while keeping legacy public/data URLs working.
+  if (event.imageUrl.includes(".private.blob.vercel-storage.com/")) {
+    return `/api/shipments/track/${encodeURIComponent(trackingId)}/update-image?index=${index}`;
+  }
+
+  return event.imageUrl;
 }
 
 export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentModalProps) {
@@ -251,6 +268,66 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             </div>
           </div>
 
+          {/* Shipment Updates */}
+          {shipment.timeline && shipment.timeline.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="w-5 h-5 text-[#055b8e]" />
+                <h3 className="font-bold text-gray-800">Shipment Updates</h3>
+              </div>
+              <div className="space-y-4">
+                {shipment.timeline.map((event, index) => {
+                  const imageUrl = getTimelineImageUrl(shipment.id, event, index);
+                  const eventDate = new Date(event.date);
+                  const formattedDate = Number.isNaN(eventDate.getTime())
+                    ? String(event.date)
+                    : eventDate.toLocaleDateString();
+
+                  return (
+                    <div
+                      key={`${event.status}-${String(event.date)}-${index}`}
+                      className="rounded-lg border border-gray-200 bg-white p-4"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-800">{event.status}</p>
+                          <p className="mt-1 flex items-center gap-1 text-sm text-gray-600">
+                            <MapPin className="h-4 w-4" />
+                            {event.location || "Location not provided"}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {formattedDate}{event.time ? ` at ${event.time}` : ""}
+                        </p>
+                      </div>
+
+                      {imageUrl && (
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            className="block overflow-hidden rounded-lg border border-gray-200 bg-gray-100 text-left"
+                            onClick={() => setViewingImage(imageUrl)}
+                            aria-label={`View ${event.imageName || "shipment update image"}`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={imageUrl}
+                              alt={event.imageName || `${event.status} update`}
+                              className="h-40 w-full max-w-sm object-cover transition-opacity hover:opacity-90"
+                            />
+                          </button>
+                          {event.imageName && (
+                            <p className="mt-2 text-xs text-gray-500">{event.imageName}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Documents */}
           {shipment.documents && shipment.documents.length > 0 && (
             <div className="bg-gray-50 rounded-lg p-4">
@@ -395,4 +472,3 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
     </div>
   );
 }
-
