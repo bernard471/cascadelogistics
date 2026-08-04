@@ -137,7 +137,10 @@ export async function PATCH(
           `shipment-updates/${shipment.trackingId}/${Date.now()}-${imageFile.name}`,
           imageBuffer,
           {
-            access: 'public',
+            // The connected Vercel Blob store is private. Images are served
+            // through the tracking image route, which verifies the shipment
+            // before streaming the blob to the browser.
+            access: 'private',
             contentType: imageFile.type,
           }
         );

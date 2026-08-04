@@ -101,13 +101,17 @@ export async function GET(
     }
 
     // Serialize timeline dates properly for JSON response
-    const serializedTimeline = timeline.map((event) => ({
+    const serializedTimeline = timeline.map((event, index) => ({
       status: event.status,
       location: event.location,
       date: event.date instanceof Date ? event.date.toISOString() : event.date,
       time: event.time,
       completed: event.completed,
-      imageUrl: event.imageUrl,
+      // Never expose a private Blob URL. The delivery route confirms that the
+      // image belongs to this tracked shipment before it streams the file.
+      imageUrl: event.imageUrl
+        ? `/api/shipments/track/${encodeURIComponent(shipment.trackingId)}/update-image?index=${index}`
+        : undefined,
       imageName: event.imageName
     }));
 
