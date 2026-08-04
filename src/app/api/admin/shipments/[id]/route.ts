@@ -336,6 +336,44 @@ export async function PATCH(
       updateData.timeline = timeline as { status: string; location: string; date: Date; time: string; completed: boolean }[];
     }
 
+    // An image must be retained even when the status and location are unchanged.
+    // Previously the file was uploaded but its URL was discarded in that case.
+    if (imageUrl) {
+      const timeline: TimelineEvent[] = Array.isArray(updateData.timeline)
+        ? [...updateData.timeline] as TimelineEvent[]
+        : Array.isArray(shipment.timeline)
+          ? [...shipment.timeline]
+          : [];
+
+      const imageAlreadyAttached = timeline.some(
+        (event) => event.imageUrl === imageUrl
+      );
+
+      if (!imageAlreadyAttached) {
+        const now = new Date();
+        timeline.push({
+          status: "Shipment Update",
+          location: currentLocation || shipment.senderCity,
+          date: now,
+          time: now.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          completed: newStatus === "delivered",
+          imageUrl,
+          imageName,
+        });
+
+        timeline.sort((a: TimelineEvent, b: TimelineEvent) => {
+          const dateA = a.date instanceof Date ? a.date : new Date(a.date);
+          const dateB = b.date instanceof Date ? b.date : new Date(b.date);
+          return dateA.getTime() - dateB.getTime();
+        });
+
+        updateData.timeline = timeline as Shipment["timeline"];
+      }
+    }
+
     const result = await shipmentsCollection.updateOne(
       { _id: new ObjectId(id) as unknown as string },
       { 
