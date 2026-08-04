@@ -17,7 +17,7 @@ async function uploadDocumentToBlob(file: File, trackingId: string): Promise<Shi
   const blob = await put(
     `shipment-documents/${trackingId}/${Date.now()}-${file.name}`,
     buffer,
-    { access: "public", contentType: mimeType }
+    { access: "private", contentType: mimeType, addRandomSuffix: true }
   );
   return {
     name: file.name,

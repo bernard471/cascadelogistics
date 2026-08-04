@@ -51,8 +51,8 @@ export default function ViewInvoiceModal({ shipmentId, trackingId, onClose }: Vi
 
   const handleDownload = () => {
     if (invoice?.url) {
-      // Open in new tab to download
-      window.open(invoice.url, "_blank");
+      const separator = invoice.url.includes("?") ? "&" : "?";
+      window.open(`${invoice.url}${separator}download=1`, "_blank", "noopener,noreferrer");
     }
   };
 

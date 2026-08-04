@@ -342,7 +342,20 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                       ? { name: `Document ${index + 1}`, size: 0, type: "file", data: doc }
                       : doc;
                   const docWithUrl = normalized as ShipmentDocument & { url?: string };
-                  const documentUrl = (normalized.data && String(normalized.data).trim()) ? normalized.data : (docWithUrl.url && docWithUrl.url.trim()) ? docWithUrl.url : null;
+                  const storedDocumentUrl = (normalized.data && String(normalized.data).trim())
+                    ? normalized.data
+                    : (docWithUrl.url && docWithUrl.url.trim())
+                      ? docWithUrl.url
+                      : null;
+                  const isPrivateBlob = storedDocumentUrl?.includes(
+                    ".private.blob.vercel-storage.com/"
+                  );
+                  const documentUrl = isPrivateBlob && shipment._id
+                    ? `/api/shipments/${encodeURIComponent(shipment._id)}/documents/${index}`
+                    : storedDocumentUrl;
+                  const downloadUrl = documentUrl && isPrivateBlob
+                    ? `${documentUrl}?download=1`
+                    : documentUrl;
                   const isImage = isImageDocument(doc);
 
                   return (
@@ -389,7 +402,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                               className="w-full md:w-auto"
                               asChild
                             >
-                              <a href={documentUrl} download={normalized.name}>
+                              <a href={downloadUrl || documentUrl} download={normalized.name}>
                                 Download
                               </a>
                             </Button>

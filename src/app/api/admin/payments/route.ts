@@ -63,6 +63,9 @@ export async function GET(request: Request) {
         return {
           ...payment,
           _id: payment._id?.toString(),
+          proofImageUrl: payment.proofImageUrl.includes(".private.blob.vercel-storage.com/")
+            ? `/api/payments/${payment._id?.toString()}/image`
+            : payment.proofImageUrl,
           userName: user ? `${user.firstName} ${user.lastName}` : "Unknown",
           userEmail: user?.email || "Unknown",
         };

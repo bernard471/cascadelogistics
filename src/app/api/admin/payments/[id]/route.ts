@@ -39,6 +39,9 @@ export async function GET(
     return NextResponse.json({
       ...payment,
       _id: payment._id?.toString(),
+      proofImageUrl: payment.proofImageUrl.includes(".private.blob.vercel-storage.com/")
+        ? `/api/payments/${payment._id?.toString()}/image`
+        : payment.proofImageUrl,
     });
   } catch (error) {
     console.error("GET payment proof error:", error);
@@ -147,6 +150,9 @@ export async function PATCH(
       payment: {
         ...updatedPayment,
         _id: updatedPayment?._id?.toString(),
+        proofImageUrl: updatedPayment?.proofImageUrl.includes(".private.blob.vercel-storage.com/")
+          ? `/api/payments/${updatedPayment?._id?.toString()}/image`
+          : updatedPayment?.proofImageUrl,
       },
     });
   } catch (error) {

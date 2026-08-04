@@ -110,8 +110,9 @@ export async function POST(request: Request) {
       `payment-proofs/${session.user.id}/${trackingId}-${Date.now()}-${proofImage.name}`,
       imageBuffer,
       {
-        access: 'public',
+        access: 'private',
         contentType: proofImage.type,
+        addRandomSuffix: true,
       }
     );
 
@@ -205,6 +206,9 @@ export async function GET(request: Request) {
       payments: payments.map(p => ({
         ...p,
         _id: p._id?.toString(),
+        proofImageUrl: p.proofImageUrl.includes(".private.blob.vercel-storage.com/")
+          ? `/api/payments/${p._id?.toString()}/image`
+          : p.proofImageUrl,
       }))
     });
   } catch (error) {

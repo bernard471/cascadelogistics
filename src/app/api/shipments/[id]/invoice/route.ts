@@ -41,7 +41,12 @@ export async function GET(
     }
 
     return NextResponse.json({
-      invoice: shipment.invoice
+      invoice: {
+        ...shipment.invoice,
+        url: shipment.invoice.url.includes(".private.blob.vercel-storage.com/")
+          ? `/api/shipments/${encodeURIComponent(id)}/invoice/file`
+          : shipment.invoice.url,
+      }
     });
   } catch (error) {
     console.error("GET invoice error:", error);

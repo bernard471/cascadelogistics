@@ -75,8 +75,9 @@ export async function POST(request: Request) {
       `invoices/${shipment.trackingId}/${Date.now()}-${invoiceFile.name}`,
       invoiceBuffer,
       {
-        access: 'public',
+        access: 'private',
         contentType: 'application/pdf',
+        addRandomSuffix: true,
       }
     );
 

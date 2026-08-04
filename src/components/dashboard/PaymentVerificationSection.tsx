@@ -400,7 +400,7 @@ export default function PaymentVerificationSection() {
                 </div>
                 <div className="mt-2 flex justify-center">
                   <a
-                    href={selectedPayment.proofImageUrl}
+                    href={`${selectedPayment.proofImageUrl}${selectedPayment.proofImageUrl.includes('?') ? '&' : '?'}download=1`}
                     download={selectedPayment.proofImageName}
                     className="text-sm text-[#055b8e] hover:underline flex items-center gap-1"
                   >
@@ -498,4 +498,3 @@ export default function PaymentVerificationSection() {
     </div>
   );
 }
-
