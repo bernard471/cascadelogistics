@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 import type { User } from "@/models/User";
+import { getEmailFrom, getEmailTransporter } from "@/lib/email";
 
 // POST - Send password reset email
 export async function POST(request: Request) {
@@ -49,17 +49,7 @@ export async function POST(request: Request) {
 
     // Send password reset email using nodemailer
     try {
-      const emailUser = process.env.EMAIL_USER;
-      const emailPassword = process.env.EMAIL_PASSWORD;
-
-      if (emailUser && emailPassword) {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: emailUser,
-            pass: emailPassword,
-          },
-        });
+      const transporter = getEmailTransporter();
 
         const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
@@ -122,13 +112,12 @@ Cascade Logistics Team
         `;
 
         await transporter.sendMail({
-          from: emailUser,
+          from: getEmailFrom(),
           to: email,
           subject: "Reset Your Password - Cascade Logistics",
           text: textVersion,
           html: emailHtml,
         });
-      }
     } catch (emailError) {
       console.error("Error sending password reset email:", emailError);
       // Still return success to not reveal if email exists

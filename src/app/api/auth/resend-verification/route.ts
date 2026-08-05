@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 import type { User } from "@/models/User";
+import { getEmailFrom, getEmailTransporter } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -53,26 +53,7 @@ export async function POST(request: Request) {
       }
     );
 
-    // Get email credentials
-    const emailUser = process.env.EMAIL_USER;
-    const emailPassword = process.env.EMAIL_PASSWORD;
-
-    if (!emailUser || !emailPassword) {
-      console.error("Email credentials not configured");
-      return NextResponse.json(
-        { error: "Email service not configured" },
-        { status: 500 }
-      );
-    }
-
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: emailUser,
-        pass: emailPassword,
-      },
-    });
+    const transporter = getEmailTransporter();
 
     // Verification URL
     const verificationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
@@ -132,7 +113,7 @@ Cascade Logistics Team
 
     // Send email
     await transporter.sendMail({
-      from: emailUser,
+      from: getEmailFrom(),
       to: email,
       subject: "Verify Your Email - Cascade Logistics",
       text: textVersion,

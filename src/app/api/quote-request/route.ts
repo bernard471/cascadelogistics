@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import {
+  getAdminNotificationEmail,
+  getEmailFrom,
+  getEmailTransporter,
+} from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -29,26 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get email credentials from environment variables
-    const emailUser = process.env.EMAIL_USER;
-    const emailPassword = process.env.EMAIL_PASSWORD;
-
-    if (!emailUser || !emailPassword) {
-      console.error("Email credentials not configured");
-      return NextResponse.json(
-        { error: "Email service not configured" },
-        { status: 500 }
-      );
-    }
-
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: emailUser,
-        pass: emailPassword,
-      },
-    });
+    const transporter = getEmailTransporter();
 
     // Format email content
     const emailSubject = isTurkeyRoute 
@@ -162,8 +147,8 @@ Please respond to the customer at ${email}
 
     // Send email
     await transporter.sendMail({
-      from: emailUser,
-      to: emailUser, // Send to admin email (same as sender)
+      from: getEmailFrom(),
+      to: getAdminNotificationEmail(),
       replyTo: email,
       subject: emailSubject,
       text: textVersion,

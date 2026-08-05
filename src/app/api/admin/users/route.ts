@@ -4,8 +4,8 @@ import clientPromise from "@/lib/mongodb";
 import type { User } from "@/models/User";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 import { MongoQuery } from "@/types";
+import { getEmailFrom, getEmailTransporter } from "@/lib/email";
 
 // GET - Fetch all users (Admin only)
 export async function GET(request: Request) {
@@ -160,17 +160,8 @@ export async function POST(request: Request) {
     // Send verification email only if email is not verified
     if (!isEmailVerified) {
       try {
-        const emailUser = process.env.EMAIL_USER;
-        const emailPassword = process.env.EMAIL_PASSWORD;
-
-        if (emailUser && emailPassword && verificationToken) {
-          const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-              user: emailUser,
-              pass: emailPassword,
-            },
-          });
+        if (verificationToken) {
+          const transporter = getEmailTransporter();
 
           const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
           const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
@@ -244,7 +235,7 @@ Cascade Logistics Team
           `;
 
           await transporter.sendMail({
-            from: emailUser,
+            from: getEmailFrom(),
             to: email,
             subject: "Welcome to Cascade Logistics - Verify Your Email",
             text: textVersion,
