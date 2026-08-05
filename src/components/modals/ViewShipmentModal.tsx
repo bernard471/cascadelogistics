@@ -188,7 +188,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                 </span>
               </div> */}
             </div>
-            
+
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -392,7 +392,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 md:ml-auto">
+                      <div className="md:flex  items-center gap-2 md:ml-auto">
                         {documentUrl && (
                           <>
                             <Button
@@ -410,7 +410,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                               <Button
                                 type="button"
                                 size="sm"
-                                className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto"
+                                className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto mt-2 md:mt-0"
                                 onClick={() => setViewingImage(documentUrl)}
                               >
                                 View
@@ -420,7 +420,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                               <Button
                                 type="button"
                                 size="sm"
-                                className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto"
+                                className="bg-[#055b8e] text-white hover:bg-[#044a73] w-full md:w-auto mt-2 md:mt-0"
                                 asChild
                               >
                                 <a href={documentUrl} target="_blank" rel="noreferrer">
@@ -453,7 +453,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
 
       {/* Image View Modal */}
       {viewingImage && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"
           onClick={() => setViewingImage(null)}
         >
@@ -466,7 +466,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             >
               <X className="w-6 h-6 text-white" />
             </button>
-            
+
             {/* Image */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
