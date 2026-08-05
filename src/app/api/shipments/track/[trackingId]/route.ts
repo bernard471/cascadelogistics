@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-// import { auth } from "@/auth";
+import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import type { Shipment } from "@/models/Shipment";
 import type { TimelineEvent } from "@/types";
@@ -36,6 +36,13 @@ export async function GET(
     if (!shipment) {
       return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
     }
+
+    const session = await auth();
+    const canViewSensitiveDetails = Boolean(
+      session?.user &&
+        (shipment.userId === session.user.id ||
+          ["admin", "staff", "super_admin"].includes(session.user.role))
+    );
 
     // Auto-generate timeline events if missing based on current status
     const timeline: TimelineEvent[] = Array.isArray(shipment.timeline) ? [...shipment.timeline] : [];
@@ -136,7 +143,10 @@ export async function GET(
       packageType: shipment.packageType,
       weight: shipment.weight,
       serviceType: shipment.serviceType,
-      deltaNumber: shipment.deltaNumber
+      deltaNumber: shipment.deltaNumber,
+      specialInstructions: canViewSensitiveDetails
+        ? shipment.specialInstructions
+        : undefined
     };
 
     return NextResponse.json(publicData);

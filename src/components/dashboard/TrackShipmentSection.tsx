@@ -36,6 +36,7 @@ interface MappedTrackingData {
   service: string;
   timeline: MappedTimelineEvent[];
   deltaNumber?: string;
+  specialInstructions?: string;
 }
 
 export default function TrackShipmentSection() {
@@ -155,7 +156,8 @@ export default function TrackShipmentSection() {
                 data.serviceType === 'overnight' ? 'Overnight Delivery' :
                 'Economy Delivery',
         timeline: timelineWithIcons,
-        deltaNumber: data.deltaNumber
+        deltaNumber: data.deltaNumber,
+        specialInstructions: data.specialInstructions
       };
       
       setTrackingData(mappedTrackingData);
@@ -535,6 +537,15 @@ export default function TrackShipmentSection() {
           {/* Tracking Timeline */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-6">Tracking Timeline</h3>
+
+            {trackingData.specialInstructions && (
+              <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <h4 className="font-bold text-gray-800">Special Instructions</h4>
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm text-gray-700">
+                  {trackingData.specialInstructions}
+                </p>
+              </div>
+            )}
             
             {trackingData.timeline && trackingData.timeline.length > 0 ? (
               <div className="space-y-4">
