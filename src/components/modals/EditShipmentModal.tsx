@@ -23,6 +23,8 @@ interface MappedShipment {
   value: string;
   service: string;
   deltaNumber?: string;
+  currentLocation?: string;
+  specialInstructions?: string;
 }
 
 interface EditShipmentModalProps {
@@ -64,9 +66,9 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
 
   const [formData, setFormData] = useState({
     status: getStatusValue(),
-    currentLocation: "",
+    currentLocation: shipment.currentLocation || "",
     estimatedDelivery: normalizeEstimatedDelivery(shipment.estimatedDelivery),
-    specialInstructions: "",
+    specialInstructions: shipment.specialInstructions || "",
     deltaNumber: shipment.deltaNumber || ""
   });
   const [updateImage, setUpdateImage] = useState<File | null>(null);
@@ -127,16 +129,12 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("status", formData.status);
-      if (formData.currentLocation) {
-        formDataToSend.append("currentLocation", formData.currentLocation);
-      }
+      formDataToSend.append("currentLocation", formData.currentLocation);
       // Only send estimatedDelivery if it's a valid date string (not empty)
       if (formData.estimatedDelivery && formData.estimatedDelivery.trim() !== "") {
         formDataToSend.append("estimatedDelivery", formData.estimatedDelivery);
       }
-      if (formData.specialInstructions) {
-        formDataToSend.append("specialInstructions", formData.specialInstructions);
-      }
+      formDataToSend.append("specialInstructions", formData.specialInstructions);
       if (formData.deltaNumber !== undefined) {
         formDataToSend.append("deltaNumber", formData.deltaNumber);
       }
@@ -370,4 +368,3 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
     </div>
   );
 }
-

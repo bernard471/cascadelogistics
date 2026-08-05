@@ -461,7 +461,32 @@ export default function MyAssetsListSection() {
             documents: selectedAsset.documents,
             wholesalePurchases: selectedAsset.wholesalePurchases,
             deltaNumber: selectedAsset.deltaNumber,
-            timeline: selectedAsset.timeline
+            timeline: selectedAsset.timeline,
+            senderName: selectedAsset.senderName,
+            senderEmail: selectedAsset.senderEmail,
+            senderPhone: selectedAsset.senderPhone,
+            senderAddress: selectedAsset.senderAddress,
+            senderCity: selectedAsset.senderCity,
+            senderCountry: selectedAsset.senderCountry,
+            receiverName: selectedAsset.receiverName,
+            receiverEmail: selectedAsset.receiverEmail,
+            receiverPhone: selectedAsset.receiverPhone,
+            receiverAddress: selectedAsset.receiverAddress,
+            receiverCity: selectedAsset.receiverCity,
+            receiverCountry: selectedAsset.receiverCountry,
+            dimensions: selectedAsset.dimensions,
+            quantity: selectedAsset.quantity,
+            description: selectedAsset.description,
+            declaredValue: selectedAsset.declaredValue,
+            goodsType: selectedAsset.goodsType,
+            serviceType: selectedAsset.serviceType,
+            pickupDate: selectedAsset.pickupDate,
+            actualDelivery: selectedAsset.actualDelivery,
+            specialInstructions: selectedAsset.specialInstructions,
+            currentLocation: selectedAsset.currentLocation,
+            createdAt: selectedAsset.createdAt,
+            updatedAt: selectedAsset.updatedAt,
+            invoice: selectedAsset.invoice
           }}
           onClose={() => {
             setShowViewModal(false);

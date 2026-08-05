@@ -6,6 +6,7 @@ import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { MongoQuery } from "@/types";
 import { sendAdminShipmentCreatedNotification } from "@/lib/email";
 import { getShipmentOperationBlock } from "@/lib/shipment-operations";
+import { validateUploadedShipmentDocuments } from "@/lib/shipment-documents";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -122,7 +123,22 @@ export async function POST(request: Request) {
       body = await request.json();
 
       if (Array.isArray(body.documents)) {
-        uploadedDocuments = body.documents as ShipmentDocument[];
+        try {
+          uploadedDocuments = await validateUploadedShipmentDocuments(
+            body.documents,
+            session.user.id
+          );
+        } catch (uploadError) {
+          return NextResponse.json(
+            {
+              error:
+                uploadError instanceof Error
+                  ? uploadError.message
+                  : "Invalid uploaded documents",
+            },
+            { status: 400 }
+          );
+        }
       }
     }
 
@@ -191,7 +207,20 @@ export async function POST(request: Request) {
           location: 'USA Warehouse, USA',
           date: new Date(),
           time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          completed: true
+          completed: true,
+          details: [
+            `Package type: ${shipmentPayload.packageType}`,
+            `Quantity: ${shipmentPayload.quantity || 1}`,
+            ...(uploadedDocuments?.length
+              ? [`${uploadedDocuments.length} document${uploadedDocuments.length === 1 ? "" : "s"} attached`]
+              : []),
+            ...(shipmentPayload.specialInstructions
+              ? ["Special instructions provided"]
+              : []),
+            ...(shipmentPayload.wholesalePurchases?.length
+              ? [`${shipmentPayload.wholesalePurchases.length} wholesale tracking entr${shipmentPayload.wholesalePurchases.length === 1 ? "y" : "ies"} linked`]
+              : []),
+          ]
         }
       ],
       createdAt: new Date(),

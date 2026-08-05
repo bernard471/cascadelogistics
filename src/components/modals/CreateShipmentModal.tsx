@@ -11,6 +11,10 @@ import { User as UserType } from "@/types";
 import { calculateShippingPrice, 
   // getServiceInfo, 
   type GoodsType, type ServiceType } from "@/lib/pricing";
+import {
+  MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT,
+  uploadShipmentDocuments,
+} from "@/lib/shipment-document-upload";
 
 interface CreateShipmentModalProps {
   onClose: () => void;
@@ -67,6 +71,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [uploadProgress, setUploadProgress] = useState("");
   const [documents, setDocuments] = useState<File[]>([]);
   const documentInputRef = useRef<HTMLInputElement>(null);
   const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
@@ -104,6 +109,10 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     setDocuments(prev => {
       const existing = new Set(prev.map(file => `${file.name}-${file.size}`));
       const filtered = fileArray.filter(file => !existing.has(`${file.name}-${file.size}`));
+      if (prev.length + filtered.length > MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT) {
+        setError(`You can upload up to ${MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT} documents per shipment.`);
+        return prev;
+      }
       return filtered.length ? [...prev, ...filtered] : prev;
     });
   };
@@ -201,6 +210,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     setIsSaving(true);
     setError("");
     setSuccess("");
+    setUploadProgress("");
 
     // Validate user is selected
     if (!formData.userId) {
@@ -210,6 +220,12 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     }
 
     try {
+      const uploadedDocuments = await uploadShipmentDocuments(
+        documents,
+        "create",
+        (current, total, fileName) =>
+          setUploadProgress(`Uploading ${current} of ${total}: ${fileName}`)
+      );
       const payload = {
         ...formData,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
@@ -220,26 +236,26 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
         deltaNumber: formData.deltaNumber.trim() || undefined, // DELTA number (optional, admin/staff only)
         // Add wholesale purchases (only non-empty entries; name commented out in UI so may be empty)
         wholesalePurchases: wholesalePurchases.filter(p => p.trackingNumber.trim()),
+        documents: uploadedDocuments,
       };
-
-      const requestBody = new FormData();
-      requestBody.append("payload", JSON.stringify(payload));
-      documents.forEach(file => requestBody.append("documents", file));
 
       const response = await fetch("/api/admin/shipments", {
         method: "POST",
-        body: requestBody
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         setError(data.error || "Failed to create shipment");
+        setUploadProgress("");
         setIsSaving(false);
         return;
       }
 
       setSuccess(`Shipment created successfully! Tracking ID: ${data.trackingId}`);
+      setUploadProgress("");
       setIsSaving(false);
       setDocuments([]);
       setWholesalePurchases([]); // Reset wholesale purchases
@@ -255,7 +271,8 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
       
     } catch (error) {
       console.error("Create shipment error:", error);
-      setError("An error occurred while creating the shipment");
+      setError(error instanceof Error ? error.message : "An error occurred while creating the shipment");
+      setUploadProgress("");
       setIsSaving(false);
     }
   };
@@ -687,13 +704,15 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
             >
               <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
               <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-              <p className="text-xs text-gray-500">PDF, PNG, JPG up to 10MB</p>
+              <p className="text-xs text-gray-500">
+                Select multiple PDF, Word, PNG, JPG or WebP files · up to 10MB each · maximum {MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT}
+              </p>
               <input
                 ref={documentInputRef}
                 type="file"
                 className="hidden"
                 multiple
-                accept=".pdf,.png,.jpg,.jpeg"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
                 onChange={handleDocumentInputChange}
               />
             </div>
@@ -722,6 +741,9 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
                 ))}
               </div>
             )}
+            {uploadProgress && (
+              <p className="mt-3 text-sm font-medium text-[#055b8e]">{uploadProgress}</p>
+            )}
           </div>
 
           {/* Footer */}
@@ -742,7 +764,7 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
               style={{ borderRadius: "10px 0px 10px 0px" }}
             >
               <Save className="w-4 h-4" />
-              {isSaving ? "Creating..." : "Create Shipment"}
+              {isSaving ? uploadProgress || "Creating..." : "Create Shipment"}
             </Button>
           </div>
         </form>
@@ -750,4 +772,3 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     </div>
   );
 }
-

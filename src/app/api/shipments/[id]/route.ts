@@ -129,13 +129,86 @@ export async function PUT(
       existing.packageType
     );
 
+    const updateDetails: string[] = [];
+    const receiverChanged = [
+      "receiverName",
+      "receiverEmail",
+      "receiverPhone",
+      "receiverAddress",
+      "receiverCity",
+      "receiverCountry",
+    ].some(
+      (field) =>
+        String(data[field as keyof typeof data] || "") !==
+        String(existing[field as keyof Shipment] || "")
+    );
+    if (receiverChanged) updateDetails.push("Destination contact details updated");
+    if (data.description !== existing.description) {
+      updateDetails.push("Package description updated");
+    }
+    if ((data.dimensions || "") !== (existing.dimensions || "")) {
+      updateDetails.push("Package dimensions updated");
+    }
+    if (data.quantity !== existing.quantity) {
+      updateDetails.push(`Quantity updated to ${data.quantity}`);
+    }
+    if (data.declaredValue !== existing.declaredValue) {
+      updateDetails.push("Declared value updated");
+    }
+    if (data.goodsType !== existing.goodsType) {
+      updateDetails.push(`Goods type updated to ${data.goodsType}`);
+    }
+    if (data.serviceType !== existing.serviceType) {
+      updateDetails.push(`Service type updated to ${data.serviceType}`);
+    }
+    const previousPickupDate = existing.pickupDate
+      ? new Date(existing.pickupDate).toISOString().slice(0, 10)
+      : "";
+    const nextPickupDate = data.pickupDate
+      ? new Date(data.pickupDate).toISOString().slice(0, 10)
+      : "";
+    if (previousPickupDate !== nextPickupDate) {
+      updateDetails.push("Pickup date updated");
+    }
+    if (
+      (data.specialInstructions || "") !==
+      (existing.specialInstructions || "")
+    ) {
+      updateDetails.push(
+        data.specialInstructions
+          ? "Special instructions updated"
+          : "Special instructions cleared"
+      );
+    }
+
+    const now = new Date();
+    const timeline = Array.isArray(existing.timeline)
+      ? [...existing.timeline]
+      : [];
+    if (updateDetails.length > 0) {
+      timeline.push({
+        status: "Shipment Details Updated",
+        location:
+          existing.currentLocation ||
+          `${existing.senderCity}, ${existing.senderCountry}`,
+        date: now,
+        time: now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        completed: true,
+        details: updateDetails,
+      });
+    }
+
     const result = await shipmentsCollection.updateOne(
       { _id: new ObjectId(id) as unknown as string, userId: session.user.id },
       { 
         $set: { 
           ...data,
           servicePrice,
-          updatedAt: new Date() 
+          ...(updateDetails.length > 0 ? { timeline } : {}),
+          updatedAt: now
         } 
       }
     );

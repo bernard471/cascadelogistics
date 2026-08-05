@@ -36,6 +36,31 @@ interface MappedShipment {
   }>;
   deltaNumber?: string;
   timeline?: Shipment["timeline"];
+  senderName?: string;
+  senderEmail?: string;
+  senderPhone?: string;
+  senderAddress?: string;
+  senderCity?: string;
+  senderCountry?: string;
+  receiverName?: string;
+  receiverEmail?: string;
+  receiverPhone?: string;
+  receiverAddress?: string;
+  receiverCity?: string;
+  receiverCountry?: string;
+  dimensions?: string;
+  quantity?: number;
+  description?: string;
+  declaredValue?: number;
+  goodsType?: string;
+  serviceType?: string;
+  pickupDate?: Date | string;
+  actualDelivery?: Date | string;
+  specialInstructions?: string;
+  currentLocation?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  invoice?: Shipment["invoice"];
 }
 
 export default function ShipmentManagementSection() {
@@ -95,20 +120,45 @@ export default function ShipmentManagementSection() {
             status: statusInfo.display,
             statusValue: shipment.status, // Store actual status value
             statusColor: statusInfo.color,
-          date: new Date(shipment.createdAt).toISOString().split('T')[0],
-          estimatedDelivery: shipment.estimatedDelivery ?
-            new Date(shipment.estimatedDelivery).toISOString().split('T')[0] : '-',
-          packageType: shipment.packageType.charAt(0).toUpperCase() + shipment.packageType.slice(1),
-          weight: `${shipment.weight} kg`,
-          value: `$${shipment.declaredValue}`,
-          service: shipment.serviceType === 'express' ? 'Express' :
-                  shipment.serviceType === 'standard' ? 'Standard' :
-                  shipment.serviceType === 'overnight' ? 'Overnight' : 'Economy',
-          servicePrice: shipment.servicePrice,
-          documents: shipment.documents,
-          wholesalePurchases: shipment.wholesalePurchases,
-          deltaNumber: shipment.deltaNumber,
-          timeline: shipment.timeline
+            date: new Date(shipment.createdAt).toISOString().split('T')[0],
+            estimatedDelivery: shipment.estimatedDelivery ?
+              new Date(shipment.estimatedDelivery).toISOString().split('T')[0] : '-',
+            packageType: shipment.packageType.charAt(0).toUpperCase() + shipment.packageType.slice(1),
+            weight: `${shipment.weight} kg`,
+            value: `$${shipment.declaredValue}`,
+            service: shipment.serviceType === 'express' ? 'Express' :
+                    shipment.serviceType === 'standard' ? 'Standard' :
+                    shipment.serviceType === 'overnight' ? 'Overnight' : 'Economy',
+            servicePrice: shipment.servicePrice,
+            documents: shipment.documents,
+            wholesalePurchases: shipment.wholesalePurchases,
+            deltaNumber: shipment.deltaNumber,
+            timeline: shipment.timeline,
+            senderName: shipment.senderName,
+            senderEmail: shipment.senderEmail,
+            senderPhone: shipment.senderPhone,
+            senderAddress: shipment.senderAddress,
+            senderCity: shipment.senderCity,
+            senderCountry: shipment.senderCountry,
+            receiverName: shipment.receiverName,
+            receiverEmail: shipment.receiverEmail,
+            receiverPhone: shipment.receiverPhone,
+            receiverAddress: shipment.receiverAddress,
+            receiverCity: shipment.receiverCity,
+            receiverCountry: shipment.receiverCountry,
+            dimensions: shipment.dimensions,
+            quantity: shipment.quantity,
+            description: shipment.description,
+            declaredValue: shipment.declaredValue,
+            goodsType: shipment.goodsType,
+            serviceType: shipment.serviceType,
+            pickupDate: shipment.pickupDate,
+            actualDelivery: shipment.actualDelivery,
+            specialInstructions: shipment.specialInstructions,
+            currentLocation: shipment.currentLocation,
+            createdAt: shipment.createdAt,
+            updatedAt: shipment.updatedAt,
+            invoice: shipment.invoice
           };
         });
         

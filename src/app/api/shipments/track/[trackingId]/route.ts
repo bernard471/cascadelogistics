@@ -93,7 +93,7 @@ export async function GET(
         { _id: shipment._id },
         { 
           $set: { 
-            timeline: timeline as { status: string; location: string; date: Date; time: string; completed: boolean; imageUrl?: string; imageName?: string }[],
+            timeline: timeline as Shipment["timeline"],
             updatedAt: new Date() 
           } 
         }
@@ -112,7 +112,8 @@ export async function GET(
       imageUrl: event.imageUrl
         ? `/api/shipments/track/${encodeURIComponent(shipment.trackingId)}/update-image?index=${index}`
         : undefined,
-      imageName: event.imageName
+      imageName: event.imageName,
+      details: event.details
     }));
 
     // Return limited info for public tracking (don't expose sensitive data)

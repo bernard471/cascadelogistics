@@ -106,11 +106,11 @@ export async function PATCH(
       const deltaNumber = formData.get("deltaNumber");
       const imageFile = formData.get("updateImage") as File | null;
 
-      if (status && typeof status === 'string') body.status = status;
-      if (currentLocation && typeof currentLocation === 'string') body.currentLocation = currentLocation;
-      if (estimatedDelivery && typeof estimatedDelivery === 'string') body.estimatedDelivery = estimatedDelivery;
-      if (specialInstructions && typeof specialInstructions === 'string') body.specialInstructions = specialInstructions;
-      if (deltaNumber && typeof deltaNumber === 'string') body.deltaNumber = deltaNumber;
+      if (typeof status === 'string' && status) body.status = status;
+      if (typeof currentLocation === 'string') body.currentLocation = currentLocation;
+      if (typeof estimatedDelivery === 'string') body.estimatedDelivery = estimatedDelivery;
+      if (typeof specialInstructions === 'string') body.specialInstructions = specialInstructions;
+      if (typeof deltaNumber === 'string') body.deltaNumber = deltaNumber;
 
       // Handle image upload
       if (imageFile && imageFile.size > 0) {
@@ -158,223 +158,104 @@ export async function PATCH(
     };
     
     if (body.status) updateData.status = body.status as Shipment['status'];
-    if (body.currentLocation) updateData.currentLocation = body.currentLocation;
+    if (body.currentLocation !== undefined) {
+      updateData.currentLocation = body.currentLocation.trim();
+    }
     if (body.estimatedDelivery) {
       updateData.estimatedDelivery = new Date(body.estimatedDelivery);
     }
-    if (body.specialInstructions) updateData.specialInstructions = body.specialInstructions;
+    if (body.specialInstructions !== undefined) {
+      updateData.specialInstructions = body.specialInstructions.trim();
+    }
     if (body.deltaNumber !== undefined) {
       // Allow empty string to clear DELTA number, or set it if provided
       updateData.deltaNumber = body.deltaNumber.trim() || undefined;
     }
 
-    // Auto-generate timeline events based on status changes
     const oldStatus = shipment.status;
     const newStatus = (body.status as string) || shipment.status;
-    const currentLocation = (body.currentLocation as string) || shipment.currentLocation || shipment.senderCity;
-    
-    // If status changed, add timeline event
-    if (newStatus && newStatus !== oldStatus) {
-      const timeline: TimelineEvent[] = Array.isArray(shipment.timeline) ? [...shipment.timeline] : [];
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      
-      let timelineEvent: TimelineEvent | null = null;
-      
-      // Generate appropriate timeline event based on new status
-      switch (newStatus) {
-        case 'in-transit':
-          timelineEvent = {
-            status: 'In Transit',
-            location: currentLocation || shipment.senderCity,
-            date: now,
-            time: timeStr,
-            completed: true,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        case 'delivered':
-          timelineEvent = {
-            status: 'Delivered',
-            location: shipment.receiverCity || currentLocation,
-            date: now,
-            time: timeStr,
-            completed: true,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        case 'on-hold':
-          timelineEvent = {
-            status: 'On Hold',
-            location: currentLocation || shipment.senderCity,
-            date: now,
-            time: timeStr,
-            completed: false,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        case 'cancelled':
-          timelineEvent = {
-            status: 'Cancelled',
-            location: currentLocation || shipment.senderCity,
-            date: now,
-            time: timeStr,
-            completed: false,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        case 'arrived-at-warehouse':
-          timelineEvent = {
-            status: 'Arrived at Warehouse',
-            location: currentLocation || 'Warehouse',
-            date: now,
-            time: timeStr,
-            completed: true,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        case 'ready-for-shipment':
-          timelineEvent = {
-            status: 'Ready for Shipment',
-            location: currentLocation || shipment.senderCity,
-            date: now,
-            time: timeStr,
-            completed: true,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        case 'arrived-at-warehouse-ghana':
-          timelineEvent = {
-            status: 'Arrived at Warehouse (Ghana)',
-            location: currentLocation || 'Ghana',
-            date: now,
-            time: timeStr,
-            completed: true,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        case 'ready-for-pickup':
-          timelineEvent = {
-            status: 'Ready for Pickup',
-            location: currentLocation || shipment.receiverCity,
-            date: now,
-            time: timeStr,
-            completed: true,
-            ...(imageUrl && { imageUrl, imageName })
-          };
-          break;
-        default:
-          // For other statuses, create a generic update event
-          timelineEvent = {
-            status: newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' '),
-            location: currentLocation || shipment.senderCity,
-            date: now,
-            time: timeStr,
-            completed: newStatus === 'delivered',
-            ...(imageUrl && { imageUrl, imageName })
-          };
-      }
-      
-      // Only add if it's a new status (avoid duplicates)
-      if (timelineEvent) {
-        const statusExists = timeline.some((event: TimelineEvent) => 
-          event.status.toLowerCase() === timelineEvent!.status.toLowerCase()
+    const currentLocation =
+      body.currentLocation?.trim() || shipment.currentLocation || shipment.senderCity;
+    const statusLabels: Record<string, string> = {
+      pending: "Pending",
+      "arrived-at-warehouse": "Arrived at Warehouse",
+      "ready-for-shipment": "Ready for Shipment",
+      "in-transit": "In Transit",
+      "arrived-at-warehouse-ghana": "Arrived at Warehouse (Ghana)",
+      "ready-for-pickup": "Ready for Pickup",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+      "on-hold": "On Hold",
+    };
+    const updateDetails: string[] = [];
+
+    if (newStatus !== oldStatus) {
+      updateDetails.push(`Status changed to ${statusLabels[newStatus] || newStatus}`);
+    }
+    if (
+      body.currentLocation !== undefined &&
+      body.currentLocation.trim() !== (shipment.currentLocation || "")
+    ) {
+      updateDetails.push(
+        body.currentLocation.trim()
+          ? `Current location updated to ${body.currentLocation.trim()}`
+          : "Current location cleared"
+      );
+    }
+    if (body.estimatedDelivery) {
+      const previousDelivery = shipment.estimatedDelivery
+        ? new Date(shipment.estimatedDelivery).toISOString().slice(0, 10)
+        : "";
+      const nextDelivery = new Date(body.estimatedDelivery).toISOString().slice(0, 10);
+      if (nextDelivery !== previousDelivery) {
+        updateDetails.push(
+          `Estimated delivery updated to ${new Date(body.estimatedDelivery).toLocaleDateString()}`
         );
-        
-        if (!statusExists) {
-          timeline.push(timelineEvent);
-          
-          // Sort timeline by date (oldest first)
-          timeline.sort((a: TimelineEvent, b: TimelineEvent) => {
-            const dateA = a.date instanceof Date ? a.date : new Date(a.date);
-            const dateB = b.date instanceof Date ? b.date : new Date(b.date);
-            return dateA.getTime() - dateB.getTime();
-          });
-          
-          updateData.timeline = timeline as { status: string; location: string; date: Date; time: string; completed: boolean }[];
-        }
       }
     }
-    
-    // If currentLocation changed but status didn't, add a location update event
-    const locationUpdate = body.currentLocation as string | undefined;
-    if (locationUpdate && locationUpdate !== shipment.currentLocation && newStatus === oldStatus) {
-      const timeline: TimelineEvent[] = Array.isArray(shipment.timeline) ? [...shipment.timeline] : [];
+    if (
+      body.specialInstructions !== undefined &&
+      body.specialInstructions.trim() !== (shipment.specialInstructions || "")
+    ) {
+      updateDetails.push(
+        body.specialInstructions.trim()
+          ? "Special instructions updated"
+          : "Special instructions cleared"
+      );
+    }
+    if (
+      body.deltaNumber !== undefined &&
+      body.deltaNumber.trim() !== (shipment.deltaNumber || "")
+    ) {
+      updateDetails.push(
+        body.deltaNumber.trim()
+          ? `DELTA number updated to ${body.deltaNumber.trim()}`
+          : "DELTA number cleared"
+      );
+    }
+    if (imageUrl) updateDetails.push(`Update image added: ${imageName || "image"}`);
+
+    if (updateDetails.length > 0) {
+      const timeline: TimelineEvent[] = Array.isArray(shipment.timeline)
+        ? [...shipment.timeline]
+        : [];
       const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      
-      // Check if we already have an "In Transit" event, if so update it, otherwise add location update
-      const inTransitIndex = timeline.findIndex((event: TimelineEvent) => 
-        event.status.toLowerCase().includes('transit')
-      );
-      
-      if (inTransitIndex >= 0) {
-        // Update existing transit event location
-        timeline[inTransitIndex].location = locationUpdate;
-        timeline[inTransitIndex].date = now;
-        timeline[inTransitIndex].time = timeStr;
-        if (imageUrl) {
-          timeline[inTransitIndex].imageUrl = imageUrl;
-          timeline[inTransitIndex].imageName = imageName;
-        }
-      } else {
-        // Add location update event
-        timeline.push({
-          status: 'Location Update',
-          location: locationUpdate,
-          date: now,
-          time: timeStr,
-          completed: true,
-          ...(imageUrl && { imageUrl, imageName })
-        });
-      }
-      
-      // Sort timeline by date (oldest first)
-      timeline.sort((a: TimelineEvent, b: TimelineEvent) => {
-        const dateA = a.date instanceof Date ? a.date : new Date(a.date);
-        const dateB = b.date instanceof Date ? b.date : new Date(b.date);
-        return dateA.getTime() - dateB.getTime();
+      timeline.push({
+        status:
+          newStatus !== oldStatus
+            ? statusLabels[newStatus] || newStatus
+            : "Shipment Details Updated",
+        location: currentLocation || shipment.senderCity || "Location not provided",
+        date: now,
+        time: now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        completed: !["cancelled", "on-hold"].includes(newStatus),
+        details: updateDetails,
+        ...(imageUrl && { imageUrl, imageName }),
       });
-      
-      updateData.timeline = timeline as { status: string; location: string; date: Date; time: string; completed: boolean }[];
-    }
-
-    // An image must be retained even when the status and location are unchanged.
-    // Previously the file was uploaded but its URL was discarded in that case.
-    if (imageUrl) {
-      const timeline: TimelineEvent[] = Array.isArray(updateData.timeline)
-        ? [...updateData.timeline] as TimelineEvent[]
-        : Array.isArray(shipment.timeline)
-          ? [...shipment.timeline]
-          : [];
-
-      const imageAlreadyAttached = timeline.some(
-        (event) => event.imageUrl === imageUrl
-      );
-
-      if (!imageAlreadyAttached) {
-        const now = new Date();
-        timeline.push({
-          status: "Shipment Update",
-          location: currentLocation || shipment.senderCity,
-          date: now,
-          time: now.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          completed: newStatus === "delivered",
-          imageUrl,
-          imageName,
-        });
-
-        timeline.sort((a: TimelineEvent, b: TimelineEvent) => {
-          const dateA = a.date instanceof Date ? a.date : new Date(a.date);
-          const dateB = b.date instanceof Date ? b.date : new Date(b.date);
-          return dateA.getTime() - dateB.getTime();
-        });
-
-        updateData.timeline = timeline as Shipment["timeline"];
-      }
+      updateData.timeline = timeline as Shipment["timeline"];
     }
 
     const result = await shipmentsCollection.updateOne(

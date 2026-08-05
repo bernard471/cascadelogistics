@@ -11,12 +11,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { calculateShippingPrice, getServiceInfo, type GoodsType, type ServiceType } from "@/lib/pricing";
+import {
+  MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT,
+  uploadShipmentDocuments,
+} from "@/lib/shipment-document-upload";
 
 export default function SubmitAssetSection() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [uploadProgress, setUploadProgress] = useState("");
   const [documents, setDocuments] = useState<File[]>([]);
   const documentInputRef = useRef<HTMLInputElement>(null);
   const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
@@ -114,6 +119,10 @@ export default function SubmitAssetSection() {
     setDocuments(prev => {
       const existing = new Set(prev.map(file => `${file.name}-${file.size}`));
       const newFiles = fileArray.filter(file => !existing.has(`${file.name}-${file.size}`));
+      if (prev.length + newFiles.length > MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT) {
+        setError(`You can upload up to ${MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT} documents per shipment.`);
+        return prev;
+      }
       return newFiles.length ? [...prev, ...newFiles] : prev;
     });
   };
@@ -149,10 +158,21 @@ export default function SubmitAssetSection() {
     setError("");
     setSuccess("");
     setIsLoading(true);
+    setUploadProgress("");
 
     try {
+      const uploadedDocuments = await uploadShipmentDocuments(
+        documents,
+        "submit",
+        (current, total, fileName) =>
+          setUploadProgress(`Uploading ${current} of ${total}: ${fileName}`)
+      );
       const payload = {
-        ...formData,
+        packageType: formData.packageType,
+        dimensions: formData.dimensions,
+        description: formData.description,
+        serviceType: formData.serviceType,
+        specialInstructions: formData.specialInstructions,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         quantity: formData.quantity ? parseInt(formData.quantity) : undefined,
         declaredValue: formData.declaredValue ? parseFloat(formData.declaredValue) : undefined,
@@ -161,27 +181,27 @@ export default function SubmitAssetSection() {
         goodsType: formData.goodsType,
         // Add wholesale purchases (only non-empty entries)
         wholesalePurchases: wholesalePurchases.filter(p => p.name.trim() || p.trackingNumber.trim()),
+        documents: uploadedDocuments,
       };
-
-      const requestBody = new FormData();
-      requestBody.append("payload", JSON.stringify(payload));
-      documents.forEach(file => requestBody.append("documents", file));
 
       const response = await fetch("/api/shipments", {
         method: "POST",
-        body: requestBody,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
         setError(data.error || "Failed to create shipment");
+        setUploadProgress("");
         setIsLoading(false);
         return;
       }
 
       // Success
       setSuccess(`Shipment created successfully! Tracking ID: ${data.trackingId}`);
+      setUploadProgress("");
       setIsLoading(false);
       setDocuments([]);
       setWholesalePurchases([]); // Reset wholesale purchases
@@ -196,7 +216,8 @@ export default function SubmitAssetSection() {
       
     } catch (error) {
       console.error("Submission error:", error);
-      setError("An error occurred while creating the shipment");
+      setError(error instanceof Error ? error.message : "An error occurred while creating the shipment");
+      setUploadProgress("");
       setIsLoading(false);
     }
   };
@@ -568,14 +589,14 @@ export default function SubmitAssetSection() {
               Click to upload or drag and drop
             </p>
             <p className="text-xs text-gray-500">
-              PDF, PNG, JPG up to 10MB
+              Select multiple PDF, Word, PNG, JPG or WebP files · up to 10MB each · maximum {MAX_SHIPMENT_DOCUMENTS_PER_SHIPMENT}
             </p>
             <input
               ref={documentInputRef}
               type="file"
               className="hidden"
               multiple
-              accept=".pdf,.png,.jpg,.jpeg"
+              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
               onChange={handleDocumentInputChange}
             />
           </div>
@@ -604,6 +625,9 @@ export default function SubmitAssetSection() {
               ))}
             </div>
           )}
+          {uploadProgress && (
+            <p className="mt-3 text-sm font-medium text-[#055b8e]">{uploadProgress}</p>
+          )}
         </div>
 
         {/* Submit Button */}
@@ -621,11 +645,10 @@ export default function SubmitAssetSection() {
             className="bg-[#055b8e] hover:bg-[#044a73] text-white px-8 py-6 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ borderRadius: "10px 0px 10px 0px" }}
           >
-            {isLoading ? "Creating Shipment..." : "Submit Asset"}
+            {isLoading ? uploadProgress || "Creating Shipment..." : "Submit Asset"}
           </Button>
         </div>
       </form>
     </div>
   );
 }
-

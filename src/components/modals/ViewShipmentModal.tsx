@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, Package, MapPin, User, Truck, Upload, Image as ImageIcon, Clock } from "lucide-react";
+import { useState, useEffect, type ReactNode } from "react";
+import { X, Package, MapPin, User, Truck, Upload, Image as ImageIcon, Clock, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShipmentDocument, TimelineEvent } from "@/types";
 
@@ -28,11 +28,72 @@ interface MappedShipment {
   }>;
   deltaNumber?: string;
   timeline?: TimelineEvent[];
+  senderName?: string;
+  senderEmail?: string;
+  senderPhone?: string;
+  senderAddress?: string;
+  senderCity?: string;
+  senderCountry?: string;
+  receiverName?: string;
+  receiverEmail?: string;
+  receiverPhone?: string;
+  receiverAddress?: string;
+  receiverCity?: string;
+  receiverCountry?: string;
+  dimensions?: string;
+  quantity?: number;
+  description?: string;
+  declaredValue?: number;
+  goodsType?: string;
+  serviceType?: string;
+  pickupDate?: Date | string;
+  actualDelivery?: Date | string;
+  specialInstructions?: string;
+  currentLocation?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  invoice?: {
+    url: string;
+    fileName: string;
+    uploadedAt: Date | string;
+    uploadedBy: string;
+  };
 }
 
 interface ViewShipmentModalProps {
   shipment: MappedShipment;
   onClose: () => void;
+}
+
+function hasValue(value: unknown) {
+  return value !== undefined && value !== null && String(value).trim() !== "";
+}
+
+function formatDate(value: Date | string | undefined, includeTime = false) {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return includeTime ? date.toLocaleString() : date.toLocaleDateString();
+}
+
+function DetailItem({
+  label,
+  value,
+  wide = false,
+}: {
+  label: string;
+  value: ReactNode;
+  wide?: boolean;
+}) {
+  if (!hasValue(value)) return null;
+  return (
+    <div className={wide ? "sm:col-span-2 lg:col-span-4" : ""}>
+      <span className="block text-gray-600">{label}</span>
+      <span className="font-medium text-gray-800 whitespace-pre-wrap break-words">
+        {value}
+      </span>
+    </div>
+  );
 }
 
 // Helper function to check if document is an image
@@ -122,14 +183,14 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                 <h3 className="font-bold text-gray-800">Sender Information</h3>
               </div>
               <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-gray-600">Name:</span>
-                  <span className="ml-2 text-gray-800 font-medium">{shipment.customer}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Origin:</span>
-                  <span className="ml-2 text-gray-800 font-medium">USA Warehouse, USA</span>
-                </div>
+                <DetailItem label="Name" value={shipment.senderName || shipment.customer} />
+                <DetailItem label="Email" value={shipment.senderEmail} />
+                <DetailItem label="Phone" value={shipment.senderPhone} />
+                <DetailItem label="Address" value={shipment.senderAddress} />
+                <DetailItem
+                  label="City / Country"
+                  value={[shipment.senderCity, shipment.senderCountry].filter(Boolean).join(", ") || shipment.origin}
+                />
               </div>
             </div>
 
@@ -140,10 +201,14 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                 <h3 className="font-bold text-gray-800">Destination Information</h3>
               </div>
               <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-gray-600">Destination:</span>
-                  <span className="ml-2 text-gray-800 font-medium">Ghana Warehouse, Ghana</span>
-                </div>
+                <DetailItem label="Name" value={shipment.receiverName} />
+                <DetailItem label="Email" value={shipment.receiverEmail} />
+                <DetailItem label="Phone" value={shipment.receiverPhone} />
+                <DetailItem label="Address" value={shipment.receiverAddress} />
+                <DetailItem
+                  label="City / Country"
+                  value={[shipment.receiverCity, shipment.receiverCountry].filter(Boolean).join(", ") || shipment.destination}
+                />
               </div>
             </div>
           </div>
@@ -168,42 +233,51 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
               <Package className="w-5 h-5 text-[#055b8e]" />
               <h3 className="font-bold text-gray-800">Shipment Details</h3>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600 block">Package Type</span>
-                <span className="text-gray-800 font-medium">{shipment.packageType}</span>
-              </div>
-              <div>
-                <span className="text-gray-600 block">Weight</span>
-                <span className="text-gray-800 font-medium">{shipment.weight}</span>
-              </div>
-              <div>
-                <span className="text-gray-600 block">Service</span>
-                <span className="text-gray-800 font-medium">{shipment.service}</span>
-              </div>
-              {/* <div>
-                <span className="text-gray-600 block">Service Price</span>
-                <span className="text-gray-800 font-medium">
-                  {shipment.servicePrice ? `$${shipment.servicePrice.toFixed(2)}` : 'N/A'}
-                </span>
-              </div> */}
-            </div>
-
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-gray-600 block text-sm">Declared Value</span>
-                  <span className="text-gray-800 font-medium">{shipment.value}</span>
-                </div>
-                {/* <div className="text-right">
-                  <span className="text-gray-600 block text-sm">Total Cost</span>
-                  <span className="text-lg font-bold text-[#055b8e]">
-                    {shipment.servicePrice ? `$${shipment.servicePrice.toFixed(2)}` : 'N/A'}
-                  </span>
-                </div> */}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+              <DetailItem label="Package Type" value={shipment.packageType} />
+              <DetailItem label="Weight" value={shipment.weight} />
+              <DetailItem label="Quantity" value={shipment.quantity} />
+              <DetailItem label="Dimensions" value={shipment.dimensions} />
+              <DetailItem label="Goods Type" value={shipment.goodsType} />
+              <DetailItem label="Declared Value" value={shipment.value} />
+              <DetailItem label="Description" value={shipment.description} wide />
             </div>
           </div>
+
+          {/* Service and handling details */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Truck className="w-5 h-5 text-[#055b8e]" />
+              <h3 className="font-bold text-gray-800">Service & Handling</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+              <DetailItem label="Service" value={shipment.service} />
+              <DetailItem
+                label="Service Price"
+                value={shipment.servicePrice !== undefined ? `$${shipment.servicePrice.toFixed(2)}` : ""}
+              />
+              <DetailItem label="Current Location" value={shipment.currentLocation} />
+              <DetailItem label="Pickup Date" value={formatDate(shipment.pickupDate)} />
+              <DetailItem label="Estimated Delivery" value={shipment.estimatedDelivery} />
+              <DetailItem label="Actual Delivery" value={formatDate(shipment.actualDelivery)} />
+              <DetailItem label="Special Instructions" value={shipment.specialInstructions} wide />
+              <DetailItem label="Created" value={formatDate(shipment.createdAt, true)} />
+              <DetailItem label="Last Updated" value={formatDate(shipment.updatedAt, true)} />
+            </div>
+          </div>
+
+          {shipment.invoice && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <FileText className="w-5 h-5 text-[#055b8e]" />
+                <h3 className="font-bold text-gray-800">Invoice</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <DetailItem label="File" value={shipment.invoice.fileName} />
+                <DetailItem label="Uploaded" value={formatDate(shipment.invoice.uploadedAt, true)} />
+              </div>
+            </div>
+          )}
 
           {/* Wholesale Purchase Information */}
           {shipment.wholesalePurchases && shipment.wholesalePurchases.length > 0 && (
@@ -300,6 +374,14 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                           {formattedDate}{event.time ? ` at ${event.time}` : ""}
                         </p>
                       </div>
+
+                      {event.details && event.details.length > 0 && (
+                        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-600">
+                          {event.details.map((detail, detailIndex) => (
+                            <li key={`${detail}-${detailIndex}`}>{detail}</li>
+                          ))}
+                        </ul>
+                      )}
 
                       {imageUrl && (
                         <div className="mt-4">

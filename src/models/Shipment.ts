@@ -5,6 +5,7 @@ export interface ShipmentDocument {
   data: string; // Legacy: base64 data URL; when url is set, data may be empty
   uploadedAt: Date | string;
   url?: string; // Vercel Blob Storage URL (preferred for new uploads)
+  pathname?: string; // Vercel Blob pathname used to validate client uploads
 }
 
 export interface Shipment {
@@ -67,6 +68,7 @@ export interface Shipment {
     completed: boolean;
     imageUrl?: string; // Vercel Blob Storage URL for update image
     imageName?: string; // Original filename of the image
+    details?: string[]; // Human-readable summary of fields changed in this update
   }[];
   
   // Invoice

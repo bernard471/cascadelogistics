@@ -18,6 +18,7 @@ interface MappedTimelineEvent {
   icon: React.ComponentType<{ className?: string }>;
   imageUrl?: string;
   imageName?: string;
+  details?: string[];
 }
 
 // Mapped tracking data type for internal component use
@@ -111,7 +112,8 @@ export default function TrackShipmentSection() {
           date: dateStr,
           time: item.time || 'N/A',
           imageUrl: item.imageUrl,
-          imageName: item.imageName
+          imageName: item.imageName,
+          details: item.details
         };
       });
       
@@ -575,6 +577,15 @@ export default function TrackShipmentSection() {
                             }`}>
                               {item.location}
                             </p>
+                            {item.details && item.details.length > 0 && (
+                              <ul className={`mt-2 list-disc space-y-1 pl-5 text-sm ${
+                                item.completed ? 'text-gray-600' : 'text-gray-400'
+                              }`}>
+                                {item.details.map((detail, detailIndex) => (
+                                  <li key={`${detail}-${detailIndex}`}>{detail}</li>
+                                ))}
+                              </ul>
+                            )}
                             {/* Update Image */}
                             {item.imageUrl && (
                               <div className="mt-3">
