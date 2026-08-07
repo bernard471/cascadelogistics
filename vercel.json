@@ -3,7 +3,22 @@
     {
       "path": "/api/internal/identity-retention",
       "schedule": "17 3 * * *"
+    },
+    {
+      "path": "/api/internal/partner-upload-cleanup",
+      "schedule": "47 3 * * *"
+    },
+    {
+      "path": "/api/internal/partner-retention",
+      "schedule": "27 4 * * *"
+    },
+    {
+      "path": "/api/internal/partner-pilot-monitor",
+      "schedule": "7 5 * * *"
+    },
+    {
+      "path": "/api/internal/partner-webhook-delivery",
+      "schedule": "*/5 * * * *"
     }
   ]
 }
-

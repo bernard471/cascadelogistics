@@ -3,6 +3,9 @@ import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import type { PaymentProof } from "@/models/PaymentProof";
 import { ObjectId } from "mongodb";
+import { PartnerApiError } from "@/lib/partner-platform/errors";
+import { decideInternalPartnerPaymentProof } from "@/lib/partner-platform/financials";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
 
 // GET - Get single payment proof
 export async function GET(
@@ -42,6 +45,15 @@ export async function GET(
       proofImageUrl: payment.proofImageUrl.includes(".private.blob.vercel-storage.com/")
         ? `/api/payments/${payment._id?.toString()}/image`
         : payment.proofImageUrl,
+      proofs: (payment.proofs || []).map((proof) => ({
+        publicId: proof.publicId,
+        name: proof.name,
+        type: proof.type,
+        size: proof.size,
+        uploadedAt: proof.uploadedAt,
+        data: "",
+        url: `/api/payments/${payment._id?.toString()}/image?fileId=${encodeURIComponent(proof.publicId || "")}`,
+      })),
     });
   } catch (error) {
     console.error("GET payment proof error:", error);
@@ -89,60 +101,17 @@ export async function PATCH(
 
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const paymentsCollection = db.collection<PaymentProof>("payment_proofs");
-    const shipmentsCollection = db.collection("shipments");
-
-    // Find payment proof
-    const payment = await paymentsCollection.findOne({
-      _id: new ObjectId(id) as unknown as string,
-    });
-
-    if (!payment) {
-      return NextResponse.json(
-        { error: "Payment proof not found" },
-        { status: 404 }
-      );
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    if (principal.kind !== "internal") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    // Update payment proof
-    const updateData: Partial<PaymentProof> = {
-      status: status as 'verified' | 'rejected',
-      verifiedBy: session.user.id,
-      verifiedAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    if (status === 'rejected' && rejectionReason) {
-      updateData.rejectionReason = rejectionReason;
-    }
-
-    if (notes) {
-      updateData.notes = notes;
-    }
-
-    await paymentsCollection.updateOne(
-      { _id: new ObjectId(id) as unknown as string },
-      { $set: updateData }
-    );
-
-    // If verified, optionally update shipment status or add a note
-    // You can extend this to update shipment payment status if needed
-    if (status === 'verified' && payment.shipmentId) {
-      // Optionally update shipment to mark as paid
-      await shipmentsCollection.updateOne(
-        { _id: payment.shipmentId as unknown as ObjectId },
-        { 
-          $set: { 
-            updatedAt: new Date(),
-            // You can add a paymentVerified field to Shipment model if needed
-          } 
-        }
-      );
-    }
-
-    // Fetch updated payment proof
-    const updatedPayment = await paymentsCollection.findOne({
-      _id: new ObjectId(id) as unknown as string,
+    const updatedPayment = await decideInternalPartnerPaymentProof({
+      db,
+      id,
+      principal,
+      status,
+      rejectionReason,
+      notes,
     });
 
     return NextResponse.json({
@@ -153,9 +122,21 @@ export async function PATCH(
         proofImageUrl: updatedPayment?.proofImageUrl.includes(".private.blob.vercel-storage.com/")
           ? `/api/payments/${updatedPayment?._id?.toString()}/image`
           : updatedPayment?.proofImageUrl,
+        proofs: (updatedPayment?.proofs || []).map((proof) => ({
+          publicId: proof.publicId,
+          name: proof.name,
+          type: proof.type,
+          size: proof.size,
+          uploadedAt: proof.uploadedAt,
+          data: "",
+          url: `/api/payments/${updatedPayment?._id?.toString()}/image?fileId=${encodeURIComponent(proof.publicId || "")}`,
+        })),
       },
     });
   } catch (error) {
+    if (error instanceof PartnerApiError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("PATCH payment proof error:", error);
     return NextResponse.json(
       { error: "Failed to update payment proof" },

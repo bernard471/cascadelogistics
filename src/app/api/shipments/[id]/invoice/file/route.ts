@@ -4,10 +4,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import type { Shipment } from "@/models/Shipment";
-
-function safeFileName(fileName: string): string {
-  return fileName.replace(/[\r\n"]/g, "_");
-}
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
+import {
+  canAccessPrivateUserResource,
+  getTrustedVercelBlobAccessKind,
+  safeDownloadFileName,
+} from "@/lib/shipments/private-files";
 
 export async function GET(
   request: Request,
@@ -34,10 +36,8 @@ export async function GET(
       return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
     }
 
-    const canViewAnyShipment = ["admin", "staff", "super_admin"].includes(
-      session.user.role
-    );
-    if (!canViewAnyShipment && shipment.userId !== session.user.id) {
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    if (!canAccessPrivateUserResource(principal, shipment.userId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -46,16 +46,17 @@ export async function GET(
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    if (!invoice.url.includes(".private.blob.vercel-storage.com/")) {
+    const blobAccess = getTrustedVercelBlobAccessKind(invoice.url);
+    if (blobAccess === "public") {
       try {
         const publicUrl = new URL(invoice.url);
-        if (!publicUrl.hostname.endsWith(".public.blob.vercel-storage.com")) {
-          throw new Error("Untrusted invoice URL");
-        }
         return NextResponse.redirect(publicUrl);
       } catch {
         return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
       }
+    }
+    if (blobAccess !== "private") {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
     const blob = await get(invoice.url, { access: "private" });
@@ -67,7 +68,7 @@ export async function GET(
     return new NextResponse(blob.stream, {
       headers: {
         "Content-Type": blob.blob.contentType || "application/pdf",
-        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${safeFileName(invoice.fileName)}"`,
+        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${safeDownloadFileName(invoice.fileName)}"`,
         "Cache-Control": "private, no-store",
       },
     });

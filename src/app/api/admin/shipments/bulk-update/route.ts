@@ -3,9 +3,17 @@ import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type { Shipment } from "@/models/Shipment";
-import type { TimelineEvent } from "@/types";
 import { sendShipmentUpdateEmail } from "@/lib/email";
-import { getShipmentOperationBlock } from "@/lib/shipment-operations";
+import { getShipmentOperationBlockForPrincipal } from "@/lib/shipments/operation-policy";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
+import {
+  appendUniqueBulkStatusTimelineEvent,
+  createBulkStatusTimelineEvent,
+} from "@/lib/shipments/timeline";
+import {
+  appendInternalPartnerShipmentEvent,
+  getShipmentCustomerEmailMode,
+} from "@/lib/shipments/admin-integration";
 
 // POST - Bulk update shipments (Admin/Staff only)
 export async function POST(request: Request) {
@@ -16,7 +24,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const operationBlock = await getShipmentOperationBlock("update", session.user.role);
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    if (principal.kind !== "internal") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const operationBlock = await getShipmentOperationBlockForPrincipal(
+      "update",
+      principal,
+    );
     if (operationBlock) {
       return NextResponse.json(
         {
@@ -66,8 +81,9 @@ export async function POST(request: Request) {
     }
 
     // Prepare update data
+    const updateNow = new Date();
     const updateData: Partial<Shipment> & { updatedAt: Date } = {
-      updatedAt: new Date()
+      updatedAt: updateNow
     };
 
     if (status) {
@@ -88,148 +104,87 @@ export async function POST(request: Request) {
 
     // For each shipment, add timeline event if status changed
     const bulkOperations = shipments.map(async (shipment) => {
-      if (status && shipment.status !== status) {
-        const timeline: TimelineEvent[] = Array.isArray(shipment.timeline) ? [...shipment.timeline] : [];
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        
-        let timelineEvent: TimelineEvent | null = null;
-        
-        // Generate appropriate timeline event based on new status
-        switch (status) {
-          case 'in-transit':
-            timelineEvent = {
-              status: 'In Transit',
-              location: shipment.currentLocation || shipment.senderCity || 'Origin',
-              date: now,
-              time: timeStr,
-              completed: true
-            };
-            break;
-          case 'delivered':
-            timelineEvent = {
-              status: 'Delivered',
-              location: shipment.receiverCity || shipment.currentLocation || 'Destination',
-              date: now,
-              time: timeStr,
-              completed: true
-            };
-            break;
-          case 'on-hold':
-            timelineEvent = {
-              status: 'On Hold',
-              location: shipment.currentLocation || shipment.senderCity || 'Origin',
-              date: now,
-              time: timeStr,
-              completed: false
-            };
-            break;
-          case 'cancelled':
-            timelineEvent = {
-              status: 'Cancelled',
-              location: shipment.currentLocation || shipment.senderCity || 'Origin',
-              date: now,
-              time: timeStr,
-              completed: false
-            };
-            break;
-          case 'arrived-at-warehouse':
-            timelineEvent = {
-              status: 'Arrived at Warehouse',
-              location: shipment.currentLocation || 'Warehouse',
-              date: now,
-              time: timeStr,
-              completed: true
-            };
-            break;
-          case 'ready-for-shipment':
-            timelineEvent = {
-              status: 'Ready for Shipment',
-              location: shipment.currentLocation || shipment.senderCity || 'Origin',
-              date: now,
-              time: timeStr,
-              completed: true
-            };
-            break;
-          case 'arrived-at-warehouse-ghana':
-            timelineEvent = {
-              status: 'Arrived at Warehouse (Ghana)',
-              location: shipment.currentLocation || 'Ghana',
-              date: now,
-              time: timeStr,
-              completed: true
-            };
-            break;
-          case 'ready-for-pickup':
-            timelineEvent = {
-              status: 'Ready for Pickup',
-              location: shipment.currentLocation || shipment.receiverCity || 'Destination',
-              date: now,
-              time: timeStr,
-              completed: true
-            };
-            break;
-          default:
-            timelineEvent = {
-              status: status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' '),
-              location: shipment.currentLocation || shipment.senderCity || 'Origin',
-              date: now,
-              time: timeStr,
-              completed: status === 'delivered'
-            };
+      const changedFields: string[] = [];
+      if (status && shipment.status !== status) changedFields.push("status");
+      if (estimatedDelivery) {
+        const previous = shipment.estimatedDelivery
+          ? new Date(shipment.estimatedDelivery).toISOString()
+          : "";
+        const next = new Date(estimatedDelivery).toISOString();
+        if (previous !== next) changedFields.push("estimatedDelivery");
+      }
+      if (deltaNumber !== undefined) {
+        const nextDelta =
+          typeof deltaNumber === "string" ? deltaNumber.trim() : "";
+        if ((shipment.deltaNumber || "") !== nextDelta) {
+          changedFields.push("deltaNumber");
         }
-        
-        if (timelineEvent) {
-          const statusExists = timeline.some((event: TimelineEvent) => 
-            event.status.toLowerCase() === timelineEvent!.status.toLowerCase()
-          );
-          
-          if (!statusExists) {
-            timeline.push(timelineEvent);
-            
-            // Sort timeline by date (oldest first)
-            timeline.sort((a: TimelineEvent, b: TimelineEvent) => {
-              const dateA = a.date instanceof Date ? a.date : new Date(a.date);
-              const dateB = b.date instanceof Date ? b.date : new Date(b.date);
-              return dateA.getTime() - dateB.getTime();
-            });
-            
-            // Update timeline for this specific shipment
-            await shipmentsCollection.updateOne(
-              { _id: shipment._id },
-              { $set: { timeline: timeline as { status: string; location: string; date: Date; time: string; completed: boolean }[] } }
-            );
+      }
 
-            // Create notification for the user
-            const notification = {
+      if (status && shipment.status !== status) {
+        const timelineEvent = createBulkStatusTimelineEvent(
+          shipment,
+          status,
+          updateNow,
+        );
+        const previousTimelineLength = shipment.timeline?.length || 0;
+        const timeline = appendUniqueBulkStatusTimelineEvent(
+          shipment,
+          timelineEvent,
+        );
+
+        if (timeline.length > previousTimelineLength) {
+          await shipmentsCollection.updateOne(
+            { _id: shipment._id },
+            { $set: { timeline } },
+          );
+
+          if (shipment.userId) {
+            await notificationsCollection.insertOne({
               userId: shipment.userId,
               title: "Shipment Update",
               message: `Your shipment ${shipment.trackingId} has been updated. Status: ${timelineEvent.status}`,
               type: "update",
               isRead: false,
               relatedShipmentId: shipment._id?.toString(),
-              createdAt: new Date()
-            };
-            await notificationsCollection.insertOne(notification);
+              createdAt: updateNow,
+            });
           }
         }
       }
 
-      try {
-        await sendShipmentUpdateEmail({
-          firstName: shipment.senderName.split(/\s+/)[0] || "Customer",
-          email: shipment.senderEmail,
-          trackingId: shipment.trackingId,
-          status: status || shipment.status,
-          currentLocation: shipment.currentLocation,
-          estimatedDelivery:
-            estimatedDelivery || shipment.estimatedDelivery,
+      if (changedFields.length > 0) {
+        await appendInternalPartnerShipmentEvent({
+          db,
+          shipment,
+          principal,
+          type: "shipment.updated",
+          payload: {
+            changedFields,
+            ...(status ? { status } : {}),
+          },
+          now: updateNow,
         });
-      } catch (emailError) {
-        console.error(
-          `Shipment update email failed for ${shipment.trackingId}:`,
-          emailError
-        );
+      }
+
+      const customerEmailMode = await getShipmentCustomerEmailMode(db, shipment);
+      if (changedFields.length > 0 && customerEmailMode === "cascade") {
+        try {
+          await sendShipmentUpdateEmail({
+            firstName: shipment.senderName.split(/\s+/)[0] || "Customer",
+            email: shipment.senderEmail,
+            trackingId: shipment.trackingId,
+            status: status || shipment.status,
+            currentLocation: shipment.currentLocation,
+            estimatedDelivery:
+              estimatedDelivery || shipment.estimatedDelivery,
+          });
+        } catch (emailError) {
+          console.error(
+            `Shipment update email failed for ${shipment.trackingId}:`,
+            emailError
+          );
+        }
       }
     });
 

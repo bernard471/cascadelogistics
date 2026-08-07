@@ -61,11 +61,37 @@ interface MappedShipment {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   invoice?: Shipment["invoice"];
+  createdVia?: Shipment["createdVia"];
+  environment?: Shipment["environment"];
+  externalCustomerId?: string;
+  externalReference?: string;
+  declaredCurrency?: string;
+  partnerManagedCustomer?: boolean;
+  partnerOrganization?: string;
+  partnerOrganizationId?: string;
+  partnerApplication?: string;
+  partnerApplicationId?: string;
+}
+
+interface PartnerOption {
+  id: string;
+  name: string;
+  status: string;
+}
+
+function sourceLabel(source?: Shipment["createdVia"]) {
+  if (source === "partner_api") return "Partner API";
+  if (source === "admin") return "Admin/Staff";
+  if (source === "dashboard") return "Customer dashboard";
+  return "Legacy dashboard record";
 }
 
 export default function ShipmentManagementSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [partnerFilter, setPartnerFilter] = useState("all");
+  const [partnerOptions, setPartnerOptions] = useState<PartnerOption[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [shipments, setShipments] = useState<MappedShipment[]>([]);
   const [shipmentStats, setShipmentStats] = useState<ShipmentsResponse['stats'] | null>(null);
@@ -84,6 +110,8 @@ export default function ShipmentManagementSection() {
     try {
       const params = new URLSearchParams({
         status: statusFilter,
+        source: sourceFilter,
+        partner: partnerFilter,
         search: searchQuery,
         limit: "100"
       });
@@ -91,6 +119,7 @@ export default function ShipmentManagementSection() {
       const response = await fetch(`/api/admin/shipments?${params}`);
       if (response.ok) {
         const data = await response.json();
+        setPartnerOptions(data.partnerOrganizations || []);
         
         // Helper function to map status to display name and color
         const getStatusDisplay = (status: string) => {
@@ -125,7 +154,7 @@ export default function ShipmentManagementSection() {
               new Date(shipment.estimatedDelivery).toISOString().split('T')[0] : '-',
             packageType: shipment.packageType.charAt(0).toUpperCase() + shipment.packageType.slice(1),
             weight: `${shipment.weight} kg`,
-            value: `$${shipment.declaredValue}`,
+            value: `${shipment.declaredCurrency || "USD"} ${shipment.declaredValue}`,
             service: shipment.serviceType === 'express' ? 'Express' :
                     shipment.serviceType === 'standard' ? 'Standard' :
                     shipment.serviceType === 'overnight' ? 'Overnight' : 'Economy',
@@ -158,7 +187,17 @@ export default function ShipmentManagementSection() {
             currentLocation: shipment.currentLocation,
             createdAt: shipment.createdAt,
             updatedAt: shipment.updatedAt,
-            invoice: shipment.invoice
+            invoice: shipment.invoice,
+            createdVia: shipment.createdVia,
+            environment: shipment.environment,
+            externalCustomerId: shipment.externalCustomerId,
+            externalReference: shipment.externalReference,
+            declaredCurrency: shipment.declaredCurrency,
+            partnerManagedCustomer: shipment.partnerManagedCustomer,
+            partnerOrganization: shipment.partnerOrganization,
+            partnerOrganizationId: shipment.partnerOrganizationId,
+            partnerApplication: shipment.partnerApplication,
+            partnerApplicationId: shipment.partnerApplicationId,
           };
         });
         
@@ -170,7 +209,7 @@ export default function ShipmentManagementSection() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, sourceFilter, partnerFilter, searchQuery]);
 
   useEffect(() => {
     fetchShipments();
@@ -309,7 +348,7 @@ export default function ShipmentManagementSection() {
             </div>
           )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div className="md:col-span-2">
             <div className="relative">
@@ -317,18 +356,64 @@ export default function ShipmentManagementSection() {
               <Input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by tracking ID, DELTA number, customer, origin, or destination..."
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search tracking, customer, partner, application, or external reference..."
                 className="pl-10 h-12"
               />
             </div>
+          </div>
+
+          <div>
+            <select
+              value={sourceFilter}
+              onChange={(e) => {
+                const source = e.target.value;
+                setSourceFilter(source);
+                if (source !== "partner_api") setPartnerFilter("all");
+                setCurrentPage(1);
+              }}
+              className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
+              aria-label="Filter shipments by source"
+            >
+              <option value="all">All Sources</option>
+              <option value="partner_api">Partner API</option>
+              <option value="dashboard">Customer Dashboard</option>
+              <option value="admin">Admin/Staff</option>
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={partnerFilter}
+              onChange={(e) => {
+                const partner = e.target.value;
+                setPartnerFilter(partner);
+                if (partner !== "all") setSourceFilter("partner_api");
+                setCurrentPage(1);
+              }}
+              className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
+              aria-label="Filter shipments by partner"
+            >
+              <option value="all">All Partners</option>
+              {partnerOptions.map((partner) => (
+                <option key={partner.id} value={partner.id}>
+                  {partner.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Status Filter */}
           <div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
             >
               <option value="all">All Status</option>
@@ -374,6 +459,9 @@ export default function ShipmentManagementSection() {
                   Tracking ID
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Source
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   DELTA Number
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -406,9 +494,35 @@ export default function ShipmentManagementSection() {
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-[#055b8e]">
-                      {shipment.id}
-                    </span>
+                    <div className="text-sm font-medium text-[#055b8e]">{shipment.id}</div>
+                    {shipment.externalReference && (
+                      <div className="mt-1 text-xs text-gray-500">
+                        Ref: {shipment.externalReference}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {sourceLabel(shipment.createdVia)}
+                    </div>
+                    {shipment.createdVia === "partner_api" && (
+                      <>
+                        <div className="mt-1 max-w-44 truncate text-xs text-gray-500">
+                          {[shipment.partnerOrganization, shipment.partnerApplication]
+                            .filter(Boolean)
+                            .join(" / ") || "Partner integration"}
+                        </div>
+                        {shipment.environment && (
+                          <span className={`mt-1 inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
+                            shipment.environment === "live"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {shipment.environment}
+                          </span>
+                        )}
+                      </>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-900">
@@ -417,6 +531,11 @@ export default function ShipmentManagementSection() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{shipment.customer}</div>
+                    {shipment.partnerManagedCustomer && shipment.externalCustomerId && (
+                      <div className="mt-1 text-xs text-gray-500">
+                        External customer: {shipment.externalCustomerId}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-sm text-gray-900">

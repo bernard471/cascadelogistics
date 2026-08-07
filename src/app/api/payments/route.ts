@@ -5,6 +5,8 @@ import { put } from "@vercel/blob";
 import type { PaymentProof } from "@/models/PaymentProof";
 import type { Shipment } from "@/models/Shipment";
 import { sendAdminPaymentNotification } from "@/lib/email";
+import { canAccessPrivateUserResource } from "@/lib/shipments/private-files";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -83,8 +85,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if shipment belongs to user
-    if (shipment.userId !== session.user.id) {
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    if (
+      principal.kind !== "customer" ||
+      !canAccessPrivateUserResource(principal, shipment.userId)
+    ) {
       return NextResponse.json(
         { error: "You can only submit payment proof for your own shipments" },
         { status: 403 }

@@ -6,6 +6,7 @@ import {
   Activity,
   Clock3,
   LogOut,
+  Network,
   PackagePlus,
   PauseCircle,
   PlayCircle,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 type OperationName = "create" | "update" | "submit";
 
@@ -149,14 +151,21 @@ export default function BackupDashboard() {
               <h1 className="text-xl font-bold">Backup Dashboard</h1>
             </div>
           </div>
-          <Button
-            variant="outline"
-            className="border-white/15 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
-            onClick={() => signOut({ callbackUrl: "/member-login" })}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild className="bg-cyan-500 text-slate-950 hover:bg-cyan-400">
+              <Link href="/backup-dashboard/integrations">
+                <Network className="mr-2 h-4 w-4" />Partner integrations
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              className="border-white/15 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
+              onClick={() => signOut({ callbackUrl: "/member-login" })}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -265,4 +274,3 @@ export default function BackupDashboard() {
     </div>
   );
 }
-

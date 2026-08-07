@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type { Shipment } from "@/models/Shipment";
+import { canAccessPrivateUserResource } from "@/lib/shipments/private-files";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
 
 // GET - Fetch invoice for a shipment (User only, for their own shipments)
 export async function GET(
@@ -30,8 +32,8 @@ export async function GET(
       return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
     }
 
-    // Check if shipment belongs to the user (unless admin/staff)
-    if (session.user.role !== "admin" && session.user.role !== "staff" && shipment.userId !== session.user.id) {
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    if (!canAccessPrivateUserResource(principal, shipment.userId)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

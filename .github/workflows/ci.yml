@@ -15,6 +15,10 @@ jobs:
       IDENTITY_HASH_SECRET: ci-only-identity-hash-secret
       NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ci-placeholder
       RECAPTCHA_SECRET_KEY: ci-placeholder
+      PARTNER_API_KEY_PEPPER: ci-only-partner-api-pepper-longer-than-32-characters
+      WEBHOOK_SECRET_ENCRYPTION_KEY: ci-only-webhook-encryption-key-longer-than-32-characters
+      PARTNER_PORTAL_SESSION_SECRET: ci-only-portal-session-secret-longer-than-32-characters
+      CRON_SECRET: ci-only-cron-secret-longer-than-32-characters
 
     steps:
       - name: Check out repository
@@ -35,8 +39,17 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Unit, integration, contract and security tests
+        run: npm test
+
+      - name: Verify OpenAPI route drift
+        run: npm run contract:openapi
+
+      - name: Scan repository for secrets
+        run: npm run security:secrets
+
       - name: Audit production dependencies
-        run: npm run audit:production
+        run: npm run audit:all
 
       - name: Build
         run: npm run build

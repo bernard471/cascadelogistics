@@ -4,6 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type { PaymentProof } from "@/models/PaymentProof";
 import type { User } from "@/models/User";
+import type { OrganizationDocument } from "@/lib/partner-platform/types";
 
 // GET - Fetch all payment proofs (admin/staff)
 export async function GET(request: Request) {
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
     const db = client.db("guangzhou");
     const paymentsCollection = db.collection<PaymentProof>("payment_proofs");
     const usersCollection = db.collection<User>("users");
+    const organizationsCollection = db.collection<OrganizationDocument>("organizations");
 
     // Build query
     const query: Record<string, unknown> = {};
@@ -50,12 +52,19 @@ export async function GET(request: Request) {
     const paymentsWithUserInfo = await Promise.all(
       payments.map(async (payment) => {
         let user = null;
+        let organization = null;
         try {
           // Convert userId string to ObjectId for query
-          user = await usersCollection.findOne(
-            { _id: new ObjectId(payment.userId) as unknown as string },
-            { projection: { password: 0 } }
-          );
+          if (payment.userId && ObjectId.isValid(payment.userId)) {
+            user = await usersCollection.findOne(
+              { _id: new ObjectId(payment.userId) as unknown as string },
+              { projection: { password: 0 } }
+            );
+          } else if (payment.organizationId) {
+            organization = await organizationsCollection.findOne({
+              _id: payment.organizationId,
+            });
+          }
         } catch (error) {
           console.error(`Error fetching user for payment ${payment.paymentId}:`, error);
         }
@@ -66,8 +75,25 @@ export async function GET(request: Request) {
           proofImageUrl: payment.proofImageUrl.includes(".private.blob.vercel-storage.com/")
             ? `/api/payments/${payment._id?.toString()}/image`
             : payment.proofImageUrl,
-          userName: user ? `${user.firstName} ${user.lastName}` : "Unknown",
-          userEmail: user?.email || "Unknown",
+          proofs: (payment.proofs || []).map((proof) => ({
+            publicId: proof.publicId,
+            name: proof.name,
+            type: proof.type,
+            size: proof.size,
+            uploadedAt: proof.uploadedAt,
+            data: "",
+            url: `/api/payments/${payment._id?.toString()}/image?fileId=${encodeURIComponent(proof.publicId || "")}`,
+          })),
+          userName: user
+            ? `${user.firstName} ${user.lastName}`
+            : organization
+              ? `${organization.name} (Partner API)`
+              : "Unknown",
+          userEmail:
+            user?.email ||
+            organization?.contacts.operational?.email ||
+            organization?.contacts.billing?.email ||
+            "Not provided",
         };
       })
     );

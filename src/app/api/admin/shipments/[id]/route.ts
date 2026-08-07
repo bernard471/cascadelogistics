@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
 import { put } from "@vercel/blob";
-import type { Shipment } from "@/models/Shipment";
-import type { TimelineEvent } from "@/types";
 import { sendShipmentUpdateEmail } from "@/lib/email";
-import { getShipmentOperationBlock } from "@/lib/shipment-operations";
+import { getShipmentOperationBlockForPrincipal } from "@/lib/shipments/operation-policy";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
+import type { AdminShipmentUpdateInput } from "@/lib/shipments/schemas";
+import {
+  deleteInternalShipment,
+  getShipmentByIdForPrincipal,
+  ShipmentServiceError,
+  updateInternalShipment,
+} from "@/lib/shipments/service";
+import {
+  enrichAdminShipments,
+  getShipmentCustomerEmailMode,
+} from "@/lib/shipments/admin-integration";
+import type { OrganizationDocument } from "@/lib/partner-platform/types";
+import { buildPrivateShipmentFilePath } from "@/lib/shipments/private-files";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -26,17 +37,15 @@ export async function GET(
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const shipmentsCollection = db.collection<Shipment>("shipments");
-
-    const shipment = await shipmentsCollection.findOne({
-      _id: new ObjectId(id) as unknown as string
-    });
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    const shipment = await getShipmentByIdForPrincipal(db, id, principal);
 
     if (!shipment) {
       return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ ...shipment, _id: shipment._id?.toString() });
+    const [adminShipment] = await enrichAdminShipments(db, [shipment]);
+    return NextResponse.json(adminShipment);
   } catch (error) {
     console.error("GET admin shipment error:", error);
     return NextResponse.json(
@@ -58,7 +67,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const operationBlock = await getShipmentOperationBlock("update", session.user.role);
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    const operationBlock = await getShipmentOperationBlockForPrincipal(
+      "update",
+      principal,
+    );
     if (operationBlock) {
       return NextResponse.json(
         {
@@ -74,24 +87,17 @@ export async function PATCH(
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const shipmentsCollection = db.collection<Shipment>("shipments");
     const notificationsCollection = db.collection("notifications");
 
     // Get the shipment first to find the user and check current status
-    const shipment = await shipmentsCollection.findOne({ _id: new ObjectId(id) as unknown as string });
+    const shipment = await getShipmentByIdForPrincipal(db, id, principal);
     if (!shipment) {
       return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
     }
 
     // Handle multipart/form-data for image upload
     const contentType = request.headers.get("content-type") || "";
-    let body: {
-      status?: string;
-      currentLocation?: string;
-      estimatedDelivery?: string;
-      specialInstructions?: string;
-      deltaNumber?: string;
-    } = {};
+    let body: AdminShipmentUpdateInput = {};
     let imageUrl: string | undefined;
     let imageName: string | undefined;
 
@@ -132,9 +138,19 @@ export async function PATCH(
         }
         
         // Upload to Vercel Blob Storage
+        const organization = shipment.organizationId
+          ? await db.collection<OrganizationDocument>("organizations").findOne({
+              _id: shipment.organizationId,
+            })
+          : null;
         const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
         const imageBlob = await put(
-          `shipment-updates/${shipment.trackingId}/${Date.now()}-${imageFile.name}`,
+          buildPrivateShipmentFilePath({
+            shipment,
+            organizationPublicId: organization?.publicId,
+            category: "shipment-updates",
+            fileName: imageFile.name,
+          }),
           imageBuffer,
           {
             // The connected Vercel Blob store is private. Images are served
@@ -152,151 +168,53 @@ export async function PATCH(
       body = await request.json();
     }
 
-    // Prepare update object
-    const updateData: Partial<Shipment> & { updatedAt: Date } = {
-      updatedAt: new Date()
-    };
-    
-    if (body.status) updateData.status = body.status as Shipment['status'];
-    if (body.currentLocation !== undefined) {
-      updateData.currentLocation = body.currentLocation.trim();
-    }
-    if (body.estimatedDelivery) {
-      updateData.estimatedDelivery = new Date(body.estimatedDelivery);
-    }
-    if (body.specialInstructions !== undefined) {
-      updateData.specialInstructions = body.specialInstructions.trim();
-    }
-    if (body.deltaNumber !== undefined) {
-      // Allow empty string to clear DELTA number, or set it if provided
-      updateData.deltaNumber = body.deltaNumber.trim() || undefined;
-    }
-
-    const oldStatus = shipment.status;
-    const newStatus = (body.status as string) || shipment.status;
-    const currentLocation =
-      body.currentLocation?.trim() || shipment.currentLocation || shipment.senderCity;
-    const statusLabels: Record<string, string> = {
-      pending: "Pending",
-      "arrived-at-warehouse": "Arrived at Warehouse",
-      "ready-for-shipment": "Ready for Shipment",
-      "in-transit": "In Transit",
-      "arrived-at-warehouse-ghana": "Arrived at Warehouse (Ghana)",
-      "ready-for-pickup": "Ready for Pickup",
-      delivered: "Delivered",
-      cancelled: "Cancelled",
-      "on-hold": "On Hold",
-    };
-    const updateDetails: string[] = [];
-
-    if (newStatus !== oldStatus) {
-      updateDetails.push(`Status changed to ${statusLabels[newStatus] || newStatus}`);
-    }
-    if (
-      body.currentLocation !== undefined &&
-      body.currentLocation.trim() !== (shipment.currentLocation || "")
-    ) {
-      updateDetails.push(
-        body.currentLocation.trim()
-          ? `Current location updated to ${body.currentLocation.trim()}`
-          : "Current location cleared"
-      );
-    }
-    if (body.estimatedDelivery) {
-      const previousDelivery = shipment.estimatedDelivery
-        ? new Date(shipment.estimatedDelivery).toISOString().slice(0, 10)
-        : "";
-      const nextDelivery = new Date(body.estimatedDelivery).toISOString().slice(0, 10);
-      if (nextDelivery !== previousDelivery) {
-        updateDetails.push(
-          `Estimated delivery updated to ${new Date(body.estimatedDelivery).toLocaleDateString()}`
-        );
-      }
-    }
-    if (
-      body.specialInstructions !== undefined &&
-      body.specialInstructions.trim() !== (shipment.specialInstructions || "")
-    ) {
-      updateDetails.push(
-        body.specialInstructions.trim()
-          ? "Special instructions updated"
-          : "Special instructions cleared"
-      );
-    }
-    if (
-      body.deltaNumber !== undefined &&
-      body.deltaNumber.trim() !== (shipment.deltaNumber || "")
-    ) {
-      updateDetails.push(
-        body.deltaNumber.trim()
-          ? `DELTA number updated to ${body.deltaNumber.trim()}`
-          : "DELTA number cleared"
-      );
-    }
-    if (imageUrl) updateDetails.push(`Update image added: ${imageName || "image"}`);
-
-    if (updateDetails.length > 0) {
-      const timeline: TimelineEvent[] = Array.isArray(shipment.timeline)
-        ? [...shipment.timeline]
-        : [];
-      const now = new Date();
-      timeline.push({
-        status:
-          newStatus !== oldStatus
-            ? statusLabels[newStatus] || newStatus
-            : "Shipment Details Updated",
-        location: currentLocation || shipment.senderCity || "Location not provided",
-        date: now,
-        time: now.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        completed: !["cancelled", "on-hold"].includes(newStatus),
-        details: updateDetails,
-        ...(imageUrl && { imageUrl, imageName }),
+    const { updateData, newStatus, currentLocation } =
+      await updateInternalShipment({
+        db,
+        id,
+        principal,
+        body,
+        media: { imageUrl, imageName },
       });
-      updateData.timeline = timeline as Shipment["timeline"];
-    }
 
-    const result = await shipmentsCollection.updateOne(
-      { _id: new ObjectId(id) as unknown as string },
-      { 
-        $set: updateData
-      }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
-    }
-
-    // Create notification for the user
-    const notification = {
-      userId: shipment.userId,
-      title: "Shipment Update",
-      message: `Your shipment ${shipment.trackingId} has been updated by our team.`,
-      type: "update",
-      isRead: false,
-      createdAt: new Date()
-    };
-
-    await notificationsCollection.insertOne(notification);
-
-    try {
-      await sendShipmentUpdateEmail({
-        firstName: shipment.senderName.split(/\s+/)[0] || "Customer",
-        email: shipment.senderEmail,
-        trackingId: shipment.trackingId,
-        status: newStatus,
-        currentLocation,
-        estimatedDelivery:
-          updateData.estimatedDelivery || shipment.estimatedDelivery,
+    if (shipment.userId) {
+      await notificationsCollection.insertOne({
+        userId: shipment.userId,
+        title: "Shipment Update",
+        message: `Your shipment ${shipment.trackingId} has been updated by our team.`,
+        type: "update",
+        isRead: false,
+        createdAt: new Date(),
       });
-    } catch (emailError) {
-      console.error("Shipment update email failed:", emailError);
+    }
+
+    // Partner organizations choose whether Cascade, the partner, or neither
+    // party sends direct customer email. API events are still recorded.
+    const customerEmailMode = await getShipmentCustomerEmailMode(db, shipment);
+    if (customerEmailMode === "cascade") {
+      try {
+        await sendShipmentUpdateEmail({
+          firstName: shipment.senderName.split(/\s+/)[0] || "Customer",
+          email: shipment.senderEmail,
+          trackingId: shipment.trackingId,
+          status: newStatus,
+          currentLocation,
+          estimatedDelivery:
+            updateData.estimatedDelivery || shipment.estimatedDelivery,
+        });
+      } catch (emailError) {
+        console.error("Shipment update email failed:", emailError);
+      }
     }
 
     return NextResponse.json({ message: "Shipment updated successfully" });
   } catch (error) {
+    if (error instanceof ShipmentServiceError) {
+      return NextResponse.json(
+        { error: error.message, ...(error.code ? { code: error.code } : {}) },
+        { status: error.status },
+      );
+    }
     console.error("PATCH admin shipment error:", error);
     return NextResponse.json(
       { error: "Failed to update shipment" },
@@ -321,16 +239,17 @@ export async function DELETE(
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const shipmentsCollection = db.collection<Shipment>("shipments");
-
-    const result = await shipmentsCollection.deleteOne({ _id: new ObjectId(id) as unknown as string });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
-    }
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    await deleteInternalShipment({ db, id, principal });
 
     return NextResponse.json({ message: "Shipment deleted successfully" });
   } catch (error) {
+    if (error instanceof ShipmentServiceError) {
+      return NextResponse.json(
+        { error: error.message, ...(error.code ? { code: error.code } : {}) },
+        { status: error.status },
+      );
+    }
     console.error("DELETE admin shipment error:", error);
     return NextResponse.json(
       { error: "Failed to delete shipment" },

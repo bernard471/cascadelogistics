@@ -1,18 +1,16 @@
 import { head } from "@vercel/blob";
 import type { ShipmentDocument } from "@/models/Shipment";
 import { getPrivateBlobToken } from "@/lib/identity-security";
-
-export const MAX_SHIPMENT_DOCUMENT_SIZE = 10 * 1024 * 1024;
-export const MAX_SHIPMENT_DOCUMENTS = 20;
-
-export const SHIPMENT_DOCUMENT_CONTENT_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
+export {
+  MAX_SHIPMENT_DOCUMENT_SIZE,
+  MAX_SHIPMENT_DOCUMENTS,
+  SHIPMENT_DOCUMENT_CONTENT_TYPES,
+} from "@/lib/shipment-document-policy";
+import {
+  MAX_SHIPMENT_DOCUMENT_SIZE,
+  MAX_SHIPMENT_DOCUMENTS,
+  SHIPMENT_DOCUMENT_CONTENT_TYPES,
+} from "@/lib/shipment-document-policy";
 
 type UploadedDocumentInput = Partial<ShipmentDocument> & {
   pathname?: unknown;

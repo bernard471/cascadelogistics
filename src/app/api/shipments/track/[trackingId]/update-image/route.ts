@@ -3,6 +3,11 @@ import { get } from "@vercel/blob";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import type { Shipment } from "@/models/Shipment";
+import {
+  canAccessPrivateUserResource,
+  getTrustedVercelBlobAccessKind,
+} from "@/lib/shipments/private-files";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
 
 // Streams a private tracking-update image only to operational staff or the
 // user who owns the shipment.
@@ -34,19 +39,18 @@ export async function GET(
       return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
     }
 
-    const canViewAnyShipment = ["admin", "staff", "super_admin"].includes(
-      session.user.role
-    );
-    const ownsShipment = shipment.userId === session.user.id;
-
-    if (!canViewAnyShipment && !ownsShipment) {
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    if (!canAccessPrivateUserResource(principal, shipment.userId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const timeline = Array.isArray(shipment?.timeline) ? shipment.timeline : [];
     const imageUrl = timeline[imageIndex]?.imageUrl;
 
-    if (!imageUrl || !imageUrl.includes(".private.blob.vercel-storage.com/")) {
+    if (
+      !imageUrl ||
+      getTrustedVercelBlobAccessKind(imageUrl) !== "private"
+    ) {
       return NextResponse.json({ error: "Update image not found" }, { status: 404 });
     }
 

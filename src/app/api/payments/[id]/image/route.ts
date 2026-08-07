@@ -4,10 +4,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import type { PaymentProof } from "@/models/PaymentProof";
-
-function safeFileName(fileName: string): string {
-  return fileName.replace(/[\r\n"]/g, "_");
-}
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
+import {
+  canAccessPrivateUserResource,
+  getTrustedVercelBlobAccessKind,
+  safeDownloadFileName,
+} from "@/lib/shipments/private-files";
 
 export async function GET(
   request: Request,
@@ -34,26 +36,34 @@ export async function GET(
       return NextResponse.json({ error: "Payment proof not found" }, { status: 404 });
     }
 
-    const canViewAnyProof = ["admin", "staff", "super_admin"].includes(
-      session.user.role
-    );
-    if (!canViewAnyProof && payment.userId !== session.user.id) {
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    if (!canAccessPrivateUserResource(principal, payment.userId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (!payment.proofImageUrl.includes(".private.blob.vercel-storage.com/")) {
+    const fileId = new URL(request.url).searchParams.get("fileId");
+    const proof = fileId
+      ? payment.proofs?.find((candidate) => candidate.publicId === fileId)
+      : payment.proofs?.[0];
+    const proofUrl = proof?.url || payment.proofImageUrl;
+    const proofName = proof?.name || payment.proofImageName;
+    const blobAccess = getTrustedVercelBlobAccessKind(proofUrl);
+    if (blobAccess === "public") {
       try {
-        const publicUrl = new URL(payment.proofImageUrl);
-        if (!publicUrl.hostname.endsWith(".public.blob.vercel-storage.com")) {
-          throw new Error("Untrusted payment proof URL");
-        }
+        const publicUrl = new URL(proofUrl);
         return NextResponse.redirect(publicUrl);
       } catch {
         return NextResponse.json({ error: "Payment proof image not found" }, { status: 404 });
       }
     }
+    if (blobAccess !== "private") {
+      return NextResponse.json(
+        { error: "Payment proof image not found" },
+        { status: 404 },
+      );
+    }
 
-    const blob = await get(payment.proofImageUrl, { access: "private" });
+    const blob = await get(proofUrl, { access: "private" });
     if (!blob || blob.statusCode !== 200) {
       return NextResponse.json({ error: "Payment proof image not found" }, { status: 404 });
     }
@@ -62,8 +72,9 @@ export async function GET(
     return new NextResponse(blob.stream, {
       headers: {
         "Content-Type": blob.blob.contentType || "application/octet-stream",
-        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${safeFileName(payment.proofImageName)}"`,
+        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${safeDownloadFileName(proofName)}"`,
         "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {

@@ -4,10 +4,23 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { put } from "@vercel/blob";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
-import { MongoQuery } from "@/types";
 import { sendShipmentUpdateEmail } from "@/lib/email";
-import { getShipmentOperationBlock } from "@/lib/shipment-operations";
 import { validateUploadedShipmentDocuments } from "@/lib/shipment-documents";
+import {
+  generateTrackingId,
+  type ShipmentCreationPayload,
+} from "@/lib/shipments/factory";
+import { getShipmentOperationBlockForPrincipal } from "@/lib/shipments/operation-policy";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
+import {
+  createExistingUserShipment,
+  ShipmentServiceError,
+} from "@/lib/shipments/service";
+import {
+  buildAdminShipmentFilter,
+  enrichAdminShipments,
+  listAdminPartnerOptions,
+} from "@/lib/shipments/admin-integration";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -42,29 +55,28 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
-    const limit = parseInt(searchParams.get("limit") || "100");
-    const skip = parseInt(searchParams.get("skip") || "0");
+    const source = searchParams.get("source");
+    const partner = searchParams.get("partner");
+    const externalReference = searchParams.get("externalReference");
+    const requestedLimit = Number.parseInt(searchParams.get("limit") || "100", 10);
+    const requestedSkip = Number.parseInt(searchParams.get("skip") || "0", 10);
+    const limit = Number.isFinite(requestedLimit)
+      ? Math.min(Math.max(requestedLimit, 1), 200)
+      : 100;
+    const skip = Number.isFinite(requestedSkip)
+      ? Math.max(requestedSkip, 0)
+      : 0;
 
     const client = await clientPromise;
     const db = client.db("guangzhou");
     const shipmentsCollection = db.collection<Shipment>("shipments");
-    const usersCollection = db.collection("users");
-
-    // Build query
-    const query: MongoQuery = {};
-    if (status && status !== "all") {
-      query.status = status;
-    }
-    if (search) {
-      query.$or = [
-        { trackingId: { $regex: search, $options: 'i' } },
-        { senderName: { $regex: search, $options: 'i' } },
-        { receiverName: { $regex: search, $options: 'i' } },
-        { senderCity: { $regex: search, $options: 'i' } },
-        { receiverCity: { $regex: search, $options: 'i' } },
-        { deltaNumber: { $regex: search, $options: 'i' } }
-      ];
-    }
+    const query = await buildAdminShipmentFilter(db, {
+      status,
+      search,
+      source,
+      partnerPublicId: partner,
+      externalReference,
+    });
 
     // Fetch shipments
     const shipments = await shipmentsCollection
@@ -74,29 +86,20 @@ export async function GET(request: Request) {
       .limit(limit)
       .toArray();
 
-    // Enrich with user data
-    const shipmentsWithUsers = await Promise.all(
-      shipments.map(async (shipment) => {
-        const user = await usersCollection.findOne(
-          { _id: new ObjectId(shipment.userId) },
-          { projection: { firstName: 1, lastName: 1, email: 1 } }
-        );
-        
-        return {
-          ...shipment,
-          _id: shipment._id?.toString(),
-          customer: user ? `${user.firstName} ${user.lastName}` : 'Unknown',
-          customerEmail: user?.email || ''
-        };
-      })
-    );
+    const [shipmentsWithUsers, partnerOrganizations] = await Promise.all([
+      enrichAdminShipments(db, shipments),
+      listAdminPartnerOptions(db),
+    ]);
 
-    // Get stats
-    const total = await shipmentsCollection.countDocuments({});
-    const inTransit = await shipmentsCollection.countDocuments({ status: 'in-transit' });
-    const delivered = await shipmentsCollection.countDocuments({ status: 'delivered' });
-    const pending = await shipmentsCollection.countDocuments({ status: 'pending' });
-    const cancelled = await shipmentsCollection.countDocuments({ status: 'cancelled' });
+    const [total, filteredTotal, inTransit, delivered, pending, cancelled] =
+      await Promise.all([
+        shipmentsCollection.countDocuments({}),
+        shipmentsCollection.countDocuments(query),
+        shipmentsCollection.countDocuments({ status: "in-transit" }),
+        shipmentsCollection.countDocuments({ status: "delivered" }),
+        shipmentsCollection.countDocuments({ status: "pending" }),
+        shipmentsCollection.countDocuments({ status: "cancelled" }),
+      ]);
 
     return NextResponse.json({
       shipments: shipmentsWithUsers,
@@ -107,8 +110,10 @@ export async function GET(request: Request) {
         pending,
         cancelled
       },
+      partnerOrganizations,
+      total: filteredTotal,
       page: Math.floor(skip / limit) + 1,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(filteredTotal / limit)
     });
   } catch (error) {
     console.error("GET admin shipments error:", error);
@@ -128,7 +133,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const operationBlock = await getShipmentOperationBlock("create", session.user.role);
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    const operationBlock = await getShipmentOperationBlockForPrincipal(
+      "create",
+      principal,
+    );
     if (operationBlock) {
       return NextResponse.json(
         {
@@ -163,9 +172,7 @@ export async function POST(request: Request) {
           }
         }
         // Generate trackingId once for Blob path (will be reused when creating shipment below)
-        const ts = Date.now().toString().slice(-6);
-        const rnd = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-        const trackingIdForBlob = `CLL${ts}${rnd}`;
+        const trackingIdForBlob = generateTrackingId();
         uploadedDocuments = await Promise.all(
           files.map((file) => uploadDocumentToBlob(file, trackingIdForBlob))
         );
@@ -208,7 +215,6 @@ export async function POST(request: Request) {
 
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const shipmentsCollection = db.collection<Shipment>("shipments");
     const usersCollection = db.collection("users");
 
     // Verify user exists
@@ -227,78 +233,26 @@ export async function POST(request: Request) {
     const trackingId =
       typeof (body as Record<string, unknown>).__trackingIdFromBlob === "string"
         ? ((body as Record<string, unknown>).__trackingIdFromBlob as string)
-        : (() => {
-            const timestamp = Date.now().toString().slice(-6);
-            const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-            return `CLL${timestamp}${random}`;
-          })();
+        : generateTrackingId();
     delete (body as Record<string, unknown>).__trackingIdFromBlob;
 
-    // Create new shipment
-    type ShipmentCreationPayload = Omit<
-      Shipment,
-      '_id' | 'trackingId' | 'userId' | 'status' | 'timeline' | 'createdAt' | 'updatedAt' | 'documents' | 'senderName' | 'senderEmail' | 'senderPhone' | 'senderAddress' | 'senderCity' | 'senderCountry' | 'receiverName' | 'receiverEmail' | 'receiverPhone' | 'receiverAddress' | 'receiverCity' | 'receiverCountry'
-    >;
-
     const shipmentPayload = body as ShipmentCreationPayload;
-
-    // Ensure goodsType defaults to 'normal' if not provided
-    const goodsType = shipmentPayload.goodsType || 'normal';
-
-    // Get DELTA number if provided (optional, admin/staff only)
-    const deltaNumber = shipmentPayload.deltaNumber?.trim() || undefined;
-
-    // Set standard route: USA Warehouse, USA → Ghana Warehouse, Ghana
-    const newShipment: Omit<Shipment, '_id'> = {
-      ...shipmentPayload,
-      declaredValue: Number((shipmentPayload as Record<string, unknown>).declaredValue) || 0,
-      goodsType,
-      trackingId,
-      userId: body.userId as string,
-      status: 'arrived-at-warehouse', // Admin/staff creates with arrived-at-warehouse status
-      deltaNumber,
-      documents: uploadedDocuments?.length ? uploadedDocuments : undefined,
-      // Standard sender info (USA Warehouse)
-      senderName: `${user.firstName} ${user.lastName}`,
-      senderEmail: user.email,
-      senderPhone: user.phone || '',
-      senderAddress: 'USA Warehouse',
-      senderCity: 'USA Warehouse',
-      senderCountry: 'USA',
-      // Standard receiver info (Ghana Warehouse)
-      receiverName: `${user.firstName} ${user.lastName}`,
-      receiverEmail: user.email,
-      receiverPhone: user.phone || '',
-      receiverAddress: 'Ghana Warehouse',
-      receiverCity: 'Ghana Warehouse',
-      receiverCountry: 'Ghana',
-      timeline: [
-        {
-          status: 'Arrived at Warehouse',
-          location: 'USA Warehouse, USA',
-          date: new Date(),
-          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          completed: true,
-          details: [
-            `Package type: ${shipmentPayload.packageType}`,
-            `Quantity: ${shipmentPayload.quantity || 1}`,
-            ...(uploadedDocuments?.length
-              ? [`${uploadedDocuments.length} document${uploadedDocuments.length === 1 ? "" : "s"} attached`]
-              : []),
-            ...(shipmentPayload.specialInstructions
-              ? ["Special instructions provided"]
-              : []),
-            ...(shipmentPayload.wholesalePurchases?.length
-              ? [`${shipmentPayload.wholesalePurchases.length} wholesale tracking entr${shipmentPayload.wholesalePurchases.length === 1 ? "y" : "ies"} linked`]
-              : []),
-          ]
-        }
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const result = await shipmentsCollection.insertOne(newShipment);
+    const { shipment: newShipment, shipmentId } =
+      await createExistingUserShipment({
+        db,
+        principal,
+        source: "admin",
+        owner: {
+          userId: body.userId as string,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+        },
+        payload: shipmentPayload,
+        documents: uploadedDocuments,
+        trackingId,
+      });
 
     // Create notification for the user
     const notificationsCollection = db.collection("notifications");
@@ -328,12 +282,18 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         message: "Shipment created successfully",
-        shipmentId: result.insertedId.toString(),
+        shipmentId,
         trackingId
       },
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ShipmentServiceError) {
+      return NextResponse.json(
+        { error: error.message, ...(error.code ? { code: error.code } : {}) },
+        { status: error.status },
+      );
+    }
     console.error("POST admin shipment error:", error);
     return NextResponse.json(
       { error: "Failed to create shipment" },

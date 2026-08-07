@@ -1,4 +1,7 @@
+import type { ShipmentTenantMetadata } from "@/lib/partner-platform/types";
+
 export interface ShipmentDocument {
+  publicId?: string;
   name: string;
   type: string;
   size: number;
@@ -8,10 +11,10 @@ export interface ShipmentDocument {
   pathname?: string; // Vercel Blob pathname used to validate client uploads
 }
 
-export interface Shipment {
+export interface Shipment extends ShipmentTenantMetadata {
   _id?: string;
   trackingId: string;
-  userId: string; // Reference to User
+  userId?: string; // Cascade user reference; partner shipments may not have one
   
   // Sender Information
   senderName: string;
@@ -36,6 +39,7 @@ export interface Shipment {
   quantity: number;
   description: string;
   declaredValue: number; // in USD
+  declaredCurrency?: string;
   goodsType?: 'normal' | 'special' | 'battery'; // Goods type for pricing calculation
   
   // Service Details
@@ -77,6 +81,7 @@ export interface Shipment {
     fileName: string; // Original filename
     uploadedAt: Date; // Upload timestamp
     uploadedBy: string; // Admin/staff user ID who uploaded it
+    pathname?: string; // Private Blob pathname; never returned through partner metadata
   };
   
   // Metadata

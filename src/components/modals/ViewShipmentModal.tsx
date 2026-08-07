@@ -58,6 +58,16 @@ interface MappedShipment {
     uploadedAt: Date | string;
     uploadedBy: string;
   };
+  createdVia?: "dashboard" | "admin" | "partner_api";
+  environment?: "test" | "live";
+  externalCustomerId?: string;
+  externalReference?: string;
+  declaredCurrency?: string;
+  partnerManagedCustomer?: boolean;
+  partnerOrganization?: string;
+  partnerOrganizationId?: string;
+  partnerApplication?: string;
+  partnerApplicationId?: string;
 }
 
 interface ViewShipmentModalProps {
@@ -121,6 +131,13 @@ function getTimelineImageUrl(
   return event.imageUrl;
 }
 
+function shipmentSourceLabel(source?: MappedShipment["createdVia"]) {
+  if (source === "partner_api") return "Partner API";
+  if (source === "admin") return "Admin/Staff dashboard";
+  if (source === "dashboard") return "Customer dashboard";
+  return "Legacy dashboard record";
+}
+
 export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentModalProps) {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
 
@@ -172,6 +189,29 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             </span>
             <span className="text-sm text-gray-600">Created: {shipment.date}</span>
             <span className="text-sm text-gray-600">Est. Delivery: {shipment.estimatedDelivery}</span>
+          </div>
+
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Package className="h-5 w-5 text-[#055b8e]" />
+              <h3 className="font-bold text-gray-800">Source & Integration</h3>
+            </div>
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <DetailItem label="Created Through" value={shipmentSourceLabel(shipment.createdVia)} />
+              {shipment.createdVia === "partner_api" && (
+                <>
+                  <DetailItem label="Partner" value={shipment.partnerOrganization} />
+                  <DetailItem label="Application" value={shipment.partnerApplication} />
+                  <DetailItem label="Environment" value={shipment.environment?.toUpperCase()} />
+                  <DetailItem label="External Reference" value={shipment.externalReference} />
+                  <DetailItem label="External Customer ID" value={shipment.externalCustomerId} />
+                  <DetailItem
+                    label="Customer Ownership"
+                    value={shipment.partnerManagedCustomer ? "Managed by partner" : "Linked Cascade customer"}
+                  />
+                </>
+              )}
+            </div>
           </div>
 
           {/* Two Column Layout */}

@@ -19,6 +19,12 @@ interface MappedPayment {
   status: 'pending' | 'verified' | 'rejected';
   proofImageUrl: string;
   proofImageName: string;
+  proofs: Array<{
+    id?: string;
+    name: string;
+    contentType: string;
+    url: string;
+  }>;
   submittedAt: string;
   verifiedAt?: string;
   verifiedBy?: string;
@@ -71,6 +77,18 @@ export default function PaymentVerificationSection() {
           status: payment.status,
           proofImageUrl: payment.proofImageUrl,
           proofImageName: payment.proofImageName,
+          proofs: payment.proofs?.length
+            ? payment.proofs.map((proof) => ({
+                id: proof.publicId,
+                name: proof.name,
+                contentType: proof.type,
+                url: proof.url || payment.proofImageUrl,
+              }))
+            : [{
+                name: payment.proofImageName,
+                contentType: "image/*",
+                url: payment.proofImageUrl,
+              }],
           submittedAt: new Date(payment.submittedAt).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -387,26 +405,34 @@ export default function PaymentVerificationSection() {
                 </div>
               </div>
 
-              {/* Proof Image */}
+              {/* Proof files */}
               <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Payment Proof</h3>
-                <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={selectedPayment.proofImageUrl}
-                    alt="Payment proof"
-                    className="max-w-full max-h-96 mx-auto rounded-lg"
-                  />
-                </div>
-                <div className="mt-2 flex justify-center">
-                  <a
-                    href={`${selectedPayment.proofImageUrl}${selectedPayment.proofImageUrl.includes('?') ? '&' : '?'}download=1`}
-                    download={selectedPayment.proofImageName}
-                    className="text-sm text-[#055b8e] hover:underline flex items-center gap-1"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download Image
-                  </a>
+                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                  Payment Proof{selectedPayment.proofs.length === 1 ? "" : "s"}
+                </h3>
+                <div className="grid gap-4">
+                  {selectedPayment.proofs.map((proof, index) => (
+                    <div key={proof.id || `${proof.name}-${index}`} className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                      {proof.contentType.startsWith("image/") && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={proof.url}
+                          alt={`Payment proof ${index + 1}`}
+                          className="max-w-full max-h-96 mx-auto rounded-lg"
+                        />
+                      )}
+                      <div className="mt-2 flex justify-center">
+                        <a
+                          href={`${proof.url}${proof.url.includes('?') ? '&' : '?'}download=1`}
+                          download={proof.name}
+                          className="text-sm text-[#055b8e] hover:underline flex items-center gap-1"
+                        >
+                          <Download className="w-4 h-4" />
+                          Download {proof.name}
+                        </a>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

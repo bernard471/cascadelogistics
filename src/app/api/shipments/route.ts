@@ -5,8 +5,14 @@ import { ObjectId } from "mongodb";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { MongoQuery } from "@/types";
 import { sendAdminShipmentCreatedNotification } from "@/lib/email";
-import { getShipmentOperationBlock } from "@/lib/shipment-operations";
 import { validateUploadedShipmentDocuments } from "@/lib/shipment-documents";
+import type { ShipmentCreationPayload } from "@/lib/shipments/factory";
+import { getShipmentOperationBlockForPrincipal } from "@/lib/shipments/operation-policy";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
+import {
+  createExistingUserShipment,
+  ShipmentServiceError,
+} from "@/lib/shipments/service";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -83,7 +89,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const operationBlock = await getShipmentOperationBlock("submit", session.user.role);
+    const principal = shipmentPrincipalFromSessionUser(session.user);
+    const operationBlock = await getShipmentOperationBlockForPrincipal(
+      "submit",
+      principal,
+    );
     if (operationBlock) {
       return NextResponse.json(
         {
@@ -148,7 +158,6 @@ export async function POST(request: Request) {
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const shipmentsCollection = db.collection<Shipment>("shipments");
     const usersCollection = db.collection("users");
 
     // Get user info for sender/receiver
@@ -163,71 +172,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate tracking ID
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const trackingId = `CLL${timestamp}${random}`;
-
-    // Create new shipment
-    type ShipmentCreationPayload = Omit<
-      Shipment,
-      '_id' | 'trackingId' | 'userId' | 'status' | 'timeline' | 'createdAt' | 'updatedAt' | 'documents' | 'senderName' | 'senderEmail' | 'senderPhone' | 'senderAddress' | 'senderCity' | 'senderCountry' | 'receiverName' | 'receiverEmail' | 'receiverPhone' | 'receiverAddress' | 'receiverCity' | 'receiverCountry'
-    >;
-
     const shipmentPayload = body as ShipmentCreationPayload;
-
-    // Ensure goodsType defaults to 'normal' if not provided (for backward compatibility)
-    const goodsType = shipmentPayload.goodsType || 'normal';
-
-    // Set standard route: USA Warehouse, USA → Ghana Warehouse, Ghana
-    const newShipment: Omit<Shipment, '_id'> = {
-      ...shipmentPayload,
-      goodsType,
-      trackingId,
-      userId: session.user.id,
-      status: 'pending', // User creates with pending status
-      documents: uploadedDocuments?.length ? uploadedDocuments : undefined,
-      // Standard sender info (USA Warehouse)
-      senderName: `${user.firstName} ${user.lastName}`,
-      senderEmail: user.email,
-      senderPhone: user.phone || '',
-      senderAddress: 'USA Warehouse',
-      senderCity: 'USA Warehouse',
-      senderCountry: 'USA',
-      // Standard receiver info (Ghana Warehouse)
-      receiverName: `${user.firstName} ${user.lastName}`,
-      receiverEmail: user.email,
-      receiverPhone: user.phone || '',
-      receiverAddress: 'Ghana Warehouse',
-      receiverCity: 'Ghana Warehouse',
-      receiverCountry: 'Ghana',
-      timeline: [
-        {
-          status: 'Order Placed',
-          location: 'USA Warehouse, USA',
-          date: new Date(),
-          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          completed: true,
-          details: [
-            `Package type: ${shipmentPayload.packageType}`,
-            `Quantity: ${shipmentPayload.quantity || 1}`,
-            ...(uploadedDocuments?.length
-              ? [`${uploadedDocuments.length} document${uploadedDocuments.length === 1 ? "" : "s"} attached`]
-              : []),
-            ...(shipmentPayload.specialInstructions
-              ? ["Special instructions provided"]
-              : []),
-            ...(shipmentPayload.wholesalePurchases?.length
-              ? [`${shipmentPayload.wholesalePurchases.length} wholesale tracking entr${shipmentPayload.wholesalePurchases.length === 1 ? "y" : "ies"} linked`]
-              : []),
-          ]
-        }
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const result = await shipmentsCollection.insertOne(newShipment);
+    const { shipment: newShipment, shipmentId } =
+      await createExistingUserShipment({
+        db,
+        principal,
+        source: "customer",
+        owner: {
+          userId: session.user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+        },
+        payload: shipmentPayload,
+        documents: uploadedDocuments,
+      });
+    const trackingId = newShipment.trackingId;
 
     // Create notification for the user
     const notificationsCollection = db.collection("notifications");
@@ -248,7 +209,7 @@ export async function POST(request: Request) {
       message: `A new shipment ${trackingId} has been created by ${user.firstName} ${user.lastName}.`,
       type: "shipment",
       isRead: false,
-      relatedShipmentId: result.insertedId.toString(),
+      relatedShipmentId: shipmentId,
       createdAt: new Date()
     };
     await notificationsCollection.insertOne(adminNotification);
@@ -269,12 +230,18 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         message: "Shipment created successfully",
-        shipmentId: result.insertedId.toString(),
+        shipmentId,
         trackingId
       },
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof ShipmentServiceError) {
+      return NextResponse.json(
+        { error: error.message, ...(error.code ? { code: error.code } : {}) },
+        { status: error.status },
+      );
+    }
     console.error("POST shipment error:", error);
     return NextResponse.json(
       { error: "Failed to create shipment" },

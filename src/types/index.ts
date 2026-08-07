@@ -44,6 +44,7 @@ export interface UserWithStats extends User {
 
 // Shipment related types
 export interface ShipmentDocument {
+  publicId?: string;
   name: string;
   type: string;
   size: number;
@@ -55,10 +56,29 @@ export interface ShipmentDocument {
 
 export interface Shipment {
   _id?: string;
+  publicId?: string;
   trackingId: string;
-  userId: string; // Reference to User
+  userId?: string; // Cascade user reference; partner shipments may not have one
+  createdVia?: 'dashboard' | 'admin' | 'partner_api';
+  environment?: 'test' | 'live';
+  organizationId?: string;
+  apiClientId?: string;
+  externalCustomerId?: string;
+  externalReference?: string;
+  declaredCurrency?: string;
+  cascadeUserId?: string;
+  createdByPrincipal?: {
+    type: 'user' | 'admin' | 'staff' | 'api_client';
+    id: string;
+  };
+  apiVersion?: 'v1';
   customer?: string; // Computed field for admin views
   customerEmail?: string; // Computed field for admin views
+  partnerOrganization?: string;
+  partnerOrganizationId?: string;
+  partnerApplication?: string;
+  partnerApplicationId?: string;
+  partnerManagedCustomer?: boolean;
   
   // Sender Information
   senderName: string;
@@ -115,6 +135,7 @@ export interface Shipment {
     fileName: string; // Original filename
     uploadedAt: Date | string; // Upload timestamp
     uploadedBy: string; // Admin/staff user ID who uploaded it
+    pathname?: string;
   };
   
   // Metadata
@@ -140,16 +161,24 @@ export interface PaymentProof {
   paymentId: string; // Auto-generated ID (PAY######)
   trackingId: string; // Reference to shipment tracking ID
   shipmentId: string; // Reference to shipment _id
-  userId: string; // Reference to user who submitted
+  userId?: string; // Reference to dashboard user; partner submissions may not have one
+  publicId?: string;
+  organizationId?: string;
+  apiClientId?: string;
+  environment?: 'test' | 'live';
+  shipmentPublicId?: string;
+  submittedVia?: 'dashboard' | 'partner_api';
   
   // Payment Details
   amount: number; // Amount paid in USD
+  currency?: string;
   paymentMethod: 'mobile-money' | 'bank-transfer' | 'cash' | 'other';
   paymentMethodDetails?: string; // Additional details (e.g., MTN, Vodafone, etc.)
   
   // Proof Image
   proofImageUrl: string; // Vercel Blob Storage URL
   proofImageName: string; // Original filename
+  proofs?: ShipmentDocument[];
   
   // Status
   status: 'pending' | 'verified' | 'rejected';

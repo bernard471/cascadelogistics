@@ -3,35 +3,32 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPrivateBlobToken } from "@/lib/identity-security";
-import { getShipmentOperationBlock } from "@/lib/shipment-operations";
 import {
   MAX_SHIPMENT_DOCUMENT_SIZE,
   SHIPMENT_DOCUMENT_CONTENT_TYPES,
 } from "@/lib/shipment-documents";
-
-type ShipmentUploadMode = "create" | "submit";
-
-function parseMode(value: string | null): ShipmentUploadMode {
-  if (value !== "create" && value !== "submit") {
-    throw new Error("Invalid shipment upload mode");
-  }
-  return value;
-}
+import {
+  canUseShipmentUploadMode,
+  getShipmentUploadOperation,
+  isAuthorizedShipmentUploadPath,
+  parseShipmentUploadMode,
+  type ShipmentUploadMode,
+} from "@/lib/shipments/document-policy";
+import { getShipmentOperationBlockForPrincipal } from "@/lib/shipments/operation-policy";
+import { shipmentPrincipalFromSessionUser } from "@/lib/shipments/principals";
 
 async function authorizeMode(mode: ShipmentUploadMode) {
   const session = await auth();
   if (!session?.user) throw new Error("Unauthorized");
 
-  if (
-    mode === "create" &&
-    !["admin", "staff", "super_admin"].includes(session.user.role)
-  ) {
+  const principal = shipmentPrincipalFromSessionUser(session.user);
+  if (!canUseShipmentUploadMode(principal, mode)) {
     throw new Error("Unauthorized");
   }
 
-  const operationBlock = await getShipmentOperationBlock(
-    mode === "create" ? "create" : "submit",
-    session.user.role
+  const operationBlock = await getShipmentOperationBlockForPrincipal(
+    getShipmentUploadOperation(mode),
+    principal,
   );
   if (operationBlock) {
     throw new Error(
@@ -44,7 +41,9 @@ async function authorizeMode(mode: ShipmentUploadMode) {
 
 export async function GET(request: Request) {
   try {
-    const mode = parseMode(new URL(request.url).searchParams.get("mode"));
+    const mode = parseShipmentUploadMode(
+      new URL(request.url).searchParams.get("mode"),
+    );
     const user = await authorizeMode(mode);
     return NextResponse.json({
       prefix: `shipment-documents/${user.id}/${crypto.randomUUID()}`,
@@ -70,15 +69,14 @@ export async function POST(request: Request) {
           mode?: string;
           prefix?: string;
         };
-        const mode = parseMode(parsed.mode || null);
+        const mode = parseShipmentUploadMode(parsed.mode);
         const user = await authorizeMode(mode);
-        const expectedRoot = `shipment-documents/${user.id}/`;
 
-        if (
-          typeof parsed.prefix !== "string" ||
-          !parsed.prefix.startsWith(expectedRoot) ||
-          !pathname.startsWith(`${parsed.prefix}/`)
-        ) {
+        if (!isAuthorizedShipmentUploadPath({
+          userId: user.id,
+          prefix: parsed.prefix,
+          pathname,
+        })) {
           throw new Error("Upload path is not authorized");
         }
 
