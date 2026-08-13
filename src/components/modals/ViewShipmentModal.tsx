@@ -131,12 +131,12 @@ function getTimelineImageUrl(
   return event.imageUrl;
 }
 
-function shipmentSourceLabel(source?: MappedShipment["createdVia"]) {
-  if (source === "partner_api") return "Partner API";
-  if (source === "admin") return "Admin/Staff dashboard";
-  if (source === "dashboard") return "Customer dashboard";
-  return "Legacy dashboard record";
-}
+// function shipmentSourceLabel(source?: MappedShipment["createdVia"]) {
+//   if (source === "partner_api") return "Partner API";
+//   if (source === "admin") return "Admin/Staff dashboard";
+//   if (source === "dashboard") return "Customer dashboard";
+//   return "Legacy dashboard record";
+// }
 
 export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentModalProps) {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
@@ -191,7 +191,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             <span className="text-sm text-gray-600">Est. Delivery: {shipment.estimatedDelivery}</span>
           </div>
 
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          {/* <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <div className="mb-3 flex items-center gap-2">
               <Package className="h-5 w-5 text-[#055b8e]" />
               <h3 className="font-bold text-gray-800">Source & Integration</h3>
@@ -212,7 +212,7 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                 </>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -224,13 +224,13 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
               </div>
               <div className="space-y-2 text-sm">
                 <DetailItem label="Name" value={shipment.senderName || shipment.customer} />
-                <DetailItem label="Email" value={shipment.senderEmail} />
+                {/* <DetailItem label="Email" value={shipment.senderEmail} />
                 <DetailItem label="Phone" value={shipment.senderPhone} />
                 <DetailItem label="Address" value={shipment.senderAddress} />
                 <DetailItem
                   label="City / Country"
                   value={[shipment.senderCity, shipment.senderCountry].filter(Boolean).join(", ") || shipment.origin}
-                />
+                /> */}
               </div>
             </div>
 
@@ -242,13 +242,13 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
               </div>
               <div className="space-y-2 text-sm">
                 <DetailItem label="Name" value={shipment.receiverName} />
-                <DetailItem label="Email" value={shipment.receiverEmail} />
+                {/* <DetailItem label="Email" value={shipment.receiverEmail} />
                 <DetailItem label="Phone" value={shipment.receiverPhone} />
                 <DetailItem label="Address" value={shipment.receiverAddress} />
                 <DetailItem
                   label="City / Country"
                   value={[shipment.receiverCity, shipment.receiverCountry].filter(Boolean).join(", ") || shipment.destination}
-                />
+                /> */}
               </div>
             </div>
           </div>
@@ -292,10 +292,10 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               <DetailItem label="Service" value={shipment.service} />
-              <DetailItem
+              {/* <DetailItem
                 label="Service Price"
                 value={shipment.servicePrice !== undefined ? `$${shipment.servicePrice.toFixed(2)}` : ""}
-              />
+              /> */}
               <DetailItem label="Current Location" value={shipment.currentLocation} />
               <DetailItem label="Pickup Date" value={formatDate(shipment.pickupDate)} />
               <DetailItem label="Estimated Delivery" value={shipment.estimatedDelivery} />

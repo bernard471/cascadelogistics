@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint --max-warnings=0",
     "typecheck": "tsc --noEmit --incremental false",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --experimental-strip-types tests/shipment-domain.test.mjs tests/partner-platform-phase2.test.mjs tests/partner-platform-phase3.test.mjs tests/partner-platform-phase4.test.mjs tests/partner-platform-phase5.test.mjs tests/partner-platform-phase6.test.mjs tests/partner-platform-phase7.test.mjs tests/partner-platform-phase8.test.mjs tests/partner-platform-phase9.test.mjs tests/partner-platform-phase10.test.mjs tests/partner-platform-phase11.test.mjs",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --experimental-strip-types tests/shipment-domain.test.mjs tests/partner-platform-feature-flag.test.mjs tests/partner-platform-phase2.test.mjs tests/partner-platform-phase3.test.mjs tests/partner-platform-phase4.test.mjs tests/partner-platform-phase5.test.mjs tests/partner-platform-phase6.test.mjs tests/partner-platform-phase7.test.mjs tests/partner-platform-phase8.test.mjs tests/partner-platform-phase9.test.mjs tests/partner-platform-phase10.test.mjs tests/partner-platform-phase11.test.mjs",
     "test:phase2:integration": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --experimental-strip-types tests/partner-platform-phase2.integration.test.mjs",
     "migrate:phase2": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/migrate-partner-platform-phase2.mjs",
     "issue:partner-key:test": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/issue-partner-api-credential.mjs",

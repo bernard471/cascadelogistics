@@ -32,6 +32,7 @@ import { ensurePartnerSecurityIndexes } from "./security-indexes.ts";
 import { ensurePartnerCoreIndexes } from "./core-indexes.ts";
 import { withPartnerSpan } from "./telemetry.ts";
 import { assertPartnerRequestSize } from "./request-security.ts";
+import { isPartnerPlatformEnabled } from "./feature.ts";
 
 export interface PartnerApiRouteConfig {
   routeTemplate: string;
@@ -106,6 +107,12 @@ export async function handlePartnerApiRequest(
   config: PartnerApiRouteConfig,
   handler: (context: PartnerApiRouteContext) => Promise<unknown>,
 ): Promise<NextResponse> {
+  if (!isPartnerPlatformEnabled()) {
+    return NextResponse.json(
+      { error: "Not found" },
+      { status: 404, headers: { "Cache-Control": "private, no-store" } },
+    );
+  }
   return withPartnerSpan("partner.api.request", {
     "http.request.method": request.method,
     "http.route": config.routeTemplate,

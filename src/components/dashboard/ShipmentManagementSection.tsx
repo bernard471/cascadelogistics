@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Eye, Edit2, Trash2, Upload, MapPin, ChevronLeft, ChevronRight, PackagePlus } from "lucide-react";
+import { Search, Eye, Edit2, Trash2, Upload, 
+ // MapPin, 
+  ChevronLeft, ChevronRight, PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -79,19 +81,19 @@ interface PartnerOption {
   status: string;
 }
 
-function sourceLabel(source?: Shipment["createdVia"]) {
-  if (source === "partner_api") return "Partner API";
-  if (source === "admin") return "Admin/Staff";
-  if (source === "dashboard") return "Customer dashboard";
-  return "Legacy dashboard record";
-}
+// function sourceLabel(source?: Shipment["createdVia"]) {
+//   if (source === "partner_api") return "Partner API";
+//   if (source === "admin") return "Admin/Staff";
+//   if (source === "dashboard") return "Customer dashboard";
+//   return "Legacy dashboard record";
+// }
 
 export default function ShipmentManagementSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sourceFilter, setSourceFilter] = useState("all");
-  const [partnerFilter, setPartnerFilter] = useState("all");
-  const [partnerOptions, setPartnerOptions] = useState<PartnerOption[]>([]);
+  const [sourceFilter, ] = useState("all");
+  const [partnerFilter,] = useState("all");
+  const [, setPartnerOptions] = useState<PartnerOption[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [shipments, setShipments] = useState<MappedShipment[]>([]);
   const [shipmentStats, setShipmentStats] = useState<ShipmentsResponse['stats'] | null>(null);
@@ -350,7 +352,7 @@ export default function ShipmentManagementSection() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
@@ -366,7 +368,7 @@ export default function ShipmentManagementSection() {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <select
               value={sourceFilter}
               onChange={(e) => {
@@ -404,7 +406,7 @@ export default function ShipmentManagementSection() {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           {/* Status Filter */}
           <div>
@@ -458,18 +460,18 @@ export default function ShipmentManagementSection() {
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tracking ID
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Source
-                </th>
+                </th> */}
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   DELTA Number
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Route
-                </th>
+                </th> */}
                 {/* <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Service
                 </th> */}
@@ -501,7 +503,7 @@ export default function ShipmentManagementSection() {
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {sourceLabel(shipment.createdVia)}
                     </div>
@@ -523,7 +525,7 @@ export default function ShipmentManagementSection() {
                         )}
                       </>
                     )}
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-900">
                       {shipment.deltaNumber || "-"}
@@ -537,7 +539,7 @@ export default function ShipmentManagementSection() {
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  {/* <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-sm text-gray-900">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <div>
@@ -545,7 +547,7 @@ export default function ShipmentManagementSection() {
                         <div className="text-xs text-gray-500">→ {shipment.destination}</div>
                       </div>
                     </div>
-                  </td>
+                  </td> */}
                   {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {shipment.service}
                   </td> */}

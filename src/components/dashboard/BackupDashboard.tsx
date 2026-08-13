@@ -61,7 +61,9 @@ function toLocalInputValue(date: Date) {
   return local.toISOString().slice(0, 16);
 }
 
-export default function BackupDashboard() {
+export default function BackupDashboard({
+  partnerPlatformEnabled,
+}: Readonly<{ partnerPlatformEnabled: boolean }>) {
   const { data: session } = useSession();
   const [operations, setOperations] = useState<Operations>(emptyOperations);
   const [untilValues, setUntilValues] = useState<Record<OperationName, string>>({
@@ -152,11 +154,13 @@ export default function BackupDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild className="bg-cyan-500 text-slate-950 hover:bg-cyan-400">
-              <Link href="/backup-dashboard/integrations">
-                <Network className="mr-2 h-4 w-4" />Partner integrations
-              </Link>
-            </Button>
+            {partnerPlatformEnabled && (
+              <Button asChild className="bg-cyan-500 text-slate-950 hover:bg-cyan-400">
+                <Link href="/backup-dashboard/integrations">
+                  <Network className="mr-2 h-4 w-4" />Partner integrations
+                </Link>
+              </Button>
+            )}
             <Button
               variant="outline"
               className="border-white/15 bg-transparent text-slate-200 hover:bg-white/10 hover:text-white"
