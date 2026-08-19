@@ -4,6 +4,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import VerifyEmailSection from "@/components/VerifyEmailSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Verify Email",
+  description: "Verify the email address connected to your Cascade Logistics member account.",
+  path: "/verify-email",
+  noIndex: true,
+});
 
 export default function VerifyEmail() {
     return (

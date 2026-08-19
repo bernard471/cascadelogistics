@@ -4,6 +4,14 @@ import BreadcrumbHero from "@/components/BreadcrumbHero";
 import FAQSection from "@/components/FAQSection";
 import FAQContactSection from "@/components/FAQContactSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Shipping & Logistics FAQs",
+  description: "Find answers about Cascade Logistics shipping times, air and sea freight, customs clearance, pricing, tracking and deliveries from China to Ghana.",
+  path: "/faqs-cascade",
+  keywords: ["shipping FAQ Ghana", "China to Ghana shipping time", "freight questions"],
+});
 
 export default function FaqsCascade() {
     return (
@@ -18,4 +26,3 @@ export default function FaqsCascade() {
         </div>
     );
 }
-

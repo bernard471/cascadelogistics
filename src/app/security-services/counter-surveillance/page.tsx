@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import SecurityServiceDetailsSection from "@/components/SecurityServiceDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Counter-Surveillance Services",
+  description: "Detect hidden cameras, listening devices, trackers and other monitoring threats with professional security sweeps and privacy protection.",
+  path: "/security-services/counter-surveillance",
+  keywords: ["counter surveillance Ghana","bug sweeping services"],
+});
 
 export default function CounterSurveillancePage() {
   const service = {

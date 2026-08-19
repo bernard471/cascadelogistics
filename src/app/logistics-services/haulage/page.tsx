@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Cargo Haulage Services in Ghana",
+  description: "Transport cargo safely across Ghana with professional haulage from ports and airports, suitable vehicles, transit cover and timely delivery.",
+  path: "/logistics-services/haulage",
+  keywords: ["haulage services Ghana","cargo transport Accra"],
+});
 
 export default function HaulagePage() {
   const service = {

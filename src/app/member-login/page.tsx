@@ -4,6 +4,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import MemberLoginSection from "@/components/MemberLoginSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Member Login",
+  description: "Sign in to your Cascade Logistics account to manage shipments, payments, documents and support requests.",
+  path: "/member-login",
+  noIndex: true,
+});
 
 export default function MemberLogin() {
     return (

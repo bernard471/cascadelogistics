@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Sea Shipping from China to Ghana",
+  description: "Send large shipments from China to Ghana with affordable sea freight, groupage and full-container options, customs support and reliable delivery.",
+  path: "/logistics-services/sea-shipping",
+  keywords: ["sea shipping China to Ghana","container shipping Ghana"],
+});
 
 export default function SeaShippingPage() {
   const service = {
@@ -78,4 +86,3 @@ We provide comprehensive sea shipping services including full container options,
     </div>
   );
 }
-

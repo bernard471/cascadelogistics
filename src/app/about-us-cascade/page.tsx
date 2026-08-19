@@ -7,6 +7,14 @@ import AboutPageSectionThree from "@/components/AboutPageSectionThree";
 import TeamSection from "@/components/TeamSection";
 import GlobalReachSection from "@/components/GlobalReachSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "About Our Logistics Company",
+  description: "Meet Cascade Logistics, the team connecting China and Ghana through dependable freight forwarding, procurement, warehousing and delivery solutions.",
+  path: "/about-us-cascade",
+  keywords: ["about Cascade Logistics", "logistics company Ghana", "freight forwarder Accra"],
+});
 
 export default function AboutUsCascade() {
     return (

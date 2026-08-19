@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import SecurityServiceDetailsSection from "@/components/SecurityServiceDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "CCTV Surveillance Services",
+  description: "Protect homes, facilities and cargo with professional CCTV surveillance, remote monitoring, incident evidence and crime-deterrence solutions.",
+  path: "/security-services/closed-circuit-tv",
+  keywords: ["CCTV services Ghana","security surveillance Accra"],
+});
 
 export default function ClosedCircuitTVPage() {
   const service = {

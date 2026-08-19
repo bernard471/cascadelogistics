@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import SecurityServiceDetailsSection from "@/components/SecurityServiceDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Security Dispatch Services",
+  description: "Coordinate personnel and resources with 24/7 security dispatch, real-time communication, rapid emergency response and activity reporting.",
+  path: "/security-services/dispatch-arrangement",
+  keywords: ["security dispatch Ghana","24/7 security response"],
+});
 
 export default function DispatchArrangementPage() {
   const service = {

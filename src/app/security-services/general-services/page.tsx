@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import SecurityServiceDetailsSection from "@/components/SecurityServiceDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Investigation & General Security",
+  description: "Protect people, events and property with professional investigations, intelligence gathering, risk assessments and tailored security coverage.",
+  path: "/security-services/general-services",
+  keywords: ["investigation services Ghana","general security services"],
+});
 
 export default function GeneralServicesPage() {
   const service = {

@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Customs Clearance in Ghana",
+  description: "Clear imports efficiently with expert customs documentation, compliance support and coordinated processing for shipments entering Ghana.",
+  path: "/logistics-services/clearing-customs",
+  keywords: ["customs clearance Ghana","import clearance Accra"],
+});
 
 export default function ClearingCustomsPage() {
   const service = {

@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Cargo Consolidation Services",
+  description: "Combine multiple packages into one efficient shipment, reduce freight costs and simplify delivery from international suppliers to Ghana.",
+  path: "/logistics-services/consolidation",
+  keywords: ["cargo consolidation Ghana","consolidated shipping China Ghana"],
+});
 
 export default function ConsolidationPage() {
   const service = {

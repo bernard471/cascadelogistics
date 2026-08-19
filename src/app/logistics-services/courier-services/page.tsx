@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Express Courier Services in Ghana",
+  description: "Send urgent documents, parcels and business packages with fast, secure and trackable courier delivery services from Cascade Logistics.",
+  path: "/logistics-services/courier-services",
+  keywords: ["courier services Ghana","express parcel delivery Ghana"],
+});
 
 export default function CourierServicesPage() {
   const service = {

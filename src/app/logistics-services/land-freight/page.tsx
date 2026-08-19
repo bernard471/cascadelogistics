@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Land Freight Services",
+  description: "Plan dependable road freight for local and cross-border cargo with flexible vehicles, route coordination and professional shipment handling.",
+  path: "/logistics-services/land-freight",
+  keywords: ["land freight Ghana","road cargo transport"],
+});
 
 export default function LandFreightPage() {
   const service = {

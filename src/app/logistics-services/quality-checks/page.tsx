@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Pre-Shipment Quality Inspections",
+  description: "Verify products before they leave China with pre-shipment inspections, defect checks, compliance reviews and clear quality reports.",
+  path: "/logistics-services/quality-checks",
+  keywords: ["quality inspection China","pre shipment inspection Ghana"],
+});
 
 export default function QualityChecksPage() {
   const service = {
@@ -78,4 +86,3 @@ Our quality check services include pre-shipment inspections, detailed quality re
     </div>
   );
 }
-

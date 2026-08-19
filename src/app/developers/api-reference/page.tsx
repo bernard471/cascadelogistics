@@ -1,3 +1,10 @@
 import Link from "next/link";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "API Reference",
+  description: "Browse Cascade Logistics API v1 endpoints for shipments, documents, timelines, invoices, payments, uploads, webhooks and delivery replay.",
+  path: "/developers/api-reference",
+});
 const groups=["GET /me","POST, GET /shipments","GET, PATCH /shipments/{shipmentId}","POST /shipments/{shipmentId}/cancel","GET, DELETE /shipments/{shipmentId}/documents/{documentId}","GET /shipments/{shipmentId}/timeline","GET /shipments/{shipmentId}/tracking-numbers","GET /shipments/{shipmentId}/invoice","POST, GET /shipments/{shipmentId}/payment-proofs","POST /uploads","GET, POST /webhook-endpoints","PATCH, DELETE /webhook-endpoints/{endpointId}","POST /webhook-endpoints/{endpointId}/test","GET /webhook-deliveries","POST /webhook-deliveries/{deliveryId}/replay"];
 export default function ApiReference(){return <main className="mx-auto max-w-5xl px-5 py-14"><h1 className="text-4xl font-black">API v1 reference</h1><p className="mt-4 text-slate-400">Base URL: <code>https://cascadelogistics.vercel.app/api/v1</code>. Send a Bearer key and JSON. Mutation retries require an <code>Idempotency-Key</code> where documented.</p><div className="mt-8 grid gap-3 md:grid-cols-2">{groups.map(item=><div key={item} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 font-mono text-sm">{item}</div>)}</div><div className="mt-8 flex gap-3"><Link href="/openapi/cascade-partner-v1.json" className="text-cyan-300">Download OpenAPI JSON</Link><Link href="/collections/cascade-partner-v1.postman.json" className="text-cyan-300">Download Postman collection</Link></div></main>}

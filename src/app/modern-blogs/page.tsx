@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import BlogPostsSection from "@/components/BlogPostsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Shipping & Logistics Insights",
+  description: "Read practical Cascade Logistics insights on freight forwarding, warehousing, cargo security, shipping operations and supply-chain planning.",
+  path: "/modern-blogs",
+  keywords: ["logistics blog Ghana", "shipping advice", "freight forwarding insights", "warehouse tips"],
+});
 
 export default function ModernBlogs() {
     return (

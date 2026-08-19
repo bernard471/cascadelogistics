@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import SecurityServiceDetailsSection from "@/components/SecurityServiceDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Secure Asset Safe-Keeping",
+  description: "Safeguard money, precious metals, documents and other valuables with controlled access, monitored storage, confidentiality and insurance.",
+  path: "/security-services/safe-keeping",
+  keywords: ["safe keeping Ghana","secure valuables storage"],
+});
 
 export default function SafeKeepingPage() {
   const service = {

@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Ghana to China Money Transfer",
+  description: "Make secure Ghana cedi to Chinese yuan payments for purchases and suppliers through Cascade Logistics' trusted money-transfer service.",
+  path: "/logistics-services/money-transfer",
+  keywords: ["Ghana to China money transfer","cedi to RMB transfer"],
+});
 
 export default function MoneyTransferPage() {
   const service = {
@@ -78,4 +86,3 @@ You can send money through bank transfers or mobile money (Momo) to our agents i
     </div>
   );
 }
-

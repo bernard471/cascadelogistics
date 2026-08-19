@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BlogBreadcrumbHero from "@/components/BlogBreadcrumbHero";
 import BlogDetailsSection from "@/components/BlogDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "How to Quickly Respond to Attacks",
+  description: "Learn practical threat-detection and response techniques that help organizations identify cyber attacks earlier and limit operational damage.",
+  path: "/blog/how-to-quickly-respond-to-attacks",
+  type: "article",
+});
 
 export default function BlogDetailPage() {
   // Sample blog post data

@@ -2,6 +2,13 @@ import TopBanner from "@/components/TopBanner";
 import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Privacy Policy",
+  description: "Learn how Cascade Logistics collects, uses, protects and manages personal information when you use our website and logistics services.",
+  path: "/privacy",
+});
 
 export default function PrivacyPolicy() {
   return (

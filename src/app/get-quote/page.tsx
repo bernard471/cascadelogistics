@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import Footer from "@/components/Footer";
 import QuoteCalculator from "@/components/QuoteCalculator";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Get a Freight Shipping Quote",
+  description: "Request a shipping quote from Cascade Logistics for air freight, sea cargo and logistics services between China and Ghana.",
+  path: "/get-quote",
+  keywords: ["shipping quote China to Ghana", "freight quote Ghana", "air cargo quote", "sea cargo quote"],
+});
 
 export default function GetQuotePage() {
   return (
@@ -15,4 +23,3 @@ export default function GetQuotePage() {
     </div>
   );
 }
-

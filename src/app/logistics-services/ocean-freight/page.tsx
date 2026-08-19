@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "International Ocean Freight",
+  description: "Move high-volume cargo cost-effectively with FCL, LCL and specialized ocean freight services, port coordination and reliable schedules.",
+  path: "/logistics-services/ocean-freight",
+  keywords: ["ocean freight Ghana","FCL LCL shipping Ghana"],
+});
 
 export default function OceanFreightPage() {
   const service = {

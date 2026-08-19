@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Door-to-Door Shopping & Shipping",
+  description: "Shop from international stores and receive items in Ghana with purchase assistance, overseas warehousing and coordinated door-to-door delivery.",
+  path: "/logistics-services/proxy-buy",
+  keywords: ["door to door shipping Ghana","international shopping delivery Ghana"],
+});
 
 export default function ProxyBuyPage() {
   const service = {

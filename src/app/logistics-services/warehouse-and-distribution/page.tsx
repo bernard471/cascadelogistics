@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Warehouse & Distribution Services",
+  description: "Store, manage and distribute cargo with secure warehousing, inventory control, order fulfilment, cross-docking and delivery coordination.",
+  path: "/logistics-services/warehouse-and-distribution",
+  keywords: ["warehouse distribution Ghana","inventory fulfilment Ghana"],
+});
 
 export default function WarehouseAndDistributionPage() {
   const service = {

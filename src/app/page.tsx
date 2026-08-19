@@ -12,6 +12,14 @@ import WhyChooseUsSection from "@/components/WhyChooseUsSection";
 // import TestimonialsSection from "@/components/TestimonialsSection";
 import GallerySection from "@/components/GallerySection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "China to Ghana Freight & Logistics",
+  description: "Ship goods from China to Ghana with reliable air and sea freight, customs clearance, warehousing, procurement, delivery and shipment tracking.",
+  path: "/",
+  keywords: ["China to Ghana shipping", "freight forwarding Ghana", "air freight Ghana", "sea freight Ghana", "Cascade Logistics"],
+});
 
 export default function Home() {
   return (

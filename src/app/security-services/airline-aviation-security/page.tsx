@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import SecurityServiceDetailsSection from "@/components/SecurityServiceDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Airline & Aviation Security",
+  description: "Strengthen aviation operations with passenger screening, aircraft protection, threat assessment, trained personnel and continuous monitoring.",
+  path: "/security-services/airline-aviation-security",
+  keywords: ["aviation security Ghana","air cargo security"],
+});
 
 export default function AirlineAviationSecurityPage() {
   const service = {

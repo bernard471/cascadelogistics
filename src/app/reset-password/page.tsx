@@ -4,6 +4,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import ResetPasswordSection from "@/components/ResetPasswordSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Reset Password",
+  description: "Choose a new password for your Cascade Logistics member account.",
+  path: "/reset-password",
+  noIndex: true,
+});
 
 export default function ResetPassword() {
     return (

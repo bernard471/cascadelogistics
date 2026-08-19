@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "China Procurement & Payment",
+  description: "Source quality products from China with supplier coordination, negotiation, secure payment, inspection, consolidation and shipping to Ghana.",
+  path: "/logistics-services/procurement",
+  keywords: ["China procurement Ghana","product sourcing China"],
+});
 
 export default function ProcurementPage() {
   const service = {
@@ -78,4 +86,3 @@ Our procurement services include finding quality products, negotiating with supp
     </div>
   );
 }
-

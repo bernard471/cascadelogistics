@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Express Air Freight China to Ghana",
+  description: "Move urgent shipments from China to Ghana with priority air freight, fast transit times, secure handling and end-to-end logistics support.",
+  path: "/logistics-services/express-air-freight",
+  keywords: ["express air freight China Ghana","urgent cargo Ghana"],
+});
 
 export default function ExpressAirFreightPage() {
   const service = {
@@ -78,4 +86,3 @@ Our express air shipping services deliver your goods in just 2-5 days, making it
     </div>
   );
 }
-

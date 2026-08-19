@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Customs Brokerage Services",
+  description: "Navigate import and export requirements with customs brokerage, tariff guidance, documentation and compliance planning for cargo in Ghana.",
+  path: "/logistics-services/customs-brokerage",
+  keywords: ["customs broker Ghana","import export compliance Ghana"],
+});
 
 export default function CustomsBrokeragePage() {
   const service = {

@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Air Freight from China to Ghana",
+  description: "Fast, reliable air freight from China to Ghana with secure cargo handling, competitive rates and delivery to Accra or Kumasi.",
+  path: "/logistics-services/air-freight",
+  keywords: ["air freight China to Ghana","air cargo Ghana"],
+});
 
 export default function AirFreightPage() {
   const service = {

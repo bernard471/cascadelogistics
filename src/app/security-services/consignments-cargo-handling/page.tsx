@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import SecurityServiceDetailsSection from "@/components/SecurityServiceDetailsSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Secure Cargo Handling",
+  description: "Protect consignments with cargo screening, secure transport, documented chain of custody, regulatory compliance and emergency response.",
+  path: "/security-services/consignments-cargo-handling",
+  keywords: ["secure cargo handling Ghana","consignment security"],
+});
 
 export default function ConsignmentsCargoHandlingPage() {
   const service = {

@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Secure Warehousing in Ghana",
+  description: "Use flexible short- or long-term warehousing with inventory visibility, fulfilment, repackaging and integrated distribution in Ghana.",
+  path: "/logistics-services/warehousing",
+  keywords: ["warehousing Ghana","secure cargo storage Accra"],
+});
 
 export default function WarehousingPage() {
   const service = {

@@ -3,6 +3,14 @@ import Navigation from "@/components/Navigation";
 import BreadcrumbHero from "@/components/BreadcrumbHero";
 import LogisticsServicesDetailedSection from "@/components/LogisticsServicesDetailedSection";
 import Footer from "@/components/Footer";
+import { createPageMetadata } from "@/lib/seo";
+
+export const metadata = createPageMetadata({
+  title: "Sea Freight from Turkey to Ghana",
+  description: "Ship large and heavy cargo from Turkey to Ghana with economical sea freight, secure handling and coordinated customs and delivery support.",
+  path: "/logistics-services/sea-cargo",
+  keywords: ["Turkey to Ghana shipping","sea cargo Turkey Ghana"],
+});
 
 export default function SeaCargoPage() {
   const service = {
