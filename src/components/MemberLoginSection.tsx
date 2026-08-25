@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
@@ -158,12 +159,14 @@ export default function MemberLoginSection() {
 
             {/* Username Field */}
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label htmlFor="username" className="block text-gray-700 font-medium mb-2">
                 Username *
               </label>
                 <Input
+                  id="username"
                   type="text"
                   name="username"
+                  autoComplete="username"
                   value={formData.username}
                   onChange={handleInputChange}
                   className="w-full h-12 border-gray-300 focus:border-[#315694] focus:ring-[#315694]"
@@ -174,12 +177,13 @@ export default function MemberLoginSection() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
+              <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
                 Password *
               </label>
-                <Input
-                  type="password"
+                <PasswordInput
+                  id="password"
                   name="password"
+                  autoComplete="current-password"
                   value={formData.password}
                   onChange={handleInputChange}
                   className="w-full h-12 border-gray-300 focus:border-[#315694] focus:ring-[#315694]"

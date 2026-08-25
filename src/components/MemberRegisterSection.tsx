@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 type IdentityDocumentType =
   | "ghana-card"
@@ -462,12 +463,12 @@ export default function MemberRegisterSection() {
                   </div>
                   <div>
                     <label htmlFor="password" className="mb-2 block font-semibold text-gray-700">Password *</label>
-                    <Input id="password" type="password" autoComplete="new-password" value={form.password} onChange={(e) => setField("password", e.target.value)} />
+                    <PasswordInput id="password" autoComplete="new-password" value={form.password} onChange={(e) => setField("password", e.target.value)} />
                     {fieldError("password")}
                   </div>
                   <div>
                     <label htmlFor="confirmPassword" className="mb-2 block font-semibold text-gray-700">Confirm password *</label>
-                    <Input id="confirmPassword" type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => setField("confirmPassword", e.target.value)} />
+                    <PasswordInput id="confirmPassword" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => setField("confirmPassword", e.target.value)} />
                     {fieldError("confirmPassword")}
                   </div>
                 </div>
