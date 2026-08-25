@@ -32,9 +32,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: [{ url: "/cascade-favicon.png", type: "image/png" }],
-    shortcut: "/cascade-favicon.png",
-    apple: "/cascade-favicon.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
   },
 };
 
