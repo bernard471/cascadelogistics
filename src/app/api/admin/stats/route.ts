@@ -21,7 +21,7 @@ export async function GET() {
     // Get shipment stats
     const totalShipments = await shipmentsCollection.countDocuments({});
     const activeShipments = await shipmentsCollection.countDocuments({
-      status: { $in: ['pending', 'in-transit'] }
+      status: { $in: ['pending', 'arrived-at-warehouse-pending-proof', 'in-transit'] }
     });
 
     // Get user stats
@@ -87,6 +87,7 @@ export async function GET() {
     const shipmentStatusData = statusDistribution.map(s => ({
       name: s._id === 'in-transit' ? 'In Transit' :
             s._id === 'pending' ? 'Pending' :
+            s._id === 'arrived-at-warehouse-pending-proof' ? 'Arrived at Warehouse – Pending Proof' :
             s._id === 'delivered' ? 'Delivered' :
             s._id === 'cancelled' ? 'Cancelled' : s._id,
       value: s.count

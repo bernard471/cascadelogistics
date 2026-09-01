@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Package, MapPin, Clock, CheckCircle, Truck, Plane, Image as ImageIcon, X } from "lucide-react";
+import { Search, Package, MapPin, Clock, CheckCircle, Truck, Plane, Image as ImageIcon, X, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ProofOfPurchaseUpload from "@/components/shipments/ProofOfPurchaseUpload";
 import { Shipment, TimelineEvent } from "@/types";
 
 // Mapped timeline event type for internal component use
@@ -37,6 +38,19 @@ interface MappedTrackingData {
   timeline: MappedTimelineEvent[];
   deltaNumber?: string;
   specialInstructions?: string;
+  shipmentId?: string;
+  awaitingProof: boolean;
+  canSubmitProofOfPurchase: boolean;
+  proofOfPurchaseCount: number;
+  documents: Array<{
+    index: number;
+    name: string;
+    type: string;
+    size: number;
+    uploadedAt: string;
+    purpose?: string;
+    downloadUrl: string;
+  }>;
 }
 
 export default function TrackShipmentSection() {
@@ -122,6 +136,7 @@ export default function TrackShipmentSection() {
       const getStatusDisplay = (status: string) => {
         const statusMap: Record<string, { display: string; color: string }> = {
           'pending': { display: 'Pending', color: 'text-yellow-600' },
+          'arrived-at-warehouse-pending-proof': { display: 'Arrived at Warehouse – Pending Proof', color: 'text-amber-700' },
           'arrived-at-warehouse': { display: 'Arrived at Warehouse', color: 'text-blue-600' },
           'ready-for-shipment': { display: 'Ready for Shipment', color: 'text-purple-600' },
           'in-transit': { display: 'In Transit', color: 'text-orange-600' },
@@ -157,7 +172,12 @@ export default function TrackShipmentSection() {
                 'Economy Delivery',
         timeline: timelineWithIcons,
         deltaNumber: data.deltaNumber,
-        specialInstructions: data.specialInstructions
+        specialInstructions: data.specialInstructions,
+        shipmentId: data.shipmentId,
+        awaitingProof: data.status === 'arrived-at-warehouse-pending-proof',
+        canSubmitProofOfPurchase: Boolean(data.canSubmitProofOfPurchase),
+        proofOfPurchaseCount: Number(data.proofOfPurchaseCount || 0),
+        documents: Array.isArray(data.documents) ? data.documents : []
       };
       
       setTrackingData(mappedTrackingData);
@@ -290,6 +310,63 @@ export default function TrackShipmentSection() {
             )}
           </div>
 
+          {trackingData.awaitingProof && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
+              <div className="flex items-start gap-3">
+                <FileText className="mt-0.5 h-5 w-5 flex-none text-amber-700" />
+                <div>
+                  <h3 className="font-bold text-amber-900">Proof of purchase required</h3>
+                  <p className="mt-1 text-sm text-gray-700">
+                    This package is at the USA warehouse. We are awaiting proof of purchase before our team continues normal processing.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {trackingData.canSubmitProofOfPurchase && trackingData.shipmentId && (
+            <ProofOfPurchaseUpload
+              shipmentId={trackingData.shipmentId}
+              trackingId={trackingData.trackingId}
+              existingProofCount={trackingData.proofOfPurchaseCount}
+              onUploaded={() => handleTrack(trackingData.trackingId)}
+            />
+          )}
+
+          {trackingData.documents.some(
+            (document) => document.purpose === "proof-of-purchase",
+          ) && (
+            <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+              <h3 className="mb-3 font-bold text-gray-800">Submitted Proof of Purchase</h3>
+              <div className="space-y-2">
+                {trackingData.documents
+                  .filter((document) => document.purpose === "proof-of-purchase")
+                  .map((document) => (
+                    <div
+                      key={`${document.index}-${document.name}`}
+                      className="flex flex-col gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-800">{document.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {(document.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" asChild>
+                        <a
+                          href={`${document.downloadUrl}?download=1`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View proof
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
           {/* Route Map - Enhanced Curved Path Visualization */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-4">Shipment Route</h3>
@@ -319,6 +396,7 @@ export default function TrackShipmentSection() {
                       trackingData.status === 'Arrived at Warehouse (Ghana)' ? '400' :
                       trackingData.status === 'In Transit' ? '900' :
                       trackingData.status === 'Ready for Shipment' ? '1000' :
+                      trackingData.status === 'Arrived at Warehouse – Pending Proof' ? '1050' :
                       trackingData.status === 'Arrived at Warehouse' ? '1050' :
                       '1100'
                     }
@@ -410,7 +488,7 @@ export default function TrackShipmentSection() {
                           <div className="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center shadow-xl ring-4 ring-cyan-100 animate-pulse">
                             <Package className="w-10 h-10 text-white" />
                           </div>
-                        ) : trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse' ? (
+                        ) : trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse' || trackingData.status === 'Arrived at Warehouse – Pending Proof' ? (
                           <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center shadow-xl ring-4 ring-blue-100">
                             <Package className="w-10 h-10 text-white" />
                           </div>
@@ -434,7 +512,7 @@ export default function TrackShipmentSection() {
                           {trackingData.status}
                         </div>
                       )}
-                      {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse') && (
+                      {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse' || trackingData.status === 'Arrived at Warehouse – Pending Proof') && (
                         <div className="text-xs text-blue-600 font-medium flex items-center justify-center gap-1 mt-1">
                           <span className="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                           {trackingData.status}
@@ -492,7 +570,7 @@ export default function TrackShipmentSection() {
                   </div>
                 )}
 
-                {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse (China)') && (
+                {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse' || trackingData.status === 'Arrived at Warehouse – Pending Proof') && (
                   <div className="hidden md:block absolute bottom-0 left-1/2 transform -translate-x-1/2 z-20">
                     <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-5 py-2.5 rounded-full shadow-lg border-2 border-blue-200">
                       <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>

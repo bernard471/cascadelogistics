@@ -29,6 +29,10 @@ export function canDeleteShipmentAsCustomer(shipment: Shipment): boolean {
   return shipment.status === "pending" || shipment.status === "cancelled";
 }
 
+export function canSubmitProofOfPurchase(shipment: Shipment): boolean {
+  return shipment.status === "arrived-at-warehouse-pending-proof";
+}
+
 export function hasPartnerScope(
   principal: ShipmentPrincipal,
   scope: string,

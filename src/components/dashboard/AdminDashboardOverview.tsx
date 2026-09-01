@@ -104,6 +104,7 @@ export default function AdminDashboardOverview() {
   // Status mapping (matching ShipmentManagementSection)
   const statusMap: Record<string, { display: string; color: string }> = {
     'pending': { display: 'Pending', color: '#eab308' }, // yellow-600
+    'arrived-at-warehouse-pending-proof': { display: 'Arrived at Warehouse – Pending Proof', color: '#b45309' }, // amber-700
     'arrived-at-warehouse': { display: 'Arrived at Warehouse', color: '#2563eb' }, // blue-600
     'ready-for-shipment': { display: 'Ready for Shipment', color: '#9333ea' }, // purple-600
     'in-transit': { display: 'In Transit', color: '#ea580c' }, // orange-600

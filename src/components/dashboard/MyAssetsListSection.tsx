@@ -56,6 +56,7 @@ export default function MyAssetsListSection() {
         const getStatusDisplay = (status: string) => {
           const statusMap: Record<string, { display: string; color: string }> = {
             'pending': { display: 'Pending', color: 'text-yellow-600 bg-yellow-50' },
+            'arrived-at-warehouse-pending-proof': { display: 'Arrived at Warehouse – Pending Proof', color: 'text-amber-700 bg-amber-50' },
             'arrived-at-warehouse': { display: 'Arrived at Warehouse', color: 'text-blue-600 bg-blue-50' },
             'ready-for-shipment': { display: 'Ready for Shipment', color: 'text-purple-600 bg-purple-50' },
             'in-transit': { display: 'In Transit', color: 'text-orange-600 bg-orange-50' },
@@ -217,6 +218,7 @@ export default function MyAssetsListSection() {
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
+              <option value="arrived-at-warehouse-pending-proof">Arrived at Warehouse – Pending Proof</option>
               <option value="arrived-at-warehouse">Arrived at Warehouse</option>
               <option value="ready-for-shipment">Ready for Shipment</option>
               <option value="in-transit">In Transit</option>
@@ -433,6 +435,7 @@ export default function MyAssetsListSection() {
       {/* View Modal */}
       {showViewModal && selectedAsset && (
         <ViewShipmentModal
+          allowProofUpload
           shipment={{
             id: selectedAsset.trackingId,
             _id: selectedAsset._id || '',
@@ -441,10 +444,12 @@ export default function MyAssetsListSection() {
             destination: 'Ghana Warehouse, Ghana',
             status: selectedAsset.status === 'in-transit' ? 'In Transit' :
                     selectedAsset.status === 'pending' ? 'Pending' :
+                    selectedAsset.status === 'arrived-at-warehouse-pending-proof' ? 'Arrived at Warehouse – Pending Proof' :
                     selectedAsset.status === 'delivered' ? 'Delivered' :
                     selectedAsset.status === 'cancelled' ? 'Cancelled' : selectedAsset.status,
             statusColor: selectedAsset.status === 'in-transit' ? 'text-orange-600 bg-orange-50' :
                         selectedAsset.status === 'pending' ? 'text-yellow-600 bg-yellow-50' :
+                        selectedAsset.status === 'arrived-at-warehouse-pending-proof' ? 'text-amber-700 bg-amber-50' :
                         selectedAsset.status === 'delivered' ? 'text-green-600 bg-green-50' :
                         selectedAsset.status === 'cancelled' ? 'text-red-600 bg-red-50' : 
                         'text-gray-600 bg-gray-50',
@@ -458,6 +463,7 @@ export default function MyAssetsListSection() {
                     selectedAsset.serviceType === 'standard' ? 'Standard' :
                     selectedAsset.serviceType === 'overnight' ? 'Overnight' : 'Economy',
             servicePrice: selectedAsset.servicePrice,
+            statusValue: selectedAsset.status,
             documents: selectedAsset.documents,
             wholesalePurchases: selectedAsset.wholesalePurchases,
             deltaNumber: selectedAsset.deltaNumber,

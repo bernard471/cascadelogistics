@@ -61,7 +61,13 @@ export function inferLegacyShipmentCreatedVia(
   if (shipment.organizationId) return "partner_api";
 
   const initialStatus = shipment.timeline?.[0]?.status?.trim().toLowerCase();
-  if (initialStatus === "arrived at warehouse") return "admin";
+  if (
+    initialStatus === "arrived at warehouse" ||
+    initialStatus === "arrived at warehouse – pending proof" ||
+    initialStatus === "arrived at warehouse - pending proof"
+  ) {
+    return "admin";
+  }
   return "dashboard";
 }
 

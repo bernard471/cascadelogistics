@@ -24,7 +24,7 @@ export async function GET() {
     });
     const pending = await shipmentsCollection.countDocuments({ 
       userId: session.user.id, 
-      status: 'pending' 
+      status: { $in: ['pending', 'arrived-at-warehouse-pending-proof'] }
     });
     const delivered = await shipmentsCollection.countDocuments({ 
       userId: session.user.id, 
@@ -46,6 +46,7 @@ export async function GET() {
 
     const statusToDisplay: Record<string, string> = {
       pending: "Pending",
+      "arrived-at-warehouse-pending-proof": "Arrived at Warehouse – Pending Proof",
       "arrived-at-warehouse": "Arrived at Warehouse (USA)",
       "ready-for-shipment": "Ready for Shipment",
       "in-transit": "In Transit",
@@ -118,6 +119,9 @@ export async function GET() {
         type = 'update';
       } else if (shipment.status === 'pending') {
         action = `New shipment ${shipment.trackingId} submitted`;
+        type = 'pending';
+      } else if (shipment.status === 'arrived-at-warehouse-pending-proof') {
+        action = `Shipment ${shipment.trackingId} is awaiting proof of purchase`;
         type = 'pending';
       }
       
@@ -194,4 +198,3 @@ export async function GET() {
     );
   }
 }
-

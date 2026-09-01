@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { ObjectId } from "mongodb";
 
 import {
   buildShipmentRecord,
@@ -16,20 +17,24 @@ import {
   canBypassShipmentOperationPause,
   canDeleteShipmentAsCustomer,
   canEditShipmentAsCustomer,
+  canSubmitProofOfPurchase,
   hasPartnerScope,
 } from "../src/lib/shipments/policies.ts";
 import { shipmentPrincipalFromSessionUser } from "../src/lib/shipments/principals.ts";
+import { submitCustomerProofOfPurchase } from "../src/lib/shipments/service.ts";
 import {
   getTrustedVercelBlobAccessKind,
   safeDownloadFileName,
 } from "../src/lib/shipments/private-files.ts";
 import {
   appendUniqueBulkStatusTimelineEvent,
+  appendProofOfPurchaseTimeline,
   createBulkStatusTimelineEvent,
   describeCustomerShipmentChanges,
   ensureTrackingTimeline,
   planAdminShipmentUpdate,
 } from "../src/lib/shipments/timeline.ts";
+import { InMemoryMongoDatabase } from "./support/in-memory-mongo.mjs";
 
 const now = new Date("2026-08-06T12:00:00.000Z");
 
@@ -112,6 +117,13 @@ test("customer edit/delete rules preserve current status restrictions", () => {
   assert.equal(canDeleteShipmentAsCustomer(baseShipment()), true);
   assert.equal(canDeleteShipmentAsCustomer(baseShipment({ status: "cancelled" })), true);
   assert.equal(canDeleteShipmentAsCustomer(baseShipment({ status: "delivered" })), false);
+  assert.equal(
+    canSubmitProofOfPurchase(
+      baseShipment({ status: "arrived-at-warehouse-pending-proof" }),
+    ),
+    true,
+  );
+  assert.equal(canSubmitProofOfPurchase(baseShipment()), false);
 });
 
 test("tracking IDs retain the existing CLL format", () => {
@@ -163,6 +175,8 @@ test("customer shipment factory preserves all submitted operational fields", () 
   assert.equal(record.specialInstructions, "Keep upright");
   assert.equal(record.wholesalePurchases?.[0].trackingNumber, "WHOLESALE-1");
   assert.equal(record.documents?.length, 1);
+  assert.equal(record.documents?.[0].purpose, "proof-of-purchase");
+  assert.equal(record.documents?.[0].uploadedByRole, "customer");
   assert.deepEqual(record.timeline[0].details, [
     "Package type: parcel",
     "Quantity: 2",
@@ -172,7 +186,7 @@ test("customer shipment factory preserves all submitted operational fields", () 
   ]);
 });
 
-test("admin shipment factory preserves its arrived-at-warehouse default", () => {
+test("admin shipment factory starts in the warehouse pending-proof state", () => {
   const record = buildShipmentRecord({
     source: "admin",
     owner: {
@@ -196,9 +210,69 @@ test("admin shipment factory preserves its arrived-at-warehouse default", () => 
     now,
   });
 
-  assert.equal(record.status, "arrived-at-warehouse");
+  assert.equal(record.status, "arrived-at-warehouse-pending-proof");
   assert.equal(record.deltaNumber, "DELTA100");
-  assert.equal(record.timeline[0].status, "Arrived at Warehouse");
+  assert.equal(
+    record.timeline[0].status,
+    "Arrived at Warehouse – Pending Proof",
+  );
+  assert.equal(record.timeline[0].completed, false);
+});
+
+test("proof submissions append an auditable timeline event", () => {
+  const timeline = appendProofOfPurchaseTimeline(baseShipment(), 3, now);
+  assert.equal(timeline.length, 1);
+  assert.equal(timeline[0].status, "Proof of Purchase Submitted");
+  assert.deepEqual(timeline[0].details, [
+    "3 proof-of-purchase files submitted by customer",
+    "Awaiting administrative review",
+  ]);
+});
+
+test("customer proof submissions append files without advancing admin status", async () => {
+  const db = new InMemoryMongoDatabase("shipment-proof-test");
+  const id = new ObjectId();
+  await db.collection("shipments").insertOne(
+    baseShipment({
+      _id: id,
+      status: "arrived-at-warehouse-pending-proof",
+      documents: [
+        {
+          name: "warehouse-photo.jpg",
+          type: "image/jpeg",
+          size: 50,
+          data: "",
+          uploadedAt: now,
+          purpose: "supporting-document",
+        },
+      ],
+    }),
+  );
+
+  const result = await submitCustomerProofOfPurchase({
+    db,
+    id: id.toString(),
+    principal: shipmentPrincipalFromSessionUser({ id: "user-1", role: "user" }),
+    documents: [
+      {
+        name: "receipt.pdf",
+        type: "application/pdf",
+        size: 100,
+        data: "",
+        uploadedAt: now,
+        pathname: "shipment-documents/user-1/receipt.pdf",
+      },
+    ],
+    now,
+  });
+
+  const stored = await db.collection("shipments").findOne({ _id: id });
+  assert.equal(result.proofCount, 1);
+  assert.equal(stored.status, "arrived-at-warehouse-pending-proof");
+  assert.equal(stored.documents.length, 2);
+  assert.equal(stored.documents[0].purpose, "supporting-document");
+  assert.equal(stored.documents[1].purpose, "proof-of-purchase");
+  assert.equal(stored.timeline.at(-1).status, "Proof of Purchase Submitted");
 });
 
 test("customer change descriptions include special instructions and field parity", () => {

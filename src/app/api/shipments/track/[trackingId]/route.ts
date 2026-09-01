@@ -47,6 +47,11 @@ export async function GET(
     const canViewSensitiveDetails = Boolean(
       principal && canAccessPrivateUserResource(principal, shipment.userId),
     );
+    const canSubmitProofOfPurchase = Boolean(
+      principal?.kind === "customer" &&
+        principal.userId === shipment.userId &&
+        shipment.status === "arrived-at-warehouse-pending-proof",
+    );
 
     const { timeline, addedEvents } = ensureTrackingTimeline(shipment);
     
@@ -67,6 +72,7 @@ export async function GET(
       shipment,
       timeline,
       canViewSensitiveDetails,
+      canSubmitProofOfPurchase,
     });
 
     return NextResponse.json(publicData);

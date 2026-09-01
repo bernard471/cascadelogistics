@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Search, Eye, Edit2, Trash2, Upload, 
  // MapPin, 
   ChevronLeft, ChevronRight, PackagePlus } from "lucide-react";
@@ -22,7 +22,7 @@ interface MappedShipment {
   origin: string;
   destination: string;
   status: string; // Display name
-  statusValue: string; // Actual status value (e.g., 'pending', 'in-transit')
+  statusValue: Shipment["status"]; // Actual status value (e.g., 'pending', 'in-transit')
   statusColor: string;
   date: string;
   estimatedDelivery: string;
@@ -88,8 +88,12 @@ interface PartnerOption {
 //   return "Legacy dashboard record";
 // }
 
-export default function ShipmentManagementSection() {
-  const [searchQuery, setSearchQuery] = useState("");
+export default function ShipmentManagementSection({
+  initialShipmentTrackingId = "",
+}: {
+  initialShipmentTrackingId?: string;
+}) {
+  const [searchQuery, setSearchQuery] = useState(initialShipmentTrackingId);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, ] = useState("all");
   const [partnerFilter,] = useState("all");
@@ -105,6 +109,7 @@ export default function ShipmentManagementSection() {
   const [showAddInvoiceModal, setShowAddInvoiceModal] = useState(false);
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [selectedShipmentIds, setSelectedShipmentIds] = useState<Set<string>>(new Set());
+  const directLinkHandled = useRef(false);
   const itemsPerPage = 10;
 
   const fetchShipments = useCallback(async () => {
@@ -127,6 +132,7 @@ export default function ShipmentManagementSection() {
         const getStatusDisplay = (status: string) => {
           const statusMap: Record<string, { display: string; color: string }> = {
             'pending': { display: 'Pending', color: 'text-yellow-600 bg-yellow-50' },
+            'arrived-at-warehouse-pending-proof': { display: 'Arrived at Warehouse – Pending Proof', color: 'text-amber-700 bg-amber-50' },
             'arrived-at-warehouse': { display: 'Arrived at Warehouse ', color: 'text-blue-600 bg-blue-50' },
             'ready-for-shipment': { display: 'Ready for Shipment', color: 'text-purple-600 bg-purple-50' },
             'in-transit': { display: 'In Transit', color: 'text-orange-600 bg-orange-50' },
@@ -205,13 +211,31 @@ export default function ShipmentManagementSection() {
         
         setShipments(mappedShipments);
         setShipmentStats(data.stats);
+        if (initialShipmentTrackingId && !directLinkHandled.current) {
+          const linkedShipment = mappedShipments.find(
+            (shipment) =>
+              shipment.id.toLowerCase() ===
+              initialShipmentTrackingId.toLowerCase(),
+          );
+          if (linkedShipment) {
+            directLinkHandled.current = true;
+            setSelectedShipment(linkedShipment);
+            setShowViewModal(true);
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to fetch shipments:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, sourceFilter, partnerFilter, searchQuery]);
+  }, [
+    statusFilter,
+    sourceFilter,
+    partnerFilter,
+    searchQuery,
+    initialShipmentTrackingId,
+  ]);
 
   useEffect(() => {
     fetchShipments();
@@ -420,6 +444,7 @@ export default function ShipmentManagementSection() {
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
+              <option value="arrived-at-warehouse-pending-proof">Arrived at Warehouse – Pending Proof</option>
               <option value="arrived-at-warehouse">Arrived at Warehouse</option>
               <option value="ready-for-shipment">Ready for Shipment</option>
               <option value="in-transit">In Transit</option>

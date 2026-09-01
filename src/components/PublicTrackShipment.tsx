@@ -115,6 +115,7 @@ export default function PublicTrackShipment() {
       const getStatusDisplay = (status: string) => {
         const statusMap: Record<string, { display: string; color: string }> = {
           'pending': { display: 'Pending', color: 'text-yellow-600' },
+          'arrived-at-warehouse-pending-proof': { display: 'Arrived at Warehouse – Pending Proof', color: 'text-amber-700' },
           'arrived-at-warehouse': { display: 'Arrived at Warehouse', color: 'text-blue-600' },
           'ready-for-shipment': { display: 'Ready for Shipment', color: 'text-purple-600' },
           'in-transit': { display: 'In Transit', color: 'text-orange-600' },
@@ -243,6 +244,13 @@ export default function PublicTrackShipment() {
             </div>
           </div>
 
+          {trackingData.status === 'Arrived at Warehouse – Pending Proof' && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-gray-700">
+              <p className="font-bold text-amber-900">Proof of purchase is pending</p>
+              <p className="mt-1">The package is at the USA warehouse and is awaiting the customer&apos;s proof of purchase.</p>
+            </div>
+          )}
+
           {/* DELTA Number Display */}
           {trackingData.deltaNumber && (
             <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
@@ -293,7 +301,7 @@ export default function PublicTrackShipment() {
                   {(trackingData.status === 'Ready for Pickup' || trackingData.status === 'Arrived at Warehouse (Ghana)') && (
                     <Package className="w-8 h-8 text-cyan-500 mx-2 animate-pulse" />
                   )}
-                  {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse') && (
+                  {(trackingData.status === 'Ready for Shipment' || trackingData.status === 'Arrived at Warehouse' || trackingData.status === 'Arrived at Warehouse – Pending Proof') && (
                     <Package className="w-8 h-8 text-blue-500 mx-2" />
                   )}
                   {trackingData.status === 'Delivered' && (

@@ -97,7 +97,11 @@ export async function GET(request: Request) {
         shipmentsCollection.countDocuments(query),
         shipmentsCollection.countDocuments({ status: "in-transit" }),
         shipmentsCollection.countDocuments({ status: "delivered" }),
-        shipmentsCollection.countDocuments({ status: "pending" }),
+        shipmentsCollection.countDocuments({
+          status: {
+            $in: ["pending", "arrived-at-warehouse-pending-proof"],
+          },
+        }),
         shipmentsCollection.countDocuments({ status: "cancelled" }),
       ]);
 
@@ -259,7 +263,7 @@ export async function POST(request: Request) {
     const userNotification = {
       userId: newShipment.userId,
       title: "Shipment Created",
-      message: `Your shipment ${trackingId} has been created and has arrived at the warehouse.`,
+      message: `Your shipment ${trackingId} has arrived at the warehouse and is awaiting proof of purchase.`,
       type: "delivery",
       isRead: false,
       createdAt: new Date()

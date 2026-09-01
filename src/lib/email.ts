@@ -539,10 +539,14 @@ export async function sendShipmentUpdateEmail(input: {
   estimatedDelivery?: Date | string;
 }) {
   const trackingUrl = `${getBaseUrl()}/user-dashboard/track-shipment?id=${encodeURIComponent(input.trackingId)}`;
-  const statusLabel = input.status
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  const awaitingProof =
+    input.status === "arrived-at-warehouse-pending-proof";
+  const statusLabel = awaitingProof
+    ? "Arrived at Warehouse – Pending Proof"
+    : input.status
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
   const deliveryText = input.estimatedDelivery
     ? new Date(input.estimatedDelivery).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -555,15 +559,45 @@ export async function sendShipmentUpdateEmail(input: {
     from: getEmailFrom(),
     to: input.email,
     subject: `Shipment update: ${input.trackingId}`,
-    text: `Hello ${input.firstName}, your shipment ${input.trackingId} has been updated. Status: ${statusLabel}.${input.currentLocation ? ` Current location: ${input.currentLocation}.` : ""}${deliveryText ? ` Estimated delivery: ${deliveryText}.` : ""}`,
+    text: `Hello ${input.firstName}, your shipment ${input.trackingId} has been updated. Status: ${statusLabel}.${input.currentLocation ? ` Current location: ${input.currentLocation}.` : ""}${deliveryText ? ` Estimated delivery: ${deliveryText}.` : ""}${awaitingProof ? ` We are awaiting your proof of purchase. You may submit multiple files for shipments with multiple purchase shop tracking numbers: ${trackingUrl}` : ""}`,
     html: messageShell(`
       <p>Hello ${escapeHtml(input.firstName)},</p>
       <p>Your shipment <strong>${escapeHtml(input.trackingId)}</strong> has been updated.</p>
       <p><strong>Status:</strong> ${escapeHtml(statusLabel)}</p>
       ${input.currentLocation ? `<p><strong>Current location:</strong> ${escapeHtml(input.currentLocation)}</p>` : ""}
       ${deliveryText ? `<p><strong>Estimated delivery:</strong> ${escapeHtml(deliveryText)}</p>` : ""}
+      ${awaitingProof ? `<div style="margin:22px 0;padding:16px;border:1px solid #f59e0b;background:#fffbeb;border-radius:8px"><strong>Proof of purchase required</strong><p style="margin:8px 0 0">We are awaiting your proof of purchase. You can upload multiple files if this shipment has more than one Purchase Shop Tracking Number.</p></div>` : ""}
       <p style="margin:26px 0">
-        <a href="${trackingUrl}" style="background:#315694;color:#fff;text-decoration:none;padding:13px 22px;border-radius:7px;display:inline-block">Track shipment</a>
+        <a href="${trackingUrl}" style="background:#315694;color:#fff;text-decoration:none;padding:13px 22px;border-radius:7px;display:inline-block">${awaitingProof ? "Submit proof of purchase" : "Track shipment"}</a>
+      </p>
+    `),
+  });
+}
+
+export async function sendAdminProofOfPurchaseNotification(input: {
+  customerName: string;
+  customerEmail: string;
+  trackingId: string;
+  proofCount: number;
+}) {
+  const shipmentUrl = `${getBaseUrl()}/admin-dashboard/shipments?shipment=${encodeURIComponent(input.trackingId)}`;
+  const safeName = escapeHtml(input.customerName);
+  const safeEmail = escapeHtml(input.customerEmail);
+  const safeTrackingId = escapeHtml(input.trackingId);
+
+  await getEmailTransporter().sendMail({
+    from: getEmailFrom(),
+    to: getAdminNotificationEmail(),
+    subject: `Proof of purchase submitted: ${input.trackingId}`,
+    text: `${input.customerName} (${input.customerEmail}) uploaded ${input.proofCount} proof-of-purchase file${input.proofCount === 1 ? "" : "s"} for shipment ${input.trackingId}. Review: ${shipmentUrl}`,
+    html: messageShell(`
+      <h2 style="margin-top:0">Proof of purchase submitted</h2>
+      <p><strong>Customer:</strong> ${safeName}</p>
+      <p><strong>Email:</strong> ${safeEmail}</p>
+      <p><strong>Shipment:</strong> ${safeTrackingId}</p>
+      <p><strong>Files submitted:</strong> ${input.proofCount}</p>
+      <p style="margin:26px 0">
+        <a href="${shipmentUrl}" style="background:#315694;color:#fff;text-decoration:none;padding:13px 22px;border-radius:7px;display:inline-block">Review shipment proof</a>
       </p>
     `),
   });

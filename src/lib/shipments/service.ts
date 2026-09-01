@@ -8,6 +8,7 @@ import {
   type ShipmentOwnerProfile,
 } from "./factory.ts";
 import {
+  canSubmitProofOfPurchase,
   canDeleteShipmentAsCustomer,
   canEditShipmentAsCustomer,
   canManageAllShipments,
@@ -19,11 +20,13 @@ import type {
 } from "./schemas.ts";
 import {
   appendCustomerUpdateTimeline,
+  appendProofOfPurchaseTimeline,
   describeCustomerShipmentChanges,
   planAdminShipmentUpdate,
   type AdminUpdateMedia,
 } from "./timeline.ts";
 import { appendInternalPartnerShipmentEvent } from "./admin-integration.ts";
+import { MAX_SHIPMENT_DOCUMENTS } from "../shipment-document-policy.ts";
 
 export class ShipmentServiceError extends Error {
   public readonly status: number;
@@ -215,6 +218,82 @@ export async function updateCustomerShipment(input: {
   }
 
   return { existing, updateDetails, servicePrice };
+}
+
+export async function submitCustomerProofOfPurchase(input: {
+  db: Db;
+  id: string;
+  principal: ShipmentPrincipal;
+  documents: ShipmentDocument[];
+  now?: Date;
+}) {
+  requireCustomerPrincipal(input.principal);
+  const customerUserId = input.principal.userId;
+  if (input.documents.length === 0) {
+    throw new ShipmentServiceError(
+      "Select at least one proof-of-purchase file",
+      400,
+    );
+  }
+
+  const collection = input.db.collection<Shipment>("shipments");
+  const existing = await collection.findOne({
+    _id: shipmentId(input.id) as unknown as string,
+    userId: customerUserId,
+  });
+  if (!existing) throw new ShipmentServiceError("Shipment not found", 404);
+  if (!canSubmitProofOfPurchase(existing)) {
+    throw new ShipmentServiceError(
+      "Proof of purchase can only be added while the shipment is awaiting proof",
+      409,
+    );
+  }
+
+  const existingProofCount = (existing.documents || []).filter(
+    (document) => document.purpose === "proof-of-purchase",
+  ).length;
+  if (existingProofCount + input.documents.length > MAX_SHIPMENT_DOCUMENTS) {
+    throw new ShipmentServiceError(
+      `You can upload up to ${MAX_SHIPMENT_DOCUMENTS} proof-of-purchase files per shipment`,
+      400,
+    );
+  }
+
+  const now = input.now || new Date();
+  const proofDocuments: ShipmentDocument[] = input.documents.map((document) => ({
+    ...document,
+    purpose: "proof-of-purchase",
+    uploadedByRole: "customer",
+    uploadedById: customerUserId,
+    uploadedAt: document.uploadedAt || now,
+  }));
+  const documents = [...(existing.documents || []), ...proofDocuments];
+  const timeline = appendProofOfPurchaseTimeline(
+    existing,
+    proofDocuments.length,
+    now,
+  );
+
+  const result = await collection.updateOne(
+    {
+      _id: shipmentId(input.id) as unknown as string,
+      userId: customerUserId,
+      status: "arrived-at-warehouse-pending-proof",
+    },
+    { $set: { documents, timeline, updatedAt: now } },
+  );
+  if (result.matchedCount === 0) {
+    throw new ShipmentServiceError(
+      "This shipment is no longer awaiting proof of purchase",
+      409,
+    );
+  }
+
+  return {
+    shipment: existing,
+    proofDocuments,
+    proofCount: existingProofCount + proofDocuments.length,
+  };
 }
 
 export async function updateInternalShipment(input: {

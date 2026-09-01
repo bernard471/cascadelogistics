@@ -4,8 +4,13 @@ export function buildPublicTrackingResponse(input: {
   shipment: Shipment;
   timeline: Shipment["timeline"];
   canViewSensitiveDetails: boolean;
+  canSubmitProofOfPurchase?: boolean;
 }) {
   const shipment = input.shipment;
+  const shipmentId = shipment._id?.toString();
+  const proofOfPurchaseCount = (shipment.documents || []).filter(
+    (document) => document.purpose === "proof-of-purchase",
+  ).length;
   return {
     trackingId: shipment.trackingId,
     wholesaleTrackingNumbers: (shipment.wholesalePurchases || [])
@@ -42,5 +47,24 @@ export function buildPublicTrackingResponse(input: {
     specialInstructions: input.canViewSensitiveDetails
       ? shipment.specialInstructions
       : undefined,
+    canSubmitProofOfPurchase: Boolean(input.canSubmitProofOfPurchase),
+    ...(input.canViewSensitiveDetails && shipmentId
+      ? {
+          shipmentId,
+          proofOfPurchaseCount,
+          documents: (shipment.documents || []).map((document, index) => ({
+            index,
+            name: document.name,
+            type: document.type,
+            size: document.size,
+            uploadedAt:
+              document.uploadedAt instanceof Date
+                ? document.uploadedAt.toISOString()
+                : document.uploadedAt,
+            purpose: document.purpose,
+            downloadUrl: `/api/shipments/${encodeURIComponent(shipmentId)}/documents/${index}`,
+          })),
+        }
+      : {}),
   };
 }

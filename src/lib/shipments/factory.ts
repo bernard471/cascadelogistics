@@ -76,7 +76,23 @@ export function buildShipmentRecord(
   const payload = input.payload;
   const fullName = `${input.owner.firstName} ${input.owner.lastName}`;
   const isAdminCreated = input.source === "admin";
-  const documents = input.documents?.length ? input.documents : undefined;
+  const documents = input.documents?.length
+    ? input.documents.map((document) => ({
+        ...document,
+        purpose:
+          document.purpose ||
+          (isAdminCreated ? "supporting-document" : "proof-of-purchase"),
+        uploadedByRole:
+          document.uploadedByRole ||
+          (isAdminCreated
+            ? input.actor?.type === "staff"
+              ? "staff"
+              : "admin"
+            : "customer"),
+        uploadedById:
+          document.uploadedById || input.actor?.id || input.owner.userId,
+      }))
+    : undefined;
 
   return {
     ...payload,
@@ -95,7 +111,9 @@ export function buildShipmentRecord(
         type: isAdminCreated ? "admin" : "user",
         id: input.owner.userId,
       },
-    status: isAdminCreated ? "arrived-at-warehouse" : "pending",
+    status: isAdminCreated
+      ? "arrived-at-warehouse-pending-proof"
+      : "pending",
     deltaNumber: payload.deltaNumber?.trim() || undefined,
     documents,
     senderName: fullName,

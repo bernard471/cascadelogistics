@@ -9,6 +9,9 @@ export interface ShipmentDocument {
   uploadedAt: Date | string;
   url?: string; // Vercel Blob Storage URL (preferred for new uploads)
   pathname?: string; // Vercel Blob pathname used to validate client uploads
+  purpose?: 'proof-of-purchase' | 'supporting-document';
+  uploadedByRole?: 'customer' | 'admin' | 'staff' | 'super_admin' | 'partner_api';
+  uploadedById?: string;
 }
 
 export interface Shipment extends ShipmentTenantMetadata {
@@ -60,7 +63,7 @@ export interface Shipment extends ShipmentTenantMetadata {
   deltaNumber?: string; // Format: DELTA + numbers (e.g., DELTA85720)
   
   // Status
-  status: 'pending' | 'arrived-at-warehouse' | 'ready-for-shipment' | 'in-transit' | 'arrived-at-warehouse-ghana' | 'ready-for-pickup' | 'delivered' | 'cancelled' | 'on-hold';
+  status: 'pending' | 'arrived-at-warehouse-pending-proof' | 'arrived-at-warehouse' | 'ready-for-shipment' | 'in-transit' | 'arrived-at-warehouse-ghana' | 'ready-for-pickup' | 'delivered' | 'cancelled' | 'on-hold';
   currentLocation?: string;
   
   // Tracking Timeline

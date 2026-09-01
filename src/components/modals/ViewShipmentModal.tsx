@@ -3,7 +3,8 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { X, Package, MapPin, User, Truck, Upload, Image as ImageIcon, Clock, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ShipmentDocument, TimelineEvent } from "@/types";
+import ProofOfPurchaseUpload from "@/components/shipments/ProofOfPurchaseUpload";
+import { Shipment, ShipmentDocument, TimelineEvent } from "@/types";
 
 // Mapped shipment type for modal use
 interface MappedShipment {
@@ -13,6 +14,7 @@ interface MappedShipment {
   origin: string;
   destination: string;
   status: string;
+  statusValue?: Shipment["status"];
   statusColor: string;
   date: string;
   estimatedDelivery: string;
@@ -73,6 +75,7 @@ interface MappedShipment {
 interface ViewShipmentModalProps {
   shipment: MappedShipment;
   onClose: () => void;
+  allowProofUpload?: boolean;
 }
 
 function hasValue(value: unknown) {
@@ -138,8 +141,19 @@ function getTimelineImageUrl(
 //   return "Legacy dashboard record";
 // }
 
-export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentModalProps) {
+export default function ViewShipmentModal({
+  shipment,
+  onClose,
+  allowProofUpload = false,
+}: ViewShipmentModalProps) {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [displayDocuments, setDisplayDocuments] = useState<
+    (ShipmentDocument | string)[]
+  >(shipment.documents || []);
+
+  useEffect(() => {
+    setDisplayDocuments(shipment.documents || []);
+  }, [shipment.documents]);
 
   // Handle ESC key to close image modal
   useEffect(() => {
@@ -190,6 +204,32 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
             <span className="text-sm text-gray-600">Created: {shipment.date}</span>
             <span className="text-sm text-gray-600">Est. Delivery: {shipment.estimatedDelivery}</span>
           </div>
+
+          {shipment.statusValue === "arrived-at-warehouse-pending-proof" && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-gray-700">
+              <p className="font-bold text-amber-800">Proof of purchase is pending</p>
+              <p className="mt-1">
+                This shipment has arrived at the USA warehouse and is awaiting the customer&apos;s proof of purchase before normal processing continues.
+              </p>
+            </div>
+          )}
+
+          {allowProofUpload &&
+            shipment.statusValue === "arrived-at-warehouse-pending-proof" &&
+            shipment._id && (
+              <ProofOfPurchaseUpload
+                shipmentId={shipment._id}
+                trackingId={shipment.id}
+                existingProofCount={displayDocuments.filter(
+                  (document) =>
+                    typeof document !== "string" &&
+                    document.purpose === "proof-of-purchase",
+                ).length}
+                onUploaded={(documents) =>
+                  setDisplayDocuments((current) => [...current, ...documents])
+                }
+              />
+            )}
 
           {/* <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <div className="mb-3 flex items-center gap-2">
@@ -451,14 +491,14 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
           )}
 
           {/* Documents */}
-          {shipment.documents && shipment.documents.length > 0 && (
+          {displayDocuments.length > 0 && (
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-4">
                 <Upload className="w-5 h-5 text-[#055b8e]" />
                 <h3 className="font-bold text-gray-800">Attached Documents</h3>
               </div>
               <div className="space-y-3">
-                {shipment.documents.map((doc, index) => {
+                {displayDocuments.map((doc, index) => {
                   const normalized =
                     typeof doc === "string"
                       ? { name: `Document ${index + 1}`, size: 0, type: "file", data: doc }
@@ -508,6 +548,11 @@ export default function ViewShipmentModal({ shipment, onClose }: ViewShipmentMod
                         )}
                         <div>
                           <p className="font-medium text-gray-800">{normalized.name}</p>
+                          {typeof doc !== "string" && doc.purpose && (
+                            <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${doc.purpose === "proof-of-purchase" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`}>
+                              {doc.purpose === "proof-of-purchase" ? "Proof of purchase" : "Supporting document"}
+                            </span>
+                          )}
                           <p className="text-xs text-gray-500">
                             {normalized.type || "Document"}{" "}
                             {normalized.size ? `· ${(normalized.size / 1024).toFixed(1)} KB` : ""}

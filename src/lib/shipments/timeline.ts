@@ -7,6 +7,8 @@ import type {
 
 export const shipmentStatusLabels: Record<string, string> = {
   pending: "Pending",
+  "arrived-at-warehouse-pending-proof":
+    "Arrived at Warehouse – Pending Proof",
   "arrived-at-warehouse": "Arrived at Warehouse",
   "ready-for-shipment": "Ready for Shipment",
   "in-transit": "In Transit",
@@ -41,11 +43,14 @@ export function createInitialShipmentTimelineEvent(
   const documentCount = input.documents?.length || 0;
 
   return {
-    status: input.source === "admin" ? "Arrived at Warehouse" : "Order Placed",
+    status:
+      input.source === "admin"
+        ? "Arrived at Warehouse – Pending Proof"
+        : "Order Placed",
     location: "USA Warehouse, USA",
     date: input.now,
     time: formatTimelineTime(input.now),
-    completed: true,
+    completed: input.source !== "admin",
     details: [
       `Package type: ${input.packageType}`,
       `Quantity: ${input.quantity || 1}`,
@@ -144,6 +149,28 @@ export function appendCustomerUpdateTimeline(
     details,
   });
 
+  return timeline;
+}
+
+export function appendProofOfPurchaseTimeline(
+  shipment: Shipment,
+  proofCount: number,
+  now: Date,
+): Shipment["timeline"] {
+  const timeline = Array.isArray(shipment.timeline) ? [...shipment.timeline] : [];
+  timeline.push({
+    status: "Proof of Purchase Submitted",
+    location:
+      shipment.currentLocation ||
+      `${shipment.senderCity}, ${shipment.senderCountry}`,
+    date: now,
+    time: formatTimelineTime(now),
+    completed: true,
+    details: [
+      `${proofCount} proof-of-purchase file${proofCount === 1 ? "" : "s"} submitted by customer`,
+      "Awaiting administrative review",
+    ],
+  });
   return timeline;
 }
 
@@ -312,6 +339,13 @@ export function createBulkStatusTimelineEvent(
         status: "Arrived at Warehouse",
         location: shipment.currentLocation || "Warehouse",
         completed: true,
+      };
+    case "arrived-at-warehouse-pending-proof":
+      return {
+        ...common,
+        status: "Arrived at Warehouse – Pending Proof",
+        location: shipment.currentLocation || "USA Warehouse",
+        completed: false,
       };
     case "ready-for-shipment":
       return {

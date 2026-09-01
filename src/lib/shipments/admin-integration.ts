@@ -12,6 +12,7 @@ import type { InternalShipmentPrincipal } from "./principals.ts";
 
 const shipmentStatuses = new Set<Shipment["status"]>([
   "pending",
+  "arrived-at-warehouse-pending-proof",
   "arrived-at-warehouse",
   "ready-for-shipment",
   "in-transit",

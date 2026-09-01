@@ -124,6 +124,7 @@ export default function BulkUpdateShipmentModal({ selectedIds, onClose, onSave }
             >
               <option value="">No change</option>
               <option value="pending">Pending</option>
+              <option value="arrived-at-warehouse-pending-proof">Arrived at Warehouse – Pending Proof</option>
               <option value="arrived-at-warehouse">Arrived at Warehouse</option>
               <option value="ready-for-shipment">Ready for Shipment</option>
               <option value="in-transit">In Transit</option>

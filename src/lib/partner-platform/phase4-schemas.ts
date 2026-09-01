@@ -103,6 +103,7 @@ export const partnerUploadIntentSchema = z
 
 export const partnerShipmentStatuses = [
   "pending",
+  "arrived-at-warehouse-pending-proof",
   "arrived-at-warehouse",
   "ready-for-shipment",
   "in-transit",

@@ -42,6 +42,7 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
     // Fallback: convert display name to status value
     const statusMap: Record<string, string> = {
       'Pending': 'pending',
+      'Arrived at Warehouse – Pending Proof': 'arrived-at-warehouse-pending-proof',
       'Arrived at Warehouse': 'arrived-at-warehouse',
       'Ready for Shipment': 'ready-for-shipment',
       'In Transit': 'in-transit',
@@ -224,6 +225,7 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
               required
             >
               <option value="pending">Pending</option>
+              <option value="arrived-at-warehouse-pending-proof">Arrived at Warehouse – Pending Proof</option>
               <option value="arrived-at-warehouse">Arrived at Warehouse</option>
               <option value="ready-for-shipment">Ready for Shipment</option>
               <option value="in-transit">In Transit</option>

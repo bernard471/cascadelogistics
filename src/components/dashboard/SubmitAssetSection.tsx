@@ -157,6 +157,11 @@ export default function SubmitAssetSection() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    if (documents.length === 0) {
+      setError("Please submit at least one proof of purchase.");
+      documentInputRef.current?.focus();
+      return;
+    }
     setIsLoading(true);
     setUploadProgress("");
 
@@ -571,12 +576,16 @@ export default function SubmitAssetSection() {
           </div>
         </div>
 
-        {/* Document Upload */}
+        {/* Proof of purchase upload */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-6">
             <Upload className="w-5 h-5 text-[#055b8e]" />
-            <h3 className="text-lg font-bold text-gray-800">Upload Documents (Optional)</h3>
+            <h3 className="text-lg font-bold text-gray-800">Submit Proof of Purchase *</h3>
           </div>
+
+          <p className="mb-4 text-sm text-gray-600">
+            Required. Upload receipts, invoices, or order confirmations for this shipment. Multiple files are allowed.
+          </p>
 
           <div
             className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#055b8e] transition-colors cursor-pointer"
@@ -596,6 +605,7 @@ export default function SubmitAssetSection() {
               type="file"
               className="hidden"
               multiple
+              aria-required="true"
               accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
               onChange={handleDocumentInputChange}
             />

@@ -155,6 +155,13 @@ export async function POST(request: Request) {
     if ("documents" in body) {
       delete body.documents;
     }
+
+    if (!uploadedDocuments?.length) {
+      return NextResponse.json(
+        { error: "At least one proof of purchase is required" },
+        { status: 400 },
+      );
+    }
     
     const client = await clientPromise;
     const db = client.db("guangzhou");
