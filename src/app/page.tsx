@@ -15,7 +15,7 @@ import Footer from "@/components/Footer";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Globally to Ghana Freight & Logistics",
+  title: "Globally Connecting You | Freight & Logistics",
   description: "Ship goods Globally to Ghana with reliable air and sea freight, customs clearance, warehousing, procurement, delivery and shipment tracking.",
   path: "/",
   keywords: ["Global shipping to Ghana", "freight forwarding Ghana", "air freight Ghana", "sea freight Ghana", "Cascade Logistics"],
