@@ -9,14 +9,14 @@ export const metadata = createPageMetadata({
   title: "Pre-Shipment Quality Inspections",
   description: "Verify products before they leave China with pre-shipment inspections, defect checks, compliance reviews and clear quality reports.",
   path: "/logistics-services/quality-checks",
-  keywords: ["quality inspection China","pre shipment inspection Ghana"],
+  keywords: ["quality inspection China", "pre shipment inspection Ghana"],
 });
 
 export default function QualityChecksPage() {
   const service = {
     id: 5,
     title: "Quality Checks",
-    description: `Guangzhou Swift Logistics provides comprehensive quality inspection services to ensure your goods meet the highest standards before shipping from China to Ghana.
+    description: `Guangzhou Swift Logistics provides comprehensive quality inspection services to ensure your goods meet the highest standards before shipping from anywhere Globally to Ghana.
 
 Our quality check services include pre-shipment inspections, detailed quality reports, defect detection, and compliance verification. We inspect your products for quality, quantity, functionality, and compliance with your specifications and industry standards. Our experienced quality control team ensures that only goods meeting your requirements are shipped, giving you peace of mind and protecting your business reputation. Quality checks are included in our service to ensure your satisfaction.`,
     image: "/logisticssection/quality.avif",

@@ -47,7 +47,7 @@ export default function ProcessSection() {
       id: 5,
       icon: Ship,
       title: "Shipping",
-      description: "Reliable sea or air shipping from China to Ghana",
+      description: "Reliable sea or air shipping from anywhere Globally to Ghana",
       image: "/hero/hero2.jpg",
       color: "from-cyan-500 to-cyan-600"
     },

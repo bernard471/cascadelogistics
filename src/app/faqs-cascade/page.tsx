@@ -8,9 +8,9 @@ import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
   title: "Shipping & Logistics FAQs",
-  description: "Find answers about Cascade Logistics shipping times, air and sea freight, customs clearance, pricing, tracking and deliveries from China to Ghana.",
+  description: "Find answers about Cascade Logistics shipping times, air and sea freight, customs clearance, pricing, tracking and deliveries globally to Ghana.",
   path: "/faqs-cascade",
-  keywords: ["shipping FAQ Ghana", "China to Ghana shipping time", "freight questions"],
+  keywords: ["shipping FAQ Ghana", "Global to Ghana shipping time", "freight questions"],
 });
 
 export default function FaqsCascade() {

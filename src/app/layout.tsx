@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Cascade Logistics | Shipping from China to Ghana",
+    default: "Cascade Logistics | Shipping Globally to Ghana",
     template: "%s | Cascade Logistics",
   },
   description: siteConfig.description,

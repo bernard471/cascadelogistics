@@ -6,17 +6,17 @@ import Footer from "@/components/Footer";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Express Air Freight China to Ghana",
-  description: "Move urgent shipments from China to Ghana with priority air freight, fast transit times, secure handling and end-to-end logistics support.",
+  title: "Express Air Freight Globally to Ghana",
+  description: "Move urgent shipments Globally to Ghana with priority air freight, fast transit times, secure handling and end-to-end logistics support.",
   path: "/logistics-services/express-air-freight",
-  keywords: ["express air freight China Ghana","urgent cargo Ghana"],
+  keywords: ["express air freight China Ghana", "urgent cargo Ghana"],
 });
 
 export default function ExpressAirFreightPage() {
   const service = {
     id: 3,
     title: "Express Air Shipping",
-    description: `Guangzhou Swift Logistics provides express air freight services for the fastest delivery from China to Ghana. Our express air shipping is designed for urgent shipments that require the quickest possible transit times.
+    description: `Guangzhou Swift Logistics provides express air freight services for the fastest delivery Globally to Ghana. Our express air shipping is designed for urgent shipments that require the quickest possible transit times.
 
 Our express air shipping services deliver your goods in just 2-5 days, making it the fastest shipping option available. We handle general goods, special goods (liquid, powder, food), electronics, and battery-powered devices with appropriate care and handling. General goods start from $18 per KG, special goods are $20 per KG, mobile phones are $25 per unit, laptops $30 per KG, tablets $25 per unit, and batteries $20 per unit. Perfect for urgent business needs and time-sensitive cargo.`,
     image: "/logisticssection/expressair.jpg",
@@ -24,7 +24,7 @@ Our express air shipping services deliver your goods in just 2-5 days, making it
       {
         icon: "speed",
         title: "Ultra-Fast Delivery",
-        description: "Express air shipping delivers your goods in just 2-5 days, providing the fastest possible delivery time from China to Ghana for urgent shipments."
+        description: "Express air shipping delivers your goods in just 2-5 days, providing the fastest possible delivery time from anywhere to Ghana for urgent shipments."
       },
       {
         icon: "priority",
@@ -54,7 +54,7 @@ Our express air shipping services deliver your goods in just 2-5 days, making it
     serviceBenefits: [
       {
         title: "Fastest Delivery",
-        description: "With delivery times of just 2-5 days, express air shipping is the fastest option for getting your goods from China to Ghana, perfect for urgent business needs."
+        description: "With delivery times of just 2-5 days, express air shipping is the fastest option for getting your goods from anywhere Globally to Ghana, perfect for urgent business needs."
       },
       {
         title: "Priority Processing",

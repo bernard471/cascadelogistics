@@ -57,7 +57,7 @@ export default function TestimonialsSection() {
       company: "Tech Solutions Ghana",
       image: "/popup/popup2.jpg",
       rating: 5,
-      text: "Shipping from China to Ghana has never been easier. Cascade handles everything from air cargo to customs clearance. The guaranteed 1-week pickup for USA shipments is incredible - I always know when to expect my packages.",
+      text: "Shipping from anywhere Globally to Ghana has never been easier. Cascade handles everything from air cargo to customs clearance. The guaranteed 1-week pickup for USA shipments is incredible - I always know when to expect my packages.",
       location: "Accra, Ghana"
     },
     {

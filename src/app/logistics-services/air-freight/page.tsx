@@ -6,17 +6,17 @@ import Footer from "@/components/Footer";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Air Freight from China to Ghana",
-  description: "Fast, reliable air freight from China to Ghana with secure cargo handling, competitive rates and delivery to Accra or Kumasi.",
+  title: "Air Freight Globally to Ghana",
+  description: "Fast, reliable air freight Globally to Ghana with secure cargo handling, competitive rates and delivery to Accra or Kumasi.",
   path: "/logistics-services/air-freight",
-  keywords: ["air freight China to Ghana","air cargo Ghana"],
+  keywords: ["air freight Globally to Ghana", "air cargo Ghana"],
 });
 
 export default function AirFreightPage() {
   const service = {
     id: 1,
     title: "Air Shipping",
-    description: `Guangzhou Swift Logistics provides reliable and efficient air freight services from China to Ghana. Our air shipping solutions are designed for businesses and individuals who need faster delivery times for their shipments.
+    description: `Guangzhou Swift Logistics provides reliable and efficient air freight services Globally to Ghana. Our air shipping solutions are designed for businesses and individuals who need faster delivery times for their shipments.
 
 We offer comprehensive air freight services including standard air cargo, express delivery options, and specialized handling for various cargo types. Our experienced team ensures your goods are handled with care and delivered to your warehouse in Accra or Kumasi within 10-14 days. We work with trusted airline partners to provide competitive rates and reliable service for all your air shipping needs.`,
     image: "/logisticssection/airshipping.jpg",
@@ -54,11 +54,11 @@ We offer comprehensive air freight services including standard air cargo, expres
     serviceBenefits: [
       {
         title: "Competitive Rates",
-        description: "Our air shipping rates start from $18 per KG for general goods, offering competitive pricing for fast delivery from China to Ghana."
+        description: "Our air shipping rates start from $18 per KG for general goods, offering competitive pricing for fast delivery Globally to Ghana."
       },
       {
         title: "Fast Transit Times",
-        description: "With delivery times of 10-14 days, air shipping is the fastest option for getting your goods from China to Ghana, perfect for urgent business needs."
+        description: "With delivery times of 10-14 days, air shipping is the fastest option for getting your goods from anywhere to Ghana, perfect for urgent business needs."
       },
       {
         title: "Comprehensive Support",

@@ -6,17 +6,17 @@ import Footer from "@/components/Footer";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Sea Shipping from China to Ghana",
-  description: "Send large shipments from China to Ghana with affordable sea freight, groupage and full-container options, customs support and reliable delivery.",
+  title: "Sea Shipping Globally to Ghana",
+  description: "Send large shipments from anywhere Globally to Ghana with affordable sea freight, groupage and full-container options, customs support and reliable delivery.",
   path: "/logistics-services/sea-shipping",
-  keywords: ["sea shipping China to Ghana","container shipping Ghana"],
+  keywords: ["sea shipping Globally to Ghana", "container shipping Ghana"],
 });
 
 export default function SeaShippingPage() {
   const service = {
     id: 2,
     title: "Sea Shipping",
-    description: `Guangzhou Swift Logistics offers cost-effective sea freight services from China to Ghana. Our sea shipping solutions are ideal for larger shipments and businesses looking for economical transportation options.
+    description: `Guangzhou Swift Logistics offers cost-effective sea freight services from anywhere Globally to Ghana. Our sea shipping solutions are ideal for larger shipments and businesses looking for economical transportation options.
 
 We provide comprehensive sea shipping services including full container options, group shipping (consolidation), and specialized handling for various cargo types. Normal goods are shipped at $240 per CBM to Accra warehouse and $260 per CBM to Kumasi. Special goods (food, powder, liquid) are $260 per CBM, and battery goods are $280 per CBM to Accra. Each CBM has a maximum weight of 500kg. Sea shipping typically takes 35-45 days for arrival, making it the most cost-effective option for non-urgent shipments.`,
     image: "/logisticssection/seashipping.jpeg",
@@ -54,7 +54,7 @@ We provide comprehensive sea shipping services including full container options,
     serviceBenefits: [
       {
         title: "Competitive Pricing",
-        description: "Our sea shipping rates are highly competitive, starting from $240 per CBM to Accra warehouse, providing the most cost-effective shipping solution from China to Ghana."
+        description: "Our sea shipping rates are highly competitive, starting from $240 per CBM to Accra warehouse, providing the most cost-effective shipping solution from anywhere Globally to Ghana."
       },
       {
         title: "Full & Group Shipping",

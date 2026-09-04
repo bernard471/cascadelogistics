@@ -6,10 +6,10 @@ import Footer from "@/components/Footer";
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Freight & Logistics Services",
-  description: "Explore air freight, sea cargo, customs clearance, consolidation, procurement, warehousing and delivery services from China to Ghana.",
-  path: "/logistics-services",
-  keywords: ["logistics services Ghana", "freight forwarding services", "shipping China to Ghana", "customs clearance Ghana"],
+    title: "Freight & Logistics Services",
+    description: "Explore air freight, sea cargo, customs clearance, consolidation, procurement, warehousing and delivery services Globally to Ghana.",
+    path: "/logistics-services",
+    keywords: ["logistics services Ghana", "freight forwarding services", "shipping Globally to Ghana", "customs clearance Ghana"],
 });
 
 export default function LogisticsServices() {
@@ -18,9 +18,9 @@ export default function LogisticsServices() {
             <TopBanner />
             <Navigation />
             <BreadcrumbHero
-            title="Logistics Services"
-            crumbs={[{ label: "Home", href: "/" },
-            { label: "Logistics Services", href: "/logistics-services" }]} />
+                title="Logistics Services"
+                crumbs={[{ label: "Home", href: "/" },
+                { label: "Logistics Services", href: "/logistics-services" }]} />
             <LogisticsServicesSection />
             <Footer />
         </div>
