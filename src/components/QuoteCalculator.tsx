@@ -48,14 +48,14 @@ export default function QuoteCalculator() {
   // Turkey to Ghana pricing
   const turkeyPricing = {
     air: {
-      rate: 132,
+      rate: 210,
       currency: "GHC",
-      unit: "KG",
+      unit: "CBM",
       days: "7-10",
       label: "Air Cargo"
     },
     sea: {
-      rate: 3660,
+      rate: 240,
       currency: "GH",
       unit: "CBM",
       days: "35-45",
@@ -71,10 +71,11 @@ export default function QuoteCalculator() {
     if (!formData.weight || parseFloat(formData.weight) <= 0) {
       newErrors.weight = "Weight is required";
     }
-    if (formData.serviceType === "sea") {
-      if (!formData.length || !formData.width || !formData.height) {
-        newErrors.dimensions = "Dimensions are required for sea shipping";
-      }
+    if ([formData.length, formData.width, formData.height].some(value => !Number.isFinite(Number(value)) || Number(value) <= 0)) {
+      newErrors.dimensions = "Enter positive dimensions for CBM pricing";
+    }
+    if (!Number.isInteger(Number(formData.quantity)) || Number(formData.quantity) < 1) {
+      newErrors.quantity = "Enter a whole quantity of at least 1";
     }
     if (!formData.originCity) {
       newErrors.originCity = "Origin city is required";
@@ -88,50 +89,24 @@ export default function QuoteCalculator() {
       return;
     }
 
-    const weight = parseFloat(formData.weight) || 0;
-    const quantity = parseInt(formData.quantity) || 1;
-    let result: QuoteResult;
-
-    if (formData.serviceType === "sea") {
-      const length = parseFloat(formData.length) || 0;
-      const width = parseFloat(formData.width) || 0;
-      const height = parseFloat(formData.height) || 0;
-
-      // Calculate CBM (convert cm to meters)
-      const lengthM = length / 100;
-      const widthM = width / 100;
-      const heightM = height / 100;
-      const volumeCBM = lengthM * widthM * heightM * quantity;
-
-      const totalCost = volumeCBM * turkeyPricing.sea.rate;
-      const formattedCost = new Intl.NumberFormat('en-GH', {
+    const quantity = Number(formData.quantity);
+    // Convert package dimensions from centimeters to cubic meters, including quantity.
+    const volumeCBM = (Number(formData.length) / 100)
+      * (Number(formData.width) / 100)
+      * (Number(formData.height) / 100)
+      * quantity;
+    const pricing = formData.serviceType === "sea" ? turkeyPricing.sea : turkeyPricing.air;
+    const totalCost = volumeCBM * pricing.rate;
+    const result: QuoteResult = {
+      serviceType: pricing.label + " - Turkey to Ghana",
+      estimatedCost: new Intl.NumberFormat('en-GH', {
         style: 'currency',
         currency: 'GHS',
         minimumFractionDigits: 2
-      }).format(totalCost);
-
-      result = {
-        serviceType: `${turkeyPricing.sea.label} - Turkey to Ghana`,
-        estimatedCost: formattedCost,
-        estimatedDelivery: `${turkeyPricing.sea.days} Days`,
-        currency: turkeyPricing.sea.currency,
-      };
-    } else {
-      // Air shipping
-      const totalCost = weight * turkeyPricing.air.rate;
-      const formattedCost = new Intl.NumberFormat('en-GH', {
-        style: 'currency',
-        currency: 'GHS',
-        minimumFractionDigits: 2
-      }).format(totalCost);
-
-      result = {
-        serviceType: `${turkeyPricing.air.label} - Turkey to Ghana`,
-        estimatedCost: formattedCost,
-        estimatedDelivery: `${turkeyPricing.air.days} Days`,
-        currency: turkeyPricing.air.currency,
-      };
-    }
+      }).format(totalCost),
+      estimatedDelivery: pricing.days + " Days",
+      currency: pricing.currency,
+    };
 
     setQuoteResult(result);
   };
@@ -147,8 +122,12 @@ export default function QuoteCalculator() {
     if (!formData.weight || parseFloat(formData.weight) <= 0) {
       newErrors.weight = "Weight is required";
     }
-    if (formData.serviceType === "sea" && (!formData.length || !formData.width || !formData.height)) {
-      newErrors.dimensions = "Dimensions are required for sea shipping";
+    if ((activeTab === "turkey" || formData.serviceType === "sea") &&
+      [formData.length, formData.width, formData.height].some(value => !Number.isFinite(Number(value)) || Number(value) <= 0)) {
+      newErrors.dimensions = "Enter positive dimensions for CBM pricing";
+    }
+    if (!Number.isInteger(Number(formData.quantity)) || Number(formData.quantity) < 1) {
+      newErrors.quantity = "Enter a whole quantity of at least 1";
     }
     if (!formData.originCity) newErrors.originCity = "Origin city is required";
     if (!formData.destinationCity) newErrors.destinationCity = "Destination city is required";
@@ -161,7 +140,7 @@ export default function QuoteCalculator() {
     setIsSubmitting(true);
 
     try {
-      const dimensions = formData.serviceType === "sea"
+      const dimensions = activeTab === "turkey" || formData.serviceType === "sea"
         ? `${formData.length}cm x ${formData.width}cm x ${formData.height}cm`
         : null;
 
@@ -231,6 +210,7 @@ export default function QuoteCalculator() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setQuoteResult(null);
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -270,7 +250,7 @@ export default function QuoteCalculator() {
                   : "text-gray-600 hover:text-[#315694]"
                 }`}
             >
-              Turkey → Ghana (Pricing Available)
+              USA → Ghana (Pricing Available)
             </button>
             <button
               onClick={() => {
@@ -510,16 +490,21 @@ export default function QuoteCalculator() {
                       onChange={(e) => handleInputChange("quantity", e.target.value)}
                       placeholder="e.g., 1"
                       min="1"
+                      step="1"
+                      className={errors.quantity ? "border-red-500" : ""}
                     />
+                    {errors.quantity && (
+                      <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>
+                    )}
                   </div>
                 </div>
 
-                {/* Dimensions (for sea shipping) */}
-                {formData.serviceType === "sea" && (
+                {/* Dimensions for CBM pricing and custom sea quotes */}
+                {(activeTab === "turkey" || formData.serviceType === "sea") && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       <Ruler className="w-4 h-4 inline mr-1" />
-                      Dimensions (cm) <span className="text-red-500">*</span>
+                      Dimensions per package (cm) <span className="text-red-500">*</span>
                     </label>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
@@ -558,7 +543,7 @@ export default function QuoteCalculator() {
                     )}
                     {activeTab === "turkey" && (
                       <p className="text-xs text-gray-500 mt-2">
-                        Note: Each CBM is charged at GH: 3,660. All packages include freight and custom clearance.
+                        Note: {formData.serviceType === "sea" ? "Sea shipment" : "Air cargo"} costs GHC {formData.serviceType === "sea" ? turkeyPricing.sea.rate : turkeyPricing.air.rate} per CBM. Total volume includes quantity. All packages include freight and custom clearance.
                       </p>
                     )}
                   </div>
@@ -704,11 +689,11 @@ export default function QuoteCalculator() {
                       </div>
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[#315694] mt-0.5 flex-shrink-0" />
-                        <p><strong>Air Cargo:</strong> GHC 132 per KG (7-10 days)</p>
+                        <p><strong>Air Cargo:</strong> GHC {turkeyPricing.air.rate} per CBM (3-5 days)</p>
                       </div>
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[#315694] mt-0.5 flex-shrink-0" />
-                        <p><strong>Sea Shipment:</strong> GH: 3,660 per CBM (35-45 days)</p>
+                        <p><strong>Sea Shipment:</strong> GHC {turkeyPricing.sea.rate} per CBM (35-45 days)</p>
                       </div>
                       <div className="flex items-start gap-3">
                         <Info className="w-5 h-5 text-[#315694] mt-0.5 flex-shrink-0" />
