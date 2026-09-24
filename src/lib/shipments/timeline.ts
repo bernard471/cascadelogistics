@@ -175,6 +175,7 @@ export function appendProofOfPurchaseTimeline(
 }
 
 export interface AdminUpdateMedia {
+  images?: Array<{ imageUrl: string; imageName?: string }>;
   imageUrl?: string;
   imageName?: string;
 }
@@ -264,7 +265,8 @@ export function planAdminShipmentUpdate(
         : "DELTA number cleared",
     );
   }
-  if (media.imageUrl) {
+  const images = media.images?.length ? media.images : media.imageUrl ? [{ imageUrl: media.imageUrl, imageName: media.imageName }] : [];
+  for (const media of images) {
     updateDetails.push(`Update image added: ${media.imageName || "image"}`);
   }
 
@@ -272,7 +274,7 @@ export function planAdminShipmentUpdate(
     const timeline: TimelineEvent[] = Array.isArray(shipment.timeline)
       ? [...shipment.timeline]
       : [];
-    timeline.push({
+    for (const media of images.length ? images : [{ imageUrl: undefined, imageName: undefined }]) timeline.push({
       status:
         newStatus !== oldStatus
           ? shipmentStatusLabels[newStatus] || newStatus

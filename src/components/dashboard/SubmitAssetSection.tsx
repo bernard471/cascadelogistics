@@ -59,7 +59,7 @@ export default function SubmitAssetSection() {
   const [wholesalePurchases, setWholesalePurchases] = useState<Array<{
     name: string;
     trackingNumber: string;
-  }>>([]);
+  }>>([{ name: "", trackingNumber: "" }]);
 
   // Calculate total price using actual pricing structure
   const calculatePrice = () => {
@@ -157,6 +157,10 @@ export default function SubmitAssetSection() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    if (!wholesalePurchases.length || wholesalePurchases.some(p => !p.name.trim() || !p.trackingNumber.trim())) {
+      setError("Please enter the purchase name and shop tracking number for every purchase entry.");
+      return;
+    }
     if (documents.length === 0) {
       setError("Please submit at least one proof of purchase.");
       documentInputRef.current?.focus();
@@ -209,7 +213,7 @@ export default function SubmitAssetSection() {
       setUploadProgress("");
       setIsLoading(false);
       setDocuments([]);
-      setWholesalePurchases([]); // Reset wholesale purchases
+      setWholesalePurchases([{ name: "", trackingNumber: "" }]); // Reset wholesale purchases
       if (documentInputRef.current) {
         documentInputRef.current.value = "";
       }
@@ -447,7 +451,7 @@ export default function SubmitAssetSection() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Package className="w-5 h-5 text-[#055b8e]" />
-              <h3 className="text-lg font-bold text-gray-800">Purchase Information</h3>
+              <h3 className="text-lg font-bold text-gray-800">Purchase Information *</h3>
             </div>
             <Button
               type="button"
@@ -498,10 +502,11 @@ export default function SubmitAssetSection() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Name Used for Purchase
+                        Name Used for Purchase *
                       </label>
                       <Input
                         type="text"
+                        required
                         value={purchase.name}
                         onChange={(e) => updateWholesalePurchase(index, 'name', e.target.value)}
                         placeholder="Enter the name you used when purchasing"
@@ -511,10 +516,11 @@ export default function SubmitAssetSection() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Purchase Shop Tracking Number
+                        Purchase Shop Tracking Number *
                       </label>
                       <Input
                         type="text"
+                        required
                         value={purchase.trackingNumber}
                         onChange={(e) => updateWholesalePurchase(index, 'trackingNumber', e.target.value)}
                         placeholder="Enter tracking number from purchase shop"
@@ -578,6 +584,7 @@ export default function SubmitAssetSection() {
 
         {/* Proof of purchase upload */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <p className="mb-4 font-bold text-gray-800">The document needs to show the content of the shipment and total amount you paid</p>
           <div className="flex items-center gap-2 mb-6">
             <Upload className="w-5 h-5 text-[#055b8e]" />
             <h3 className="text-lg font-bold text-gray-800">Submit Proof of Purchase *</h3>

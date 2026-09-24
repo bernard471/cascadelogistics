@@ -152,6 +152,16 @@ export async function POST(request: Request) {
       }
     }
 
+    if (!Array.isArray(body.wholesalePurchases) || !body.wholesalePurchases.length ||
+      body.wholesalePurchases.some((purchase: unknown) => {
+        if (!purchase || typeof purchase !== "object") return true;
+        const entry = purchase as Record<string, unknown>;
+        return typeof entry.name !== "string" || !entry.name.trim() ||
+          typeof entry.trackingNumber !== "string" || !entry.trackingNumber.trim();
+      })) {
+      return NextResponse.json({ error: "Purchase name and shop tracking number are required for every purchase entry" }, { status: 400 });
+    }
+
     if ("documents" in body) {
       delete body.documents;
     }

@@ -72,8 +72,7 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
     specialInstructions: shipment.specialInstructions || "",
     deltaNumber: shipment.deltaNumber || ""
   });
-  const [updateImage, setUpdateImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [updateImages, setUpdateImages] = useState<Array<{ file: File; preview: string }>>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -86,39 +85,25 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
     setError("");
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size
-    if (file.size > MAX_IMAGE_SIZE) {
-      setError("Image exceeds 10MB limit");
-      return;
-    }
-
-    // Validate file type
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setError("Invalid image type. Only JPEG, PNG, and WebP are allowed");
+    if (files.some(file => file.size > MAX_IMAGE_SIZE || !validTypes.includes(file.type))) {
+      setError("Each image must be JPEG, PNG, or WebP and no larger than 10MB.");
       return;
     }
-
-    setUpdateImage(file);
-    setError("");
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveImage = () => {
-    setUpdateImage(null);
-    setImagePreview(null);
-    if (imageInputRef.current) {
-      imageInputRef.current.value = "";
+    try {
+      const images = await Promise.all(files.map(file => new Promise<{ file: File; preview: string }>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ file, preview: reader.result as string });
+        reader.onerror = () => reject(new Error("Unable to read image"));
+        reader.readAsDataURL(file);
+      })));
+      setUpdateImages(previous => [...previous, ...images]);
+      setError("");
+    } catch {
+      setError("Unable to read the selected images. Please try again.");
     }
   };
 
@@ -139,8 +124,8 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
       if (formData.deltaNumber !== undefined) {
         formDataToSend.append("deltaNumber", formData.deltaNumber);
       }
-      if (updateImage) {
-        formDataToSend.append("updateImage", updateImage);
+      for (const image of updateImages) {
+        formDataToSend.append("updateImage", image.file);
       }
 
       const response = await fetch(`/api/admin/shipments/${shipment._id}`, {
@@ -294,54 +279,21 @@ export default function EditShipmentModal({ shipment, onClose, onSave }: EditShi
             </p>
           </div>
 
-          {/* Update Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Update Image (Optional)
-            </label>
-            <p className="text-xs text-gray-500 mb-3">
-              Add an image to show users when they track this shipment update
-            </p>
-            
-            {!imagePreview ? (
-              <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#055b8e] transition-colors cursor-pointer"
-                onClick={() => imageInputRef.current?.click()}
-              >
-                <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-600 mb-1">
-                  Click to upload update image
-                </p>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG, WebP up to 10MB
-                </p>
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  className="hidden"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={handleImageSelect}
-                />
-              </div>
-            ) : (
-              <div className="relative">
-                <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Update Images (Optional)</label>
+            <p className="text-xs text-gray-500 mb-3">Add images to show users when they track this shipment update. JPEG, PNG, or WebP, up to 10MB each.</p>
+            <Button type="button" variant="outline" disabled={isSaving} onClick={() => imageInputRef.current?.click()}><Upload className="w-4 h-4 mr-2" />Add images</Button>
+            <input ref={imageInputRef} type="file" multiple className="hidden" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleImageSelect} disabled={isSaving} />
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              {updateImages.map((image, index) => (
+                <div key={index} className="relative border rounded-lg p-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={imagePreview}
-                    alt="Update preview"
-                    className="max-w-full max-h-64 mx-auto rounded-lg"
-                  />
+                  <img src={image.preview} alt={image.file.name} className="w-full h-32 object-contain" />
+                  <p className="text-xs text-gray-600 break-all mt-2">{image.file.name}</p>
+                  <button type="button" disabled={isSaving} aria-label={`Remove ${image.file.name}`} onClick={() => setUpdateImages(previous => previous.filter((_, i) => i !== index))} className="absolute top-1 right-1 p-2 bg-white rounded-full"><X className="w-4 h-4" /></button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
 
           {/* Footer */}

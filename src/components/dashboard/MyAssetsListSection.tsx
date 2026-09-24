@@ -24,6 +24,8 @@ interface MappedAsset {
   value: string;
   trackingId: string;
   deltaNumber?: string;
+  purchaseTrackingNumber: string;
+  shipment: Shipment;
 }
 
 export default function MyAssetsListSection() {
@@ -51,6 +53,14 @@ export default function MyAssetsListSection() {
       const response = await fetch(`/api/shipments?${params}`);
       if (response.ok) {
         const data = await response.json();
+        while (data.shipments.length < data.total) {
+          params.set("skip", String(data.shipments.length));
+          const nextResponse = await fetch(`/api/shipments?${params}`);
+          if (!nextResponse.ok) throw new Error("Failed to fetch remaining shipments");
+          const next = await nextResponse.json();
+          if (!next.shipments.length) break;
+          data.shipments.push(...next.shipments);
+        }
         
         // Helper function to map status to display name and color
         const getStatusDisplay = (status: string) => {
@@ -70,10 +80,13 @@ export default function MyAssetsListSection() {
         };
 
         // Map API data to component format
-        const mappedAssets: MappedAsset[] = data.shipments.map((shipment: Shipment) => {
+        const mappedAssets: MappedAsset[] = data.shipments.flatMap((shipment: Shipment) => {
           const statusInfo = getStatusDisplay(shipment.status);
-          return {
-            id: shipment.trackingId,
+          const numbers = shipment.wholesalePurchases?.map(p => p.trackingNumber.trim()).filter(Boolean) || [];
+          return (numbers.length ? numbers : [""]).map((purchaseTrackingNumber, index) => ({
+            purchaseTrackingNumber,
+            shipment,
+            id: `${shipment.trackingId}-${index}`,
             destination: 'Ghana Warehouse, Ghana',
             origin: 'USA Warehouse, USA',
             status: statusInfo.display,
@@ -86,7 +99,7 @@ export default function MyAssetsListSection() {
           value: `$${shipment.declaredValue}`,
           trackingId: shipment.trackingId,
           deltaNumber: shipment.deltaNumber
-          };
+          }));
         });
         
         setAssets(mappedAssets);
@@ -104,11 +117,7 @@ export default function MyAssetsListSection() {
 
   const handleViewAsset = async (asset: MappedAsset) => {
     try {
-      const response = await fetch(`/api/shipments`);
-      if (!response.ok) throw new Error('Failed to fetch shipment details');
-      
-      const data = await response.json();
-      const fullShipment = data.shipments.find((s: Shipment) => s.trackingId === asset.trackingId);
+      const fullShipment = asset.shipment;
       
       if (!fullShipment) {
         throw new Error('Shipment not found');
@@ -124,11 +133,7 @@ export default function MyAssetsListSection() {
 
   const handleEditAsset = async (asset: MappedAsset) => {
     try {
-      const response = await fetch(`/api/shipments`);
-      if (!response.ok) throw new Error('Failed to fetch shipment details');
-      
-      const data = await response.json();
-      const fullShipment = data.shipments.find((s: Shipment) => s.trackingId === asset.trackingId);
+      const fullShipment = asset.shipment;
       
       if (!fullShipment) {
         throw new Error('Shipment not found');
@@ -150,6 +155,7 @@ export default function MyAssetsListSection() {
   // Filter assets based on search (status filtering happens server-side via API)
   const filteredAssets = assets.filter((asset) => {
     const matchesSearch = 
+      asset.purchaseTrackingNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       asset.trackingId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       asset.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
       asset.origin.toLowerCase().includes(searchQuery.toLowerCase());
@@ -164,11 +170,7 @@ export default function MyAssetsListSection() {
 
   const handleViewInvoice = async (asset: MappedAsset) => {
     try {
-      const response = await fetch(`/api/shipments`);
-      if (!response.ok) throw new Error('Failed to fetch shipment details');
-      
-      const data = await response.json();
-      const fullShipment = data.shipments.find((s: Shipment) => s.trackingId === asset.trackingId);
+      const fullShipment = asset.shipment;
       
       if (!fullShipment || !fullShipment._id) {
         alert('Shipment not found');
@@ -189,7 +191,7 @@ export default function MyAssetsListSection() {
       {/* Header */}
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">My Assets List</h1>
-        <p className="text-gray-600 mt-1">View and manage all your shipments</p>
+        <p className="text-gray-600 mt-1">View your purchase tracking numbers and their shipments</p>
       </div>
 
       {/* Filters and Search */}
@@ -202,8 +204,8 @@ export default function MyAssetsListSection() {
               <Input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by tracking ID, origin, or destination..."
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                placeholder="Search by purchase tracking number or shipment ID..."
                 className="pl-10 h-12"
               />
             </div>
@@ -213,7 +215,7 @@ export default function MyAssetsListSection() {
           <div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
               className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
             >
               <option value="all">All Status</option>
@@ -287,68 +289,28 @@ export default function MyAssetsListSection() {
             <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tracking ID
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  DELTA Number
-                </th>
-                <th className="px-16 md:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Origin → Destination
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Package Type
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Est. Delivery
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                {['Purchase Tracking Number', 'Shipment', 'Status', 'Created Date', 'Actions'].map(label => (
+                  <th key={label} className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {paginatedAssets.map((asset) => (
-                <tr key={asset.trackingId} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Link href={`/user-dashboard/track-shipment?id=${asset.trackingId}`}>
-                      <span className="text-sm font-medium text-[#055b8e] hover:underline">
-                        {asset.trackingId}
-                      </span>
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-900">
-                      {asset.deltaNumber || "-"}
-                    </span>
-                  </td>
+                <tr key={asset.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 break-all text-sm font-medium text-gray-900">{asset.purchaseTrackingNumber || "No purchase tracking number provided"}</td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      {asset.origin} → {asset.destination}
-                    </div>
+                    <Link href={`/user-dashboard/track-shipment?id=${asset.trackingId}`} className="text-sm font-medium text-[#055b8e] hover:underline">{asset.trackingId}</Link>
+                    {asset.deltaNumber && (
+                      <p className="text-xs text-gray-600 mt-1">DELTA: {asset.deltaNumber}</p>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">{asset.packageType}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${asset.statusColor}`}>
+                    <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${asset.statusColor}`}>
                       {asset.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {asset.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {asset.estimatedDelivery}
+                    <time dateTime={asset.date}>{asset.date}</time>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">

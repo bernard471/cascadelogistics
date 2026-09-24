@@ -330,7 +330,7 @@ export async function updateInternalShipment(input: {
     const changedFields = Object.keys(plan.updateData).filter(
       (field) => !["timeline", "updatedAt"].includes(field),
     );
-    if (input.media?.imageUrl) changedFields.push("updateImage");
+    if (input.media?.imageUrl || input.media?.images?.length) changedFields.push("updateImage");
     await appendInternalPartnerShipmentEvent({
       db: input.db,
       shipment: existing,

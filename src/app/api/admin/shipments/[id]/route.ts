@@ -98,8 +98,7 @@ export async function PATCH(
     // Handle multipart/form-data for image upload
     const contentType = request.headers.get("content-type") || "";
     let body: AdminShipmentUpdateInput = {};
-    let imageUrl: string | undefined;
-    let imageName: string | undefined;
+    const images: Array<{ imageUrl: string; imageName: string }> = [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
@@ -110,7 +109,7 @@ export async function PATCH(
       const estimatedDelivery = formData.get("estimatedDelivery");
       const specialInstructions = formData.get("specialInstructions");
       const deltaNumber = formData.get("deltaNumber");
-      const imageFile = formData.get("updateImage") as File | null;
+      const imageFiles = formData.getAll("updateImage").filter((value): value is File => value instanceof File && value.size > 0);
 
       if (typeof status === 'string' && status) body.status = status;
       if (typeof currentLocation === 'string') body.currentLocation = currentLocation;
@@ -119,7 +118,7 @@ export async function PATCH(
       if (typeof deltaNumber === 'string') body.deltaNumber = deltaNumber;
 
       // Handle image upload
-      if (imageFile && imageFile.size > 0) {
+      for (const imageFile of imageFiles) {
         // Validate file size
         if (imageFile.size > MAX_IMAGE_SIZE) {
           return NextResponse.json(
@@ -137,6 +136,9 @@ export async function PATCH(
           );
         }
         
+      }
+
+      for (const imageFile of imageFiles) {
         // Upload to Vercel Blob Storage
         const organization = shipment.organizationId
           ? await db.collection<OrganizationDocument>("organizations").findOne({
@@ -161,8 +163,7 @@ export async function PATCH(
           }
         );
 
-        imageUrl = imageBlob.url;
-        imageName = imageFile.name;
+        images.push({ imageUrl: imageBlob.url, imageName: imageFile.name });
       }
     } else {
       body = await request.json();
@@ -174,7 +175,7 @@ export async function PATCH(
         id,
         principal,
         body,
-        media: { imageUrl, imageName },
+        media: { images },
       });
 
     if (shipment.userId) {

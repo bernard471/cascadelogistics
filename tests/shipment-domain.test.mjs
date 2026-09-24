@@ -401,3 +401,16 @@ test("document upload policies preserve role, operation, and path isolation", ()
     false,
   );
 });
+
+
+test("admin update preserves every uploaded image in the tracking timeline", () => {
+  const existing = { status: "Created", date: now, time: "12:00", location: "USA", completed: true };
+  const images = [
+    { imageUrl: "https://store.private.blob.vercel-storage.com/one.jpg", imageName: "one.jpg" },
+    { imageUrl: "https://store.private.blob.vercel-storage.com/two.jpg", imageName: "two.jpg" },
+  ];
+  const plan = planAdminShipmentUpdate(baseShipment({ timeline: [existing] }), {}, { images }, now);
+  assert.equal(plan.updateData.timeline.length, 3);
+  assert.deepEqual(plan.updateData.timeline[0], existing);
+  assert.deepEqual(plan.updateData.timeline.slice(1).map(({ imageUrl, imageName }) => ({ imageUrl, imageName })), images);
+});
