@@ -75,6 +75,14 @@ interface MappedShipment {
   partnerApplicationId?: string;
 }
 
+// One table row per purchase tracking number
+interface TrackingNumberRow {
+  key: string;
+  trackingNumber: string | null;
+  purchaseName?: string;
+  shipment: MappedShipment;
+}
+
 interface PartnerOption {
   id: string;
   name: string;
@@ -241,12 +249,37 @@ export default function ShipmentManagementSection({
     fetchShipments();
   }, [fetchShipments]);
 
-  // Pagination
-  const totalPages = Math.ceil(shipments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedShipments = shipments.slice(startIndex, startIndex + itemsPerPage);
+  // Flatten shipments into one row per purchase tracking number.
+  // Shipments without purchases still get a row so they stay manageable.
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const trackingRows = shipments.flatMap((shipment): TrackingNumberRow[] => {
+    const purchases = (shipment.wholesalePurchases || []).filter(
+      (purchase) => purchase.trackingNumber?.trim(),
+    );
+    if (purchases.length === 0) {
+      return [{ key: `${shipment._id}-none`, trackingNumber: null, shipment }];
+    }
+    // When searching by a purchase tracking number, only show the matching ones
+    const matching = normalizedSearch
+      ? purchases.filter((purchase) =>
+          purchase.trackingNumber.toLowerCase().includes(normalizedSearch),
+        )
+      : [];
+    return (matching.length > 0 ? matching : purchases).map((purchase, index) => ({
+      key: `${shipment._id}-${index}-${purchase.trackingNumber}`,
+      trackingNumber: purchase.trackingNumber,
+      purchaseName: purchase.name,
+      shipment,
+    }));
+  });
 
-  // Selection handlers
+  // Pagination
+  const totalPages = Math.ceil(trackingRows.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRows = trackingRows.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedShipments = paginatedRows.map((row) => row.shipment);
+
+  // Selection handlers (selection is per shipment, since bulk updates apply to shipments)
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       const allIds = new Set(paginatedShipments.map(s => s._id));
@@ -386,7 +419,7 @@ export default function ShipmentManagementSection({
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                placeholder="Search tracking, customer, partner, application, or external reference..."
+                placeholder="Search purchase tracking number, shipment ID, customer, or DELTA number..."
                 className="pl-10 h-12"
               />
             </div>
@@ -465,10 +498,10 @@ export default function ShipmentManagementSection({
             <div className="animate-spin w-12 h-12 border-4 border-[#055b8e] border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-gray-600">Loading shipments...</p>
           </div>
-        ) : shipments.length === 0 ? (
+        ) : trackingRows.length === 0 ? (
           <div className="p-12 text-center">
             <PackagePlus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-800 mb-2">No shipments found</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">No tracking numbers found</h3>
             <p className="text-gray-600">No shipments match your filters</p>
           </div>
         ) : (
@@ -483,11 +516,11 @@ export default function ShipmentManagementSection({
                   />
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tracking ID
+                  Purchase Tracking No.
                 </th>
-                {/* <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Source
-                </th> */}
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Shipment ID
+                </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   DELTA Number
                 </th>
@@ -507,13 +540,16 @@ export default function ShipmentManagementSection({
                   Est. Delivery
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created At
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {paginatedShipments.map((shipment) => (
-                <tr key={shipment.id} className="hover:bg-gray-50 transition-colors">
+              {paginatedRows.map(({ key, trackingNumber, purchaseName, shipment }) => (
+                <tr key={key} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Checkbox
                       checked={selectedShipmentIds.has(shipment._id)}
@@ -521,36 +557,20 @@ export default function ShipmentManagementSection({
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-[#055b8e]">{shipment.id}</div>
-                    {shipment.externalReference && (
-                      <div className="mt-1 text-xs text-gray-500">
-                        Ref: {shipment.externalReference}
-                      </div>
-                    )}
-                  </td>
-                  {/* <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {sourceLabel(shipment.createdVia)}
-                    </div>
-                    {shipment.createdVia === "partner_api" && (
+                    {trackingNumber ? (
                       <>
-                        <div className="mt-1 max-w-44 truncate text-xs text-gray-500">
-                          {[shipment.partnerOrganization, shipment.partnerApplication]
-                            .filter(Boolean)
-                            .join(" / ") || "Partner integration"}
-                        </div>
-                        {shipment.environment && (
-                          <span className={`mt-1 inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
-                            shipment.environment === "live"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}>
-                            {shipment.environment}
-                          </span>
+                        <div className="text-sm font-medium text-[#055b8e]">{trackingNumber}</div>
+                        {purchaseName && (
+                          <div className="mt-1 text-xs text-gray-500">{purchaseName}</div>
                         )}
                       </>
+                    ) : (
+                      <span className="text-sm italic text-gray-400">No purchase tracking</span>
                     )}
-                  </td> */}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{shipment.id}</div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-900">
                       {shipment.deltaNumber || "-"}
@@ -564,18 +584,6 @@ export default function ShipmentManagementSection({
                       </div>
                     )}
                   </td>
-                  {/* <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-900">
-                      <MapPin className="w-4 h-4 text-gray-400" />
-                      <div>
-                        <div>{shipment.origin}</div>
-                        <div className="text-xs text-gray-500">→ {shipment.destination}</div>
-                      </div>
-                    </div>
-                  </td> */}
-                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {shipment.service}
-                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${shipment.statusColor}`}>
                       {shipment.status}
@@ -584,12 +592,15 @@ export default function ShipmentManagementSection({
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {shipment.estimatedDelivery}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {shipment.date}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleViewShipment(shipment.id)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="View Details"
+                        title="View Shipment"
                       >
                         <Eye className="w-4 h-4 text-gray-600" />
                       </button>
@@ -624,11 +635,11 @@ export default function ShipmentManagementSection({
         )}
 
         {/* Pagination */}
-        {!isLoading && shipments.length > 0 && totalPages > 1 && (
+        {!isLoading && trackingRows.length > 0 && totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, shipments.length)} of {shipments.length} results
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, trackingRows.length)} of {trackingRows.length} tracking numbers
               </div>
               
               <div className="flex items-center gap-2">

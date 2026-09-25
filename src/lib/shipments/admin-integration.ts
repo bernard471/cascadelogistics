@@ -83,6 +83,7 @@ export async function buildAdminShipmentFilter(
     conditions.push({
       $or: [
         { trackingId: pattern },
+        { "wholesalePurchases.trackingNumber": pattern },
         { senderName: pattern },
         { receiverName: pattern },
         { senderCity: pattern },
