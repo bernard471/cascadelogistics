@@ -4,10 +4,18 @@ import clientPromise from "@/lib/mongodb";
 import type { User } from "@/models/User";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { MongoQuery } from "@/types";
+import type { Document, Filter } from "mongodb";
 import { getEmailFrom, getEmailTransporter } from "@/lib/email";
+import { normalizeSearchTerm, type SearchMatchType } from "@/lib/search/text-search";
+import { searchUsers, USER_LIST_PROJECTION } from "@/lib/search/user-search";
 
-// GET - Fetch all users (Admin only)
+function readInteger(value: string | null, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(value || "", 10);
+  return Number.isFinite(parsed) ? Math.min(Math.max(parsed, min), max) : fallback;
+}
+
+// GET - List or search users (Admin/Staff). `search` returns exact matches
+// first, then similar spellings, each tagged with `matchType`.
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -18,68 +26,107 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const search = searchParams.get("search");
-    const limit = parseInt(searchParams.get("limit") || "100");
+    const role = searchParams.get("role");
+    const search = normalizeSearchTerm(searchParams.get("search"));
+    const limit = readInteger(searchParams.get("limit"), 100, 1, 200);
+    const skip = readInteger(searchParams.get("skip"), 0, 0, 1_000_000);
 
     const client = await clientPromise;
     const db = client.db("guangzhou");
-    const usersCollection = db.collection<User>("users");
+    const usersCollection = db.collection("users");
     const shipmentsCollection = db.collection("shipments");
     const visibleUserRoles: User["role"][] = ["user", "admin", "staff"];
-
-    // Build query
-    const query: MongoQuery = { role: { $in: visibleUserRoles } };
-    if (status && status !== "all") {
-      query.status = status;
-    }
-    if (search) {
-      query.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { username: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Fetch users
-    const users = await usersCollection
-      .find(query, { projection: { password: 0 } })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
-
-    // Get shipment counts for each user
-    const usersWithShipments = await Promise.all(
-      users.map(async (user) => {
-        const totalShipments = await shipmentsCollection.countDocuments({
-          userId: user._id?.toString()
-        });
-        
-        return {
-          ...user,
-          _id: user._id?.toString(),
-          totalShipments,
-          registeredDate: new Date(user.createdAt).toISOString().split('T')[0]
-        };
-      })
-    );
-
-    // Get total counts for stats
     const visibleUserFilter = { role: { $in: visibleUserRoles } };
-    const total = await usersCollection.countDocuments(visibleUserFilter);
-    const active = await usersCollection.countDocuments({ ...visibleUserFilter, status: 'active' });
-    const suspended = await usersCollection.countDocuments({ ...visibleUserFilter, status: 'suspended' });
-    const pending = await usersCollection.countDocuments({ ...visibleUserFilter, status: 'pending' });
+
+    const baseFilter: Filter<Document> = {
+      role: role && (visibleUserRoles as string[]).includes(role)
+        ? role
+        : { $in: visibleUserRoles },
+    };
+    if (status && status !== "all") {
+      baseFilter.status = status;
+    }
+
+    let users: Document[];
+    let total: number;
+    let searchSummary: { term: string; exactCount: number; similarCount: number } | undefined;
+    const matchTypes = new Map<string, SearchMatchType>();
+
+    if (search) {
+      // Exact matches first, then similar spellings; the page is cut from that ranking.
+      const result = await searchUsers(db, { term: search, baseFilter });
+      total = result.matches.length;
+      const page = result.matches.slice(skip, skip + limit);
+      page.forEach((match) => matchTypes.set(match.id.toString(), match.matchType));
+      const found = page.length
+        ? await usersCollection
+            .find({ _id: { $in: page.map((match) => match.id) } }, { projection: USER_LIST_PROJECTION })
+            .toArray()
+        : [];
+      const byId = new Map(found.map((user) => [user._id.toString(), user]));
+      users = page.flatMap((match) => byId.get(match.id.toString()) || []);
+      searchSummary = {
+        term: search,
+        exactCount: result.exactCount,
+        similarCount: result.similarCount,
+      };
+    } else {
+      [users, total] = await Promise.all([
+        usersCollection
+          .find(baseFilter, { projection: USER_LIST_PROJECTION })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .toArray(),
+        usersCollection.countDocuments(baseFilter),
+      ]);
+    }
+
+    // One query for the shipment counts of every user on this page.
+    const userIds = users.map((user) => user._id.toString());
+    const [shipmentCounts, statsTotal, active, suspended, pending] = await Promise.all([
+      userIds.length
+        ? shipmentsCollection
+            .aggregate<{ _id: string; count: number }>([
+              { $match: { userId: { $in: userIds } } },
+              { $group: { _id: "$userId", count: { $sum: 1 } } },
+            ])
+            .toArray()
+        : Promise.resolve([]),
+      usersCollection.countDocuments(visibleUserFilter),
+      usersCollection.countDocuments({ ...visibleUserFilter, status: "active" }),
+      usersCollection.countDocuments({ ...visibleUserFilter, status: "suspended" }),
+      usersCollection.countDocuments({ ...visibleUserFilter, status: "pending" }),
+    ]);
+    const shipmentCountByUser = new Map(shipmentCounts.map((row) => [row._id, row.count]));
+
+    const usersWithShipments = users.map((user) => {
+      const id = user._id.toString();
+      const createdAt = new Date(user.createdAt);
+      return {
+        ...user,
+        _id: id,
+        totalShipments: shipmentCountByUser.get(id) || 0,
+        registeredDate: Number.isNaN(createdAt.getTime())
+          ? ""
+          : createdAt.toISOString().split("T")[0],
+        ...(matchTypes.has(id) ? { matchType: matchTypes.get(id) } : {}),
+      };
+    });
 
     return NextResponse.json(
       {
         users: usersWithShipments,
         stats: {
-          total,
+          total: statsTotal,
           active,
           suspended,
           pending
-        }
+        },
+        total,
+        page: Math.floor(skip / limit) + 1,
+        totalPages: Math.ceil(total / limit),
+        ...(searchSummary ? { search: searchSummary } : {}),
       },
       { headers: { "Cache-Control": "no-store" } }
     );

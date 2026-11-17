@@ -48,6 +48,7 @@ export default function StaffManagementSection() {
     try {
       // Fetch staff users from the users collection (role: "staff")
       const params = new URLSearchParams({
+        role: "staff",
         search: searchQuery,
         ...(statusFilter !== "all" && { status: statusFilter })
       });

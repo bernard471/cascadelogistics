@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Search, Users, UserPlus, Eye, Edit2, Trash2, Ban, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Users, UserPlus, Eye, Edit2, Trash2, Ban, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import ViewUserModal from "@/components/modals/ViewUserModal";
 import EditUserModal from "@/components/modals/EditUserModal";
 import CreateUserModal from "@/components/modals/CreateUserModal";
-import { User as UserType } from "@/types";
+import {
+  PaginationBar,
+  SearchResultsSummary,
+  SearchSubmitBar,
+  SimilarMatchBadge,
+} from "@/components/dashboard/AdminSearchControls";
+import type { SearchMatchType, SearchSummary, UsersResponse } from "@/types";
 
 // Mapped user type for internal component use
 interface MappedUser {
@@ -19,37 +24,49 @@ interface MappedUser {
   registeredDate: string;
   status: string;
   statusColor: string;
+  matchType?: SearchMatchType;
 }
 
 export default function UserManagementSection() {
-  const [searchQuery, setSearchQuery] = useState("");
+  // What is typed in the box vs. the search that was last submitted.
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchSummary, setSearchSummary] = useState<SearchSummary | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<MappedUser[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [userStats, setUserStats] = useState<{ total: number; active: number; suspended: number; pending: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<MappedUser | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const latestRequest = useRef(0);
   const itemsPerPage = 10;
 
   const fetchUsers = useCallback(async () => {
+    const requestId = ++latestRequest.current;
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         status: statusFilter,
-        search: searchQuery
+        limit: String(itemsPerPage),
+        skip: String((currentPage - 1) * itemsPerPage),
       });
-      
+      if (searchTerm) params.set("search", searchTerm);
+
       const response = await fetch(`/api/admin/users?${params}`, { cache: "no-store" });
+      // A newer search was started while this one was running; ignore this answer.
+      if (requestId !== latestRequest.current) return;
       if (response.ok) {
-        const data = await response.json();
-        const visibleUsers = (data.users as UserType[]).filter(
-          (user): user is UserType & { _id: string } =>
+        const data = (await response.json()) as UsersResponse;
+        const visibleUsers = data.users.filter(
+          (user): user is typeof user & { _id: string } =>
             user.role !== "super_admin" && Boolean(user._id)
         );
-        
+
         // Map users to component format
         const mappedUsers: MappedUser[] = visibleUsers.map((user) => ({
           id: user._id,
@@ -63,27 +80,52 @@ export default function UserManagementSection() {
                   'Pending',
           statusColor: user.status === 'active' ? 'text-green-600 bg-green-50' :
                       user.status === 'suspended' ? 'text-red-600 bg-red-50' :
-                      'text-yellow-600 bg-yellow-50'
+                      'text-yellow-600 bg-yellow-50',
+          matchType: user.matchType,
         }));
-        
+
+        const total = data.total ?? mappedUsers.length;
+        const pages = data.totalPages ?? Math.ceil(total / itemsPerPage);
+        // The last page emptied (e.g. after a delete): step back to the new last page.
+        if (mappedUsers.length === 0 && currentPage > 1 && pages > 0) {
+          setCurrentPage(Math.min(currentPage - 1, pages));
+          return;
+        }
+
         setUsers(mappedUsers);
+        setTotalUsers(total);
+        setTotalPages(pages);
+        setSearchSummary(data.search ?? null);
         setUserStats(data.stats);
       }
     } catch (error) {
       console.error("Failed to fetch users:", error);
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequest.current) setIsLoading(false);
     }
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, searchTerm, currentPage]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Pagination (client-side since we're filtering server-side)
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const handleSearch = () => {
+    const term = searchInput.replace(/\s+/g, " ").trim();
+    if (term === searchTerm && currentPage === 1) {
+      fetchUsers(); // Same search again: refresh the results.
+    } else {
+      setSearchTerm(term);
+      setCurrentPage(1);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedUsers = users.slice(startIndex, startIndex + itemsPerPage);
 
   const handleViewUser = (id: string) => {
     const user = users.find(u => u.id === id);
@@ -180,23 +222,25 @@ export default function UserManagementSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="md:col-span-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, email, or phone..."
-                className="pl-10 h-12"
-              />
-            </div>
+            <SearchSubmitBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={handleSearch}
+              onClear={handleClearSearch}
+              hasActiveSearch={Boolean(searchTerm)}
+              isSearching={isLoading && Boolean(searchInput)}
+              placeholder="Search by name, email, username, or phone..."
+            />
           </div>
 
           {/* Status Filter */}
           <div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#055b8e]"
             >
               <option value="all">All Status</option>
@@ -206,6 +250,9 @@ export default function UserManagementSection() {
             </select>
           </div>
         </div>
+        {!isLoading && (
+          <SearchResultsSummary summary={searchSummary} noun={{ singular: "user", plural: "users" }} />
+        )}
       </div>
 
       {/* Users Table */}
@@ -219,7 +266,11 @@ export default function UserManagementSection() {
           <div className="p-12 text-center">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-gray-800 mb-2">No users found</h3>
-            <p className="text-gray-600">Try adjusting your filters or add a new user</p>
+            <p className="text-gray-600">
+              {searchTerm
+                ? <>Nothing matches or sounds like &ldquo;{searchTerm}&rdquo;. Check the spelling, try part of the name or email, or clear the search.</>
+                : "Try adjusting your filters or add a new user"}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -247,7 +298,7 @@ export default function UserManagementSection() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {paginatedUsers.map((user) => (
+              {users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
@@ -255,7 +306,10 @@ export default function UserManagementSection() {
                         {user.name.split(' ').map((n: string) => n[0]).join('')}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {user.name}
+                          {user.matchType === "similar" && <SimilarMatchBadge />}
+                        </div>
                         <div className="text-xs text-gray-500">{user.email}</div>
                       </div>
                     </div>
@@ -324,50 +378,13 @@ export default function UserManagementSection() {
         )}
 
         {/* Pagination */}
-        {!isLoading && users.length > 0 && totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, users.length)} of {users.length} results
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    className={currentPage === page ? "bg-[#055b8e] hover:bg-[#044a73]" : ""}
-                  >
-                    {page}
-                  </Button>
-                ))}
-                
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+        {!isLoading && users.length > 0 && (
+          <PaginationBar
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            label={`Showing ${startIndex + 1} to ${startIndex + users.length} of ${totalUsers.toLocaleString()} ${searchTerm ? "results" : "users"}`}
+          />
         )}
       </div>
 

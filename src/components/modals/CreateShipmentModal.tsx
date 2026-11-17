@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X, Save, PackagePlus, User,
- //  MapPin, 
-   Upload, Plus, Search, ChevronDown } from "lucide-react";
+ //  MapPin,
+   Upload, Plus, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User as UserType } from "@/types";
+import { SearchSubmitBar, SimilarMatchBadge } from "@/components/dashboard/AdminSearchControls";
+import type { SearchMatchType, SearchSummary, User as UserType, UsersResponse } from "@/types";
 import { calculateShippingPrice, 
   // getServiceInfo, 
   type GoodsType, type ServiceType } from "@/lib/pricing";
@@ -21,11 +22,25 @@ interface CreateShipmentModalProps {
   onSave: () => void;
 }
 
+type UserSearchResult = UsersResponse["users"][number] & { _id: string; matchType?: SearchMatchType };
+
+const USER_RESULTS_LIMIT = 20;
+
+function describeUser(user: UserType) {
+  return `${user.firstName} ${user.lastName} (${user.email})`;
+}
+
 export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentModalProps) {
-  const [users, setUsers] = useState<UserType[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
+  const [userSearchSummary, setUserSearchSummary] = useState<SearchSummary | null>(null);
+  const [userSearchTotal, setUserSearchTotal] = useState(0);
+  const [userSearchState, setUserSearchState] = useState<"idle" | "searching" | "done" | "error">("idle");
+  const [userSearchHint, setUserSearchHint] = useState("");
+  const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const latestUserSearch = useRef(0);
   const [formData, setFormData] = useState({
     userId: "",
     packageType: "parcel",
@@ -76,21 +91,56 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
   const documentInputRef = useRef<HTMLInputElement>(null);
   const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 
-  // Fetch users for dropdown
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const response = await fetch("/api/admin/users?limit=100");
-        if (response.ok) {
-          const data = await response.json();
-          setUsers(data.users);
-        }
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      }
+  // Search the whole users collection for the typed name/email/username/phone.
+  const searchUsers = async () => {
+    const term = userSearchQuery.replace(/\s+/g, " ").trim();
+    if (term.length < 2) {
+      setUserSearchHint("Type at least 2 characters of the name, email, username or phone, then press Search.");
+      setUserResults([]);
+      setUserSearchSummary(null);
+      setUserSearchState("idle");
+      setShowUserDropdown(true);
+      return;
     }
-    fetchUsers();
-  }, []);
+
+    const requestId = ++latestUserSearch.current;
+    setUserSearchHint("");
+    setUserSearchState("searching");
+    setShowUserDropdown(true);
+    try {
+      const params = new URLSearchParams({ search: term, limit: String(USER_RESULTS_LIMIT) });
+      const response = await fetch(`/api/admin/users?${params}`, { cache: "no-store" });
+      if (requestId !== latestUserSearch.current) return;
+      if (!response.ok) throw new Error(`Search failed (${response.status})`);
+      const data = (await response.json()) as UsersResponse;
+      setUserResults(
+        data.users.filter((user): user is UserSearchResult =>
+          user.role !== "super_admin" && Boolean(user._id),
+        ),
+      );
+      setUserSearchSummary(data.search ?? null);
+      setUserSearchTotal(data.total ?? data.users.length);
+      setUserSearchState("done");
+    } catch (error) {
+      if (requestId !== latestUserSearch.current) return;
+      console.error("Failed to search users:", error);
+      setUserResults([]);
+      setUserSearchSummary(null);
+      setUserSearchState("error");
+    }
+  };
+
+  const clearUserSearch = () => {
+    latestUserSearch.current += 1;
+    setUserSearchQuery("");
+    setUserResults([]);
+    setUserSearchSummary(null);
+    setUserSearchHint("");
+    setUserSearchState("idle");
+    setSelectedUser(null);
+    setFormData(prev => ({ ...prev, userId: "" }));
+    setShowUserDropdown(false);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -143,35 +193,25 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
     documentInputRef.current?.click();
   };
 
-  // Filter users based on search query
-  const filteredUsers = users.filter(user => {
-    const searchLower = userSearchQuery.toLowerCase();
-    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-    const email = user.email.toLowerCase();
-    return fullName.includes(searchLower) || email.includes(searchLower);
-  });
+  const handleUserSelect = (user: UserSearchResult) => {
+    setSelectedUser(user);
+    setFormData(prev => ({ ...prev, userId: user._id }));
+    setUserSearchQuery(describeUser(user));
+    setShowUserDropdown(false);
+    setError("");
+  };
 
-  const handleUserSelect = (userId: string) => {
-    const selectedUser = users.find(u => u._id === userId);
-    if (selectedUser && selectedUser._id) {
-      setFormData(prev => ({
-        ...prev,
-        userId: selectedUser._id!
-      }));
-      setUserSearchQuery(`${selectedUser.firstName} ${selectedUser.lastName} (${selectedUser.email})`);
-      setShowUserDropdown(false);
+  const handleUserQueryChange = (value: string) => {
+    setUserSearchQuery(value);
+    // Editing the text after picking someone means they are looking for someone else.
+    if (selectedUser && value !== describeUser(selectedUser)) {
+      setSelectedUser(null);
+      setFormData(prev => ({ ...prev, userId: "" }));
     }
   };
 
-  // Get selected user display name
-  const getSelectedUserDisplay = () => {
-    if (!formData.userId) return "";
-    const selectedUser = users.find(u => u._id === formData.userId);
-    if (selectedUser) {
-      return `${selectedUser.firstName} ${selectedUser.lastName} (${selectedUser.email})`;
-    }
-    return "";
-  };
+  const exactUserResults = userResults.filter(user => user.matchType !== "similar");
+  const similarUserResults = userResults.filter(user => user.matchType === "similar");
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -315,74 +355,104 @@ export default function CreateShipmentModal({ onClose, onSave }: CreateShipmentM
               Select User *
             </label>
             <div className="relative">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  type="text"
-                  value={userSearchQuery}
-                  onChange={(e) => {
-                    setUserSearchQuery(e.target.value);
+              <SearchSubmitBar
+                value={userSearchQuery}
+                onChange={handleUserQueryChange}
+                onSearch={searchUsers}
+                onClear={clearUserSearch}
+                isSearching={userSearchState === "searching"}
+                onFocus={() => {
+                  if (!selectedUser && (userResults.length > 0 || userSearchState === "done")) {
                     setShowUserDropdown(true);
-                    if (!e.target.value) {
-                      setFormData(prev => ({ ...prev, userId: "" }));
-                    }
-                  }}
-                  onFocus={() => setShowUserDropdown(true)}
-                  placeholder="Search by name or email..."
-                  className="h-12 pl-10 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <ChevronDown className={`w-5 h-5 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-              
-              {/* Dropdown */}
+                  }
+                }}
+                onEscape={() => setShowUserDropdown(false)}
+                placeholder="Type a name, email, username or phone, then press Search"
+              />
+
+              {/* Results */}
               {showUserDropdown && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                  {filteredUsers.length > 0 ? (
-                    <ul className="py-1">
-                      {filteredUsers.map(user => (
-                        <li
-                          key={user._id}
-                          onClick={() => handleUserSelect(user._id!)}
-                          className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                            formData.userId === user._id ? 'bg-blue-50' : ''
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {user.firstName} {user.lastName}
-                              </div>
-                              <div className="text-xs text-gray-500">{user.email}</div>
-                            </div>
-                            {formData.userId === user._id && (
-                              <div className="ml-auto text-[#055b8e]">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                      No users found
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-72 overflow-y-auto">
+                  {userSearchHint ? (
+                    <div className="px-4 py-3 text-sm text-gray-500">{userSearchHint}</div>
+                  ) : userSearchState === "searching" ? (
+                    <div className="flex items-center justify-center gap-2 px-4 py-4 text-sm text-gray-500">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Searching all users…
                     </div>
+                  ) : userSearchState === "error" ? (
+                    <div className="px-4 py-3 text-sm text-red-600">
+                      The search could not be completed. Check your connection and try again.
+                    </div>
+                  ) : userResults.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      No user matches or sounds like &ldquo;{userSearchSummary?.term || userSearchQuery}&rdquo;.
+                      Try part of the name, the email address, or the phone number.
+                    </div>
+                  ) : (
+                    <>
+                      {[
+                        { key: "exact", title: "Matches", list: exactUserResults },
+                        {
+                          key: "similar",
+                          title: exactUserResults.length
+                            ? "Similar names"
+                            : "No exact match. Did you mean…",
+                          list: similarUserResults,
+                        },
+                      ].map((group) =>
+                        group.list.length === 0 ? null : (
+                          <div key={group.key}>
+                            <div className="sticky top-0 bg-gray-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                              {group.title}
+                            </div>
+                            <ul className="py-1">
+                              {group.list.map(user => (
+                                <li key={user._id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUserSelect(user)}
+                                    className={`w-full px-4 py-2 text-left hover:bg-gray-100 ${
+                                      formData.userId === user._id ? "bg-blue-50" : ""
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <User className="w-4 h-4 shrink-0 text-gray-400" />
+                                      <div className="min-w-0">
+                                        <div className="text-sm font-medium text-gray-900">
+                                          {user.firstName} {user.lastName}
+                                          {user.matchType === "similar" && <SimilarMatchBadge />}
+                                        </div>
+                                        <div className="truncate text-xs text-gray-500">
+                                          {user.email}
+                                          {user.phone ? ` · ${user.phone}` : ""}
+                                          {user.username ? ` · @${user.username}` : ""}
+                                        </div>
+                                      </div>
+                                      {formData.userId === user._id && (
+                                        <CheckCircle2 className="ml-auto w-5 h-5 shrink-0 text-[#055b8e]" />
+                                      )}
+                                    </div>
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ),
+                      )}
+                      {userSearchTotal > userResults.length && (
+                        <div className="border-t border-gray-100 px-4 py-2 text-xs text-gray-500">
+                          Showing the best {userResults.length} of {userSearchTotal.toLocaleString()} results. Add more of the name or email to narrow it down.
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
             </div>
-            {formData.userId && (
+            {selectedUser && (
               <p className="text-xs text-green-600 mt-1">
-                Selected: {getSelectedUserDisplay()}
+                Selected: {describeUser(selectedUser)}
               </p>
             )}
             <p className="text-xs text-gray-500 mt-1">

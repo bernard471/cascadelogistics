@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { ObjectId, type Document, type Filter } from "mongodb";
+import { searchShipments } from "@/lib/search/shipment-search";
+import { normalizeSearchTerm, type SearchMatchType } from "@/lib/search/text-search";
 import { put } from "@vercel/blob";
 import type { Shipment, ShipmentDocument } from "@/models/Shipment";
 import { sendShipmentUpdateEmail } from "@/lib/email";
@@ -54,7 +56,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const search = searchParams.get("search");
+    const search = normalizeSearchTerm(searchParams.get("search"));
     const source = searchParams.get("source");
     const partner = searchParams.get("partner");
     const externalReference = searchParams.get("externalReference");
@@ -70,31 +72,68 @@ export async function GET(request: Request) {
     const client = await clientPromise;
     const db = client.db("guangzhou");
     const shipmentsCollection = db.collection<Shipment>("shipments");
-    const query = await buildAdminShipmentFilter(db, {
+    const filters = {
       status,
-      search,
       source,
       partnerPublicId: partner,
       externalReference,
-    });
+    };
+    const baseFilter = await buildAdminShipmentFilter(db, filters);
 
-    // Fetch shipments
-    const shipments = await shipmentsCollection
-      .find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray();
+    let shipments: Shipment[];
+    let filteredTotal: number;
+    let searchSummary: { term: string; exactCount: number; similarCount: number } | undefined;
+    const matchTypes = new Map<string, SearchMatchType>();
 
-    const [shipmentsWithUsers, partnerOrganizations] = await Promise.all([
+    if (search) {
+      // Exact matches first, then similar references/names; the page is cut from that ranking.
+      const exactFilter = await buildAdminShipmentFilter(db, { ...filters, search });
+      const result = await searchShipments(db, {
+        term: search,
+        baseFilter: baseFilter as Filter<Document>,
+        exactFilter: exactFilter as Filter<Document>,
+      });
+      filteredTotal = result.matches.length;
+      const page = result.matches.slice(skip, skip + limit);
+      page.forEach((match) => matchTypes.set(match.id.toString(), match.matchType));
+      const found = page.length
+        ? await shipmentsCollection
+            // The Shipment model types _id as a string; stored ids are ObjectIds.
+            .find({ _id: { $in: page.map((match) => match.id) } } as unknown as Filter<Shipment>)
+            .toArray()
+        : [];
+      const byId = new Map(found.map((shipment) => [String(shipment._id), shipment]));
+      shipments = page.flatMap((match) => byId.get(match.id.toString()) || []);
+      searchSummary = {
+        term: search,
+        exactCount: result.exactCount,
+        similarCount: result.similarCount,
+      };
+    } else {
+      [shipments, filteredTotal] = await Promise.all([
+        shipmentsCollection
+          .find(baseFilter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .toArray(),
+        shipmentsCollection.countDocuments(baseFilter),
+      ]);
+    }
+
+    const [enrichedShipments, partnerOrganizations] = await Promise.all([
       enrichAdminShipments(db, shipments),
       listAdminPartnerOptions(db),
     ]);
+    const shipmentsWithUsers = enrichedShipments.map((shipment) =>
+      shipment._id && matchTypes.has(shipment._id)
+        ? { ...shipment, matchType: matchTypes.get(shipment._id) }
+        : shipment,
+    );
 
-    const [total, filteredTotal, inTransit, delivered, pending, cancelled] =
+    const [total, inTransit, delivered, pending, cancelled] =
       await Promise.all([
         shipmentsCollection.countDocuments({}),
-        shipmentsCollection.countDocuments(query),
         shipmentsCollection.countDocuments({ status: "in-transit" }),
         shipmentsCollection.countDocuments({ status: "delivered" }),
         shipmentsCollection.countDocuments({
@@ -117,7 +156,8 @@ export async function GET(request: Request) {
       partnerOrganizations,
       total: filteredTotal,
       page: Math.floor(skip / limit) + 1,
-      totalPages: Math.ceil(filteredTotal / limit)
+      totalPages: Math.ceil(filteredTotal / limit),
+      ...(searchSummary ? { search: searchSummary } : {}),
     });
   } catch (error) {
     console.error("GET admin shipments error:", error);

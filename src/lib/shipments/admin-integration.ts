@@ -9,6 +9,8 @@ import type {
   OrganizationDocument,
 } from "../partner-platform/types.ts";
 import type { InternalShipmentPrincipal } from "./principals.ts";
+import { buildShipmentExactSearchClauses } from "../search/shipment-search.ts";
+import { normalizeSearchTerm } from "../search/text-search.ts";
 
 const shipmentStatuses = new Set<Shipment["status"]>([
   "pending",
@@ -69,28 +71,23 @@ export async function buildAdminShipmentFilter(
     conditions.push({ externalReference: escapedRegex(externalReference) } as Filter<Shipment>);
   }
 
-  const search = input.search?.trim().slice(0, 100);
+  const search = normalizeSearchTerm(input.search);
   if (search) {
     const pattern = escapedRegex(search);
-    const organizations = await db
-      .collection<OrganizationDocument>("organizations")
-      .find({ name: pattern })
-      .toArray();
-    const applications = await db
-      .collection<ApiClientDocument>("api_clients")
-      .find({ name: pattern })
-      .toArray();
+    const [textClauses, organizations, applications] = await Promise.all([
+      buildShipmentExactSearchClauses(db, search),
+      db
+        .collection<OrganizationDocument>("organizations")
+        .find({ name: pattern })
+        .toArray(),
+      db
+        .collection<ApiClientDocument>("api_clients")
+        .find({ name: pattern })
+        .toArray(),
+    ]);
     conditions.push({
       $or: [
-        { trackingId: pattern },
-        { "wholesalePurchases.trackingNumber": pattern },
-        { senderName: pattern },
-        { receiverName: pattern },
-        { senderCity: pattern },
-        { receiverCity: pattern },
-        { deltaNumber: pattern },
-        { externalReference: pattern },
-        { externalCustomerId: pattern },
+        ...textClauses,
         ...(organizations.some((organization) => organization._id)
           ? [{ organizationId: { $in: organizations.flatMap((organization) => organization._id ? [organization._id] : []) } }]
           : []),

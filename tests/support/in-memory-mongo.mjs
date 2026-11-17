@@ -146,6 +146,14 @@ class InMemoryCollection {
     return this.documents.filter((document) => matches(document, filter)).length;
   }
 
+  async distinct(field, filter = {}) {
+    const values = this.documents
+      .filter((document) => matches(document, filter))
+      .map((document) => document[field])
+      .filter((value) => value !== undefined && value !== null);
+    return Array.from(new Set(values));
+  }
+
   async updateOne(filter, update, options = {}) {
     const index = this.documents.findIndex((document) => matches(document, filter));
     if (index < 0) {

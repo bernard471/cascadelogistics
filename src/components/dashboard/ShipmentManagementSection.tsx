@@ -1,18 +1,24 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, Eye, Edit2, Trash2, Upload, 
- // MapPin, 
-  ChevronLeft, ChevronRight, PackagePlus } from "lucide-react";
+import { Eye, Edit2, Trash2, Upload,
+ // MapPin,
+  PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import ViewShipmentModal from "@/components/modals/ViewShipmentModal";
 import EditShipmentModal from "@/components/modals/EditShipmentModal";
 import CreateShipmentModal from "@/components/modals/CreateShipmentModal";
 import AddInvoiceModal from "@/components/modals/AddInvoiceModal";
 import BulkUpdateShipmentModal from "@/components/modals/BulkUpdateShipmentModal";
-import { Shipment, ShipmentsResponse } from "@/types";
+import {
+  PaginationBar,
+  SearchResultsSummary,
+  SearchSubmitBar,
+  SimilarMatchBadge,
+} from "@/components/dashboard/AdminSearchControls";
+import { compactCode } from "@/lib/search/text-search";
+import type { SearchMatchType, SearchSummary, Shipment, ShipmentsResponse } from "@/types";
 
 // Internal type for mapped shipment data in this component
 interface MappedShipment {
@@ -73,6 +79,7 @@ interface MappedShipment {
   partnerOrganizationId?: string;
   partnerApplication?: string;
   partnerApplicationId?: string;
+  matchType?: SearchMatchType;
 }
 
 // One table row per purchase tracking number
@@ -101,12 +108,18 @@ export default function ShipmentManagementSection({
 }: {
   initialShipmentTrackingId?: string;
 }) {
-  const [searchQuery, setSearchQuery] = useState(initialShipmentTrackingId);
+  // What is typed in the box vs. the search that was last submitted.
+  const [searchInput, setSearchInput] = useState(initialShipmentTrackingId);
+  const [searchTerm, setSearchTerm] = useState(initialShipmentTrackingId.trim());
+  const [searchSummary, setSearchSummary] = useState<SearchSummary | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, ] = useState("all");
   const [partnerFilter,] = useState("all");
   const [, setPartnerOptions] = useState<PartnerOption[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalShipments, setTotalShipments] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const latestRequest = useRef(0);
   const [shipments, setShipments] = useState<MappedShipment[]>([]);
   const [shipmentStats, setShipmentStats] = useState<ShipmentsResponse['stats'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,20 +131,25 @@ export default function ShipmentManagementSection({
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [selectedShipmentIds, setSelectedShipmentIds] = useState<Set<string>>(new Set());
   const directLinkHandled = useRef(false);
+  // Shipments per page (a shipment with several purchases shows several rows).
   const itemsPerPage = 10;
 
   const fetchShipments = useCallback(async () => {
+    const requestId = ++latestRequest.current;
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         status: statusFilter,
         source: sourceFilter,
         partner: partnerFilter,
-        search: searchQuery,
-        limit: "100"
+        limit: String(itemsPerPage),
+        skip: String((currentPage - 1) * itemsPerPage),
       });
-      
-      const response = await fetch(`/api/admin/shipments?${params}`);
+      if (searchTerm) params.set("search", searchTerm);
+
+      const response = await fetch(`/api/admin/shipments?${params}`, { cache: "no-store" });
+      // A newer search was started while this one was running; ignore this answer.
+      if (requestId !== latestRequest.current) return;
       if (response.ok) {
         const data = await response.json();
         setPartnerOptions(data.partnerOrganizations || []);
@@ -154,7 +172,7 @@ export default function ShipmentManagementSection({
         };
 
         // Map shipments to component format
-        const mappedShipments: MappedShipment[] = data.shipments.map((shipment: Shipment) => {
+        const mappedShipments: MappedShipment[] = data.shipments.map((shipment: Shipment & { matchType?: SearchMatchType }) => {
           const statusInfo = getStatusDisplay(shipment.status);
           return {
             id: shipment.trackingId,
@@ -214,10 +232,22 @@ export default function ShipmentManagementSection({
             partnerOrganizationId: shipment.partnerOrganizationId,
             partnerApplication: shipment.partnerApplication,
             partnerApplicationId: shipment.partnerApplicationId,
+            matchType: shipment.matchType,
           };
         });
-        
+
+        const total: number = data.total ?? mappedShipments.length;
+        const pages: number = data.totalPages ?? Math.ceil(total / itemsPerPage);
+        // The last page emptied (e.g. after a delete): step back to the new last page.
+        if (mappedShipments.length === 0 && currentPage > 1 && pages > 0) {
+          setCurrentPage(Math.min(currentPage - 1, pages));
+          return;
+        }
+
         setShipments(mappedShipments);
+        setTotalShipments(total);
+        setTotalPages(pages);
+        setSearchSummary((data as ShipmentsResponse).search ?? null);
         setShipmentStats(data.stats);
         if (initialShipmentTrackingId && !directLinkHandled.current) {
           const linkedShipment = mappedShipments.find(
@@ -235,13 +265,14 @@ export default function ShipmentManagementSection({
     } catch (error) {
       console.error("Failed to fetch shipments:", error);
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequest.current) setIsLoading(false);
     }
   }, [
     statusFilter,
     sourceFilter,
     partnerFilter,
-    searchQuery,
+    searchTerm,
+    currentPage,
     initialShipmentTrackingId,
   ]);
 
@@ -249,9 +280,25 @@ export default function ShipmentManagementSection({
     fetchShipments();
   }, [fetchShipments]);
 
+  const handleSearch = () => {
+    const term = searchInput.replace(/\s+/g, " ").trim();
+    if (term === searchTerm && currentPage === 1) {
+      fetchShipments(); // Same search again: refresh the results.
+    } else {
+      setSearchTerm(term);
+      setCurrentPage(1);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
   // Flatten shipments into one row per purchase tracking number.
   // Shipments without purchases still get a row so they stay manageable.
-  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const compactSearch = compactCode(searchTerm);
   const trackingRows = shipments.flatMap((shipment): TrackingNumberRow[] => {
     const purchases = (shipment.wholesalePurchases || []).filter(
       (purchase) => purchase.trackingNumber?.trim(),
@@ -260,9 +307,10 @@ export default function ShipmentManagementSection({
       return [{ key: `${shipment._id}-none`, trackingNumber: null, shipment }];
     }
     // When searching by a purchase tracking number, only show the matching ones
-    const matching = normalizedSearch
+    // (ignoring spaces and dashes, the same way the search does).
+    const matching = compactSearch.length >= 3
       ? purchases.filter((purchase) =>
-          purchase.trackingNumber.toLowerCase().includes(normalizedSearch),
+          compactCode(purchase.trackingNumber).includes(compactSearch),
         )
       : [];
     return (matching.length > 0 ? matching : purchases).map((purchase, index) => ({
@@ -273,11 +321,10 @@ export default function ShipmentManagementSection({
     }));
   });
 
-  // Pagination
-  const totalPages = Math.ceil(trackingRows.length / itemsPerPage);
+  // Pagination is done by the server, one page of shipments at a time.
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedRows = trackingRows.slice(startIndex, startIndex + itemsPerPage);
-  const paginatedShipments = paginatedRows.map((row) => row.shipment);
+  const paginatedRows = trackingRows;
+  const paginatedShipments = shipments;
 
   // Selection handlers (selection is per shipment, since bulk updates apply to shipments)
   const handleSelectAll = (checked: boolean) => {
@@ -410,19 +457,15 @@ export default function ShipmentManagementSection({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div className="md:col-span-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Search purchase tracking number, shipment ID, customer, or DELTA number..."
-                className="pl-10 h-12"
-              />
-            </div>
+            <SearchSubmitBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={handleSearch}
+              onClear={handleClearSearch}
+              hasActiveSearch={Boolean(searchTerm)}
+              isSearching={isLoading && Boolean(searchInput)}
+              placeholder="Search tracking number, shipment ID, DELTA number, customer name, email, or phone..."
+            />
           </div>
 
           {/* <div>
@@ -489,6 +532,9 @@ export default function ShipmentManagementSection({
             </select>
           </div>
         </div>
+        {!isLoading && (
+          <SearchResultsSummary summary={searchSummary} noun={{ singular: "shipment", plural: "shipments" }} />
+        )}
       </div>
 
       {/* Shipments Table */}
@@ -502,7 +548,11 @@ export default function ShipmentManagementSection({
           <div className="p-12 text-center">
             <PackagePlus className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-gray-800 mb-2">No tracking numbers found</h3>
-            <p className="text-gray-600">No shipments match your filters</p>
+            <p className="text-gray-600">
+              {searchTerm
+                ? <>Nothing matches or looks like &ldquo;{searchTerm}&rdquo;. Check the number or spelling, try part of it, or clear the search.</>
+                : "No shipments match your filters"}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -569,7 +619,10 @@ export default function ShipmentManagementSection({
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{shipment.id}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {shipment.id}
+                      {shipment.matchType === "similar" && <SimilarMatchBadge />}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-900">
@@ -635,50 +688,13 @@ export default function ShipmentManagementSection({
         )}
 
         {/* Pagination */}
-        {!isLoading && trackingRows.length > 0 && totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, trackingRows.length)} of {trackingRows.length} tracking numbers
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    className={currentPage === page ? "bg-[#055b8e] hover:bg-[#044a73]" : ""}
-                  >
-                    {page}
-                  </Button>
-                ))}
-                
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+        {!isLoading && trackingRows.length > 0 && (
+          <PaginationBar
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            label={`Showing shipments ${startIndex + 1} to ${startIndex + shipments.length} of ${totalShipments.toLocaleString()}`}
+          />
         )}
       </div>
 

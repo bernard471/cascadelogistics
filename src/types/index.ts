@@ -452,18 +452,31 @@ export interface PaginationData {
 }
 
 // API Response types for different endpoints
+/** Admin search results: "exact" contains what was typed, "similar" is a close spelling. */
+export type SearchMatchType = 'exact' | 'similar';
+
+export interface SearchSummary {
+  term: string;
+  exactCount: number;
+  similarCount: number;
+}
+
 export interface UsersResponse {
-  users: UserWithStats[];
+  users: Array<UserWithStats & { matchType?: SearchMatchType }>;
   stats: {
     total: number;
     active: number;
     suspended: number;
     pending: number;
   };
+  total?: number;
+  page?: number;
+  totalPages?: number;
+  search?: SearchSummary;
 }
 
 export interface ShipmentsResponse {
-  shipments: Shipment[];
+  shipments: Array<Shipment & { matchType?: SearchMatchType }>;
   stats: {
     total: number;
     inTransit: number;
@@ -471,8 +484,10 @@ export interface ShipmentsResponse {
     pending: number;
     cancelled: number;
   };
+  total?: number;
   page: number;
   totalPages: number;
+  search?: SearchSummary;
 }
 
 export interface NotificationsResponse {
